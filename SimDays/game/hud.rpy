@@ -11,9 +11,8 @@ screen hud():
         background "#000000cc"
         hbox:
             xfill True
-            xpadding 18
-            ypadding 8
             spacing 24
+            padding (18, 8, 18, 8)
             # Date + time
             vbox:
                 yalign 0.5
