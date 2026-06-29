@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/characters.rpy" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/data.rpy" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/hud.rpy" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images.rpy" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_beach_full.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_beach_neutral.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_beach_smile.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_beach_surprised_BROKEN.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_coat_surprised.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_hoodie_neutral.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_hoodie_talk.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_punk_neutral.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/raw/zoe_punk_talk.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_coat_full.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_coat_smile.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_hoodie_full.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_hoodie_smile.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_back.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_sit.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_wave.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_smile.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_full.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_neutral.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_smile.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_surprised.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_talk.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/bar.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/beachday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/beachnight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/cafeday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/cafenight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/carworkshop.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/cheaphouse_day.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/cheaphouse_night.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/class.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/clothesshop.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/electronicsshop.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/giftshop.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/goodhomeday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/goodhomenight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/goodoffice1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/gymdaynopeople.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/gymdaypeople.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/hospital1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/libraryday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/librarynight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/mallday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/mallnight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/mediumoffice1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/officelobby1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/parkday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/parknight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/pooroffice1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/restaurantday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/restaurantnight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/richhomeday.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/richhomenight.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/schoolhall.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/images/locations/warehouse.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimDays/game/map.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/SimDays.iml" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/.idea/SimDays.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/script.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/script.rpy" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "pawelrdmkot21-debug"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/pawelrdmkot21-debug/SimDays.git",
+    "accountId": "8a1cea24-53e0-4219-b89a-e445ea4d9cb6"
+  }
+}]]></component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="m" />
+    <option name="LAST_COMMIT_MESSAGE" value="m" />
+  </component>
+</project>

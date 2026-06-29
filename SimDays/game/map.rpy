@@ -44,8 +44,7 @@ style map_btn:
     hover_color "#f0c040"
     idle_background  "#00000000"
     hover_background "#ffffff22"
-    xpadding 6
-    ypadding 3
+    padding (6, 3, 6, 3)
 
 style map_btn_sleep:
     size 14
@@ -53,5 +52,4 @@ style map_btn_sleep:
     hover_color "#aaccff"
     idle_background  "#00000000"
     hover_background "#ffffff22"
-    xpadding 6
-    ypadding 3
+    padding (6, 3, 6, 3)
