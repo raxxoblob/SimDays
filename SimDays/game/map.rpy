@@ -1,68 +1,92 @@
-# City map screen
+# City map — road-aligned district zones with always-on icon markers.
+# Idle: district icon at the zone centre. Hover: blue parallelogram + name.
+# Click area = the zone's mask PNG.
+
+# key, jump target, icon file (in images/ui/icons/), centre x, centre y
+define MAP_ZONES = [
+    ("bogate_domki", "location_home",      "apartment_ext",  220, 148),
+    ("warehouse",    "location_warehouse", "garage",        1665, 147),
+    ("park",         "location_park",      "park",           930, 254),
+    ("domki",        "location_home",      "apartment_ext",  426, 384),
+    ("bloki",        "location_home",      "apartment_ext",  739, 397),
+    ("centrum",      "location_centrum",   "office_ext",    1196, 387),
+    ("szpital",      "location_hospital",  "szpital",        289, 599),
+    ("mall",         "location_mall",      "mall",           964, 552),
+    ("plaza",        "location_beach",     "beach",         1061, 929),
+]
 
 screen city_map():
     tag menu
-    zorder 5
 
-    $ datestr = "%s, Day %d" % (day_name(day), day + 1)
+    # hover + click hotspots (full-screen, masked to each parcel)
+    for key, lbl, icon, cx, cy in MAP_ZONES:
+        imagebutton:
+            idle "zone_blank"
+            hover ("z_%s_hi" % key)
+            focus_mask Image("images/ui/z_%s_mask.png" % key)
+            action Jump(lbl)
 
-    # Semi-transparent panel on the left
-    frame:
+    # always-on district icon markers (display-only; clicks pass to the buttons)
+    for key, lbl, icon, cx, cy in MAP_ZONES:
+        add ("images/ui/icons/icon_%s.png" % icon):
+            xpos cx
+            ypos cy
+            xanchor 0.5
+            yanchor 0.5
+            xysize (104, 104)
+
+    textbutton "Sleep / End Day":
+        action Jump("action_sleep")
+        style "pin_sleep"
         xpos 30
-        ypos 70
-        xsize 240
-        background "#000000aa"
-        padding (14, 14, 14, 14)
-        vbox:
-            spacing 2
-            text "CITY MAP" style "map_title"
-            text "[datestr]" style "map_subtitle"
-            null height 10
-
-            textbutton "Home"          action Jump("location_home")    style "map_btn"
-            textbutton "Coffee Shop"    action Jump("location_cafe")    style "map_btn"
-            textbutton "Gym"            action Jump("location_gym")     style "map_btn"
-            textbutton "Library"        action Jump("location_library") style "map_btn"
-            textbutton "Bar"            action Jump("location_bar")     style "map_btn"
-            textbutton "Nexus Tower"    action Jump("location_office")  style "map_btn"
-            textbutton "Mall"           action Jump("location_mall")    style "map_btn"
-            textbutton "Park"           action Jump("location_park")    style "map_btn"
-            textbutton "Beach"          action Jump("location_beach")   style "map_btn"
-            null height 10
-            textbutton "Sleep / End Day" action Jump("action_sleep")    style "map_btn_sleep"
+        ypos 1008
 
 
-# ── Styles ────────────────────────────────────────────────────────────
-# Text displayables (text statement) -> plain text styles
-style map_title is default:
+style pin_sleep is button:
+    background "#000000c0"
+    hover_background "#222222e0"
+    padding (12, 6, 12, 6)
+
+style pin_sleep_text is button_text:
     size 16
-    color "#f0c040"
-    bold True
-
-style map_subtitle is default:
-    size 12
-    color "#aaaaaa"
-
-# Buttons: the button style holds background/padding,
-# the matching <name>_text style holds the text color/size.
-style map_btn is button:
-    background None
-    hover_background "#ffffff22"
-    padding (8, 4, 8, 4)
-    xfill True
-
-style map_btn_text is button_text:
-    size 16
-    idle_color "#ffffff"
-    hover_color "#f0c040"
-
-style map_btn_sleep is button:
-    background None
-    hover_background "#ffffff22"
-    padding (8, 4, 8, 4)
-    xfill True
-
-style map_btn_sleep_text is button_text:
-    size 15
     idle_color "#88aaff"
     hover_color "#aaccff"
+
+
+# ── Centrum hub: bottom bar of venue icons ────────────────────────────
+# icon file (images/ui/icons/), label, jump target
+define CENTRUM_VENUES = [
+    ("coffee_shop", "Coffee Shop", "location_cafe"),
+    ("office_exec", "Nexus Tower", "location_office"),
+    ("gym",         "Gym",         "location_gym"),
+    ("college",     "Library",     "location_library"),
+    ("bar",         "Bar",         "location_bar"),
+]
+
+screen centrum_hub():
+    use hud
+
+    frame:
+        xalign 0.5
+        yalign 1.0
+        yoffset -16
+        background "#000000aa"
+        padding (24, 14, 24, 14)
+        hbox:
+            spacing 26
+            for icon, label, target in CENTRUM_VENUES:
+                vbox:
+                    xsize 132
+                    spacing 4
+                    imagebutton:
+                        xalign 0.5
+                        idle  Transform("images/ui/icons/icon_%s.png" % icon, size=(108, 108))
+                        hover Transform("images/ui/icons/icon_%s.png" % icon, size=(120, 120))
+                        action Jump(target)
+                    text label xalign 0.5 size 16 color "#ffffff"
+
+    textbutton "Back to City Map":
+        action Jump("map")
+        style "pin_sleep"
+        xpos 30
+        ypos 1008

@@ -48,7 +48,7 @@ label location_cafe:
 label cafe_first_visit:
     scene expression cafe_bg()
     show screen hud
-    show zoe_street_neutral at sprite_c
+    show zoe_punk_smile at sprite_c
     "A girl behind the counter catches your eye — red hair, green eyes, a gold star clip."
     z "Hey! First time here? I'm Zoe."
     menu:
@@ -59,7 +59,7 @@ label cafe_first_visit:
         "\"Just passing through.\"":
             z "Cool. Let me know if you need anything."
     $ zoe_met = True
-    hide zoe_street_neutral
+    hide zoe_punk_smile
     jump cafe_actions
 
 label cafe_actions:
@@ -90,7 +90,7 @@ label cafe_talk_zoe:
     $ zoe_affection += 3
     scene expression cafe_bg()
     show screen hud
-    show zoe_street_smile at sprite_c
+    show zoe_punk_smile at sprite_c
     if zoe_affection < 20:
         z "So what do you do when you're not hanging around cafes?"
         menu:
@@ -117,7 +117,7 @@ label cafe_talk_zoe:
                 $ zoe_trust += 3
             "\"Maybe another time.\"":
                 z "Sure. No pressure."
-    hide zoe_street_smile
+    hide zoe_punk_smile
     jump cafe_actions
 
 label cafe_work_shift:
@@ -129,9 +129,9 @@ label cafe_work_shift:
     $ stat_chr = min(100, stat_chr + 1)
     "Four hours of steaming milk and small talk. You pocket $60."
     if zoe_met:
-        show zoe_street_talk at sprite_r
+        show zoe_punk_smile at sprite_r
         z "Not bad for your first shift. Henry said you're a natural."
-        hide zoe_street_talk
+        hide zoe_punk_smile
     jump cafe_actions
 
 # ── GYM ───────────────────────────────────────────────────────────────
@@ -260,6 +260,42 @@ label location_beach:
             jump location_beach
         "Leave to City Map":
             jump map
+
+# ── CENTRUM (downtown hub) ────────────────────────────────────────────
+# Clicking the downtown district drops you "on the street" — pick a venue.
+label location_centrum:
+    scene expression ("centerstreet_night" if (hour >= 20 or hour < 6) else "centerstreet_day")
+    # bottom bar of venue icons (screen handles navigation)
+    call screen centrum_hub
+
+# ── WAREHOUSE ─────────────────────────────────────────────────────────
+label location_warehouse:
+    scene warehouse
+    show screen hud
+    if stat_str < 25:
+        "The foreman looks you over: \"Come back when you can lift, kid.\" (Need STR 25)"
+        jump map
+    menu:
+        "LogiCity Warehouse."
+        "Work a shift (8h, +$110, +2 STR)":
+            if hour + 8 > DAY_END:
+                "Too late to start a full shift today."
+                jump location_warehouse
+            $ spend_time(8)
+            $ money += 110
+            $ stat_str = min(100, stat_str + 2)
+            "Eight hours of hauling and stacking. Your back aches; your wallet's heavier."
+            jump location_warehouse
+        "Leave to City Map":
+            jump map
+
+# ── HOSPITAL ──────────────────────────────────────────────────────────
+label location_hospital:
+    scene hospital1
+    show screen hud
+    "City Hospital. Clean, quiet, smells of antiseptic. Nothing you need here right now."
+    # ponytail: stub — no health system yet; future: treat injuries, medical job, an NPC.
+    jump map
 
 # ── SLEEP ─────────────────────────────────────────────────────────────
 label action_sleep:

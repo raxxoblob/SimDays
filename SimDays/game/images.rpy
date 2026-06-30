@@ -8,7 +8,7 @@
 # screen with no borders. Same ratio -> no distortion.
 init python:
     def _bg(name, filename=None):
-        path = "images/locations/%s.png" % (filename or name)
+        path = "images/locations/%s.webp" % (filename or name)
         renpy.image(name, Transform(path, size=(1920, 1080)))
 
     for _n in [
@@ -21,6 +21,7 @@ init python:
         "parkday", "parknight", "beachday", "beachnight",
         "goodoffice1", "mediumoffice1", "pooroffice1", "officelobby1",
         "warehouse", "carworkshop", "hospital1", "schoolhall",
+        "centerstreet_day", "centerstreet_night",
     ]:
         _bg(_n)
 
@@ -30,6 +31,11 @@ init python:
     # ponytail: ~3% horizontal squeeze (1.834 vs 1.778); imperceptible.
     # Upgrade path: downscale the PNG to 1920x1080 to cut the VRAM load.
     _bg("map_city")
+
+    # Map district hover-zones (road-aligned overlays generated in images/ui/)
+    renpy.image("zone_blank", "images/ui/zone_blank.png")
+    for _z in ["bogate_domki", "warehouse", "park", "domki", "bloki", "centrum", "szpital", "mall", "plaza"]:
+        renpy.image("z_%s_hi" % _z, "images/ui/z_%s_hi.png" % _z)
 
 # ── Sprite positioning transforms ─────────────────────────────────────
 # Sprites are tall portraits (~1086x1448 / 1024x1535). 'fit contain' scales
@@ -53,11 +59,11 @@ transform sprite_l:
     yalign 1.0
 
 # ── Zoe sprites (plain files; positioned via the transforms above) ─────
-image zoe_street_neutral   = "images/characters/zoe/zoe_street_neutral.png"
-image zoe_street_smile     = "images/characters/zoe/zoe_street_smile.png"
-image zoe_street_talk      = "images/characters/zoe/zoe_street_talk.png"
-image zoe_street_surprised = "images/characters/zoe/zoe_street_surprised.png"
-image zoe_street_full      = "images/characters/zoe/zoe_street_full.png"
-image zoe_punk_smile       = "images/characters/zoe/zoe_punk_smile.png"
-image zoe_hoodie_smile     = "images/characters/zoe/zoe_hoodie_smile.png"
-image zoe_coat_smile       = "images/characters/zoe/zoe_coat_smile.png"
+image zoe_street_neutral   = "images/characters/zoe/zoe_street_neutral.webp"
+image zoe_street_smile     = "images/characters/zoe/zoe_street_smile.webp"
+image zoe_street_talk      = "images/characters/zoe/zoe_street_talk.webp"
+image zoe_street_surprised = "images/characters/zoe/zoe_street_surprised.webp"
+image zoe_street_full      = "images/characters/zoe/zoe_street_full.webp"
+image zoe_punk_smile       = "images/characters/zoe/zoe_punk_smile.webp"
+image zoe_hoodie_smile     = "images/characters/zoe/zoe_hoodie_smile.webp"
+image zoe_coat_smile       = "images/characters/zoe/zoe_coat_smile.webp"
