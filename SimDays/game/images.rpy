@@ -2,53 +2,57 @@
 # Ren'Py looks for images relative to the game/ folder.
 # game/images is a directory junction -> ../../images (the shared asset folder).
 
-# Locations
-image cheaphouse_day   = "images/locations/cheaphouse_day.png"
-image cheaphouse_night = "images/locations/cheaphouse_night.png"
-image goodhomeday      = "images/locations/goodhomeday.png"
-image goodhomenight    = "images/locations/goodhomenight.png"
-image richhomeday      = "images/locations/richhomeday.png"
-image richhomenight    = "images/locations/richhomenight.png"
+# ── Backgrounds ───────────────────────────────────────────────────────
+# All location backgrounds are 16:9 (1672x941 or 1920x1080). We wrap each in
+# a Transform that forces 1920x1080 (the game resolution) so they fill the
+# screen with no borders. Same ratio -> no distortion.
+init python:
+    def _bg(name, filename=None):
+        path = "images/locations/%s.png" % (filename or name)
+        renpy.image(name, Transform(path, size=(1920, 1080)))
 
-image cafeday          = "images/locations/cafeday.png"
-image cafenight        = "images/locations/cafenight.png"
-image bar              = "images/locations/bar.png"
-image restaurantday    = "images/locations/restaurantday.png"
-image restaurantnight  = "images/locations/restaurantnight.png"
+    for _n in [
+        "cheaphouse_day", "cheaphouse_night",
+        "goodhomeday", "goodhomenight", "richhomeday", "richhomenight",
+        "cafeday", "cafenight", "bar", "restaurantday", "restaurantnight",
+        "gymdaypeople", "gymdaynopeople",
+        "libraryday", "librarynight",
+        "mallday", "mallnight", "clothesshop", "electronicsshop", "giftshop",
+        "parkday", "parknight", "beachday", "beachnight",
+        "goodoffice1", "mediumoffice1", "pooroffice1", "officelobby1",
+        "warehouse", "carworkshop", "hospital1", "schoolhall",
+    ]:
+        _bg(_n)
 
-image gymdaypeople     = "images/locations/gymdaypeople.png"
-image gymdaynopeople   = "images/locations/gymdaynopeople.png"
+    _bg("classroom", "class")   # 'class' is a Python keyword — rename the image
 
-image libraryday       = "images/locations/libraryday.png"
-image librarynight     = "images/locations/librarynight.png"
+    # Map: source is 5068x2764 (28MB). Forced to 1920x1080 like the rest.
+    # ponytail: ~3% horizontal squeeze (1.834 vs 1.778); imperceptible.
+    # Upgrade path: downscale the PNG to 1920x1080 to cut the VRAM load.
+    _bg("map_city")
 
-image mallday          = "images/locations/mallday.png"
-image mallnight        = "images/locations/mallnight.png"
-image clothesshop      = "images/locations/clothesshop.png"
-image electronicsshop  = "images/locations/electronicsshop.png"
-image giftshop         = "images/locations/giftshop.png"
+# ── Sprite positioning transforms ─────────────────────────────────────
+# Sprites are tall portraits (~1086x1448 / 1024x1535). 'fit contain' scales
+# each into a box preserving aspect; yalign 1.0 anchors feet to the bottom.
+transform sprite_c:
+    fit "contain"
+    xysize (760, 1040)
+    xalign 0.5
+    yalign 1.0
 
-image parkday          = "images/locations/parkday.png"
-image parknight        = "images/locations/parknight.png"
-image beachday         = "images/locations/beachday.png"
-image beachnight       = "images/locations/beachnight.png"
+transform sprite_r:
+    fit "contain"
+    xysize (760, 1040)
+    xalign 0.82
+    yalign 1.0
 
-image goodoffice1      = "images/locations/goodoffice1.png"
-image mediumoffice1    = "images/locations/mediumoffice1.png"
-image pooroffice1      = "images/locations/pooroffice1.png"
-image officelobby1     = "images/locations/officelobby1.png"
-image warehouse        = "images/locations/warehouse.png"
-image carworkshop      = "images/locations/carworkshop.png"
-image hospital1        = "images/locations/hospital1.png"
-image schoolhall       = "images/locations/schoolhall.png"
-image classroom        = "images/locations/class.png"
+transform sprite_l:
+    fit "contain"
+    xysize (760, 1040)
+    xalign 0.18
+    yalign 1.0
 
-# Source is 5068x2764 — force to the 1920x1080 game resolution so it fills the screen.
-# ponytail: ~3% horizontal squeeze (map is 1.834 vs 16:9 1.778); imperceptible.
-# Upgrade path: downscale the PNG to 1920x1080 to cut the 28MB / 56MB-VRAM load.
-image map_city = Transform("images/locations/map_city.png", size=(1920, 1080))
-
-# Zoe sprites
+# ── Zoe sprites (plain files; positioned via the transforms above) ─────
 image zoe_street_neutral   = "images/characters/zoe/zoe_street_neutral.png"
 image zoe_street_smile     = "images/characters/zoe/zoe_street_smile.png"
 image zoe_street_talk      = "images/characters/zoe/zoe_street_talk.png"

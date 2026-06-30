@@ -13,27 +13,27 @@ label location_home_actions:
     menu:
         "What do you want to do at home?"
 
-        "Sleep (end the day) [8h]":
+        "Sleep — end the day (8h)":
             jump action_sleep
 
-        "Cook and eat [1h]" if need_hunger < 90:
+        "Cook and eat (1h)" if need_hunger < 90:
             $ spend_time(1)
             $ need_hunger = min(100, need_hunger + 50)
             "You cook a simple meal. Hunger restored."
             jump location_home_actions
 
-        "Shower [0.5h]" if need_hygiene < 90:
+        "Shower (0.5h)" if need_hygiene < 90:
             $ spend_time(0.5)
             $ need_hygiene = min(100, need_hygiene + 40)
             "You take a quick shower. Feeling fresh."
             jump location_home_actions
 
-        "Browse phone [0.5h]":
+        "Browse phone (0.5h)":
             $ spend_time(0.5)
             "You scroll through your phone. Nothing interesting."
             jump location_home_actions
 
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── CAFE ──────────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ label location_cafe:
 label cafe_first_visit:
     scene expression cafe_bg()
     show screen hud
-    show zoe_street_neutral at center
+    show zoe_street_neutral at sprite_c
     "A girl behind the counter catches your eye — red hair, green eyes, a gold star clip."
     z "Hey! First time here? I'm Zoe."
     menu:
@@ -67,22 +67,22 @@ label cafe_actions:
     show screen hud
 
     menu:
-        "What do you want to do at the café?"
+        "What do you want to do at the cafe?"
 
-        "Buy a coffee [$3, 0.5h]":
+        "Buy a coffee ($3, 0.5h)":
             $ spend_time(0.5)
             $ money -= 3
             $ need_hunger = min(100, need_hunger + 10)
             "You sip a good coffee. Worth it."
             jump cafe_actions
 
-        "Talk to Zoe [1h]" if zoe_met:
+        "Talk to Zoe (1h)" if zoe_met:
             jump cafe_talk_zoe
 
-        "Work a shift (Barista) [4h, +$60]":
+        "Work a shift — Barista (4h, +$60)":
             jump cafe_work_shift
 
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 label cafe_talk_zoe:
@@ -90,9 +90,9 @@ label cafe_talk_zoe:
     $ zoe_affection += 3
     scene expression cafe_bg()
     show screen hud
-    show zoe_street_smile at center
+    show zoe_street_smile at sprite_c
     if zoe_affection < 20:
-        z "So what do you do when you're not hanging around cafés?"
+        z "So what do you do when you're not hanging around cafes?"
         menu:
             "\"Still figuring that out.\"":
                 z "Ha. Honest. I respect that."
@@ -129,7 +129,7 @@ label cafe_work_shift:
     $ stat_chr = min(100, stat_chr + 1)
     "Four hours of steaming milk and small talk. You pocket $60."
     if zoe_met:
-        show zoe_street_talk at right
+        show zoe_street_talk at sprite_r
         z "Not bad for your first shift. Henry said you're a natural."
         hide zoe_street_talk
     jump cafe_actions
@@ -140,18 +140,18 @@ label location_gym:
     show screen hud
     menu:
         "What do you want to do at the gym?"
-        "Train (weights) [1.5h, +2 STR, +1 APP]":
+        "Train — weights (1.5h, +2 STR, +1 APP)":
             $ spend_time(1.5)
             $ stat_str = min(100, stat_str + 2)
             $ stat_app = min(100, stat_app + 1)
             "A solid session. You can feel it already."
             jump location_gym
-        "Cardio run [1h, +1 STR]":
+        "Cardio run (1h, +1 STR)":
             $ spend_time(1)
             $ stat_str = min(100, stat_str + 1)
             "You run until your lungs complain."
             jump location_gym
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── LIBRARY ───────────────────────────────────────────────────────────
@@ -160,12 +160,12 @@ label location_library:
     show screen hud
     menu:
         "What do you want to do at the library?"
-        "Study [2h, +2 INT]":
+        "Study (2h, +2 INT)":
             $ spend_time(2)
             $ stat_int = min(100, stat_int + 2)
             "Two hours of focused reading. Your brain hurts in a good way."
             jump location_library
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── BAR ───────────────────────────────────────────────────────────────
@@ -174,12 +174,12 @@ label location_bar:
     show screen hud
     menu:
         "What do you want to do at the bar?"
-        "Have a drink [$8, 0.5h]":
+        "Have a drink ($8, 0.5h)":
             $ spend_time(0.5)
             $ money -= 8
             "The noise and the drinks do their job."
             jump location_bar
-        "Socialize [1h, +2 CHR]" if stat_chr >= 25:
+        "Socialize (1h, +2 CHR)" if stat_chr >= 25:
             $ spend_time(1)
             $ stat_chr = min(100, stat_chr + 2)
             "You work the room. A few numbers exchanged."
@@ -187,7 +187,7 @@ label location_bar:
         "Socialize (need CHR 25)" if stat_chr < 25:
             "You hover near a few groups but can't quite break in. Need more Charisma."
             jump location_bar
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── OFFICE ────────────────────────────────────────────────────────────
@@ -199,7 +199,7 @@ label location_office:
         jump map
     menu:
         "Nexus Tower — corporate floor."
-        "Work a shift [8h, +$120, +1 INT]":
+        "Work a shift (8h, +$120, +1 INT)":
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
                 jump location_office
@@ -208,7 +208,7 @@ label location_office:
             $ stat_int = min(100, stat_int + 1)
             "A long day of meetings and spreadsheets. The pay is solid."
             jump location_office
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── MALL ──────────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ label location_mall:
     show screen hud
     menu:
         "The mall. Pick a shop."
-        "Clothes shop (outfit [$80, +2 APP])":
+        "Clothes shop — outfit ($80, +2 APP)":
             if money < 80:
                 "Not enough money."
             else:
@@ -225,7 +225,7 @@ label location_mall:
                 $ stat_app = min(100, stat_app + 2)
                 "New fit. You look sharper."
             jump location_mall
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── PARK ──────────────────────────────────────────────────────────────
@@ -234,17 +234,17 @@ label location_park:
     show screen hud
     menu:
         "The park."
-        "Morning jog [1h, +1 STR]":
+        "Morning jog (1h, +1 STR)":
             $ spend_time(1)
             $ stat_str = min(100, stat_str + 1)
             "The air is crisp. Good start to the day."
             jump location_park
-        "Read a book [1.5h, +1 INT]":
+        "Read a book (1.5h, +1 INT)":
             $ spend_time(1.5)
             $ stat_int = min(100, stat_int + 1)
             "A quiet hour on the bench."
             jump location_park
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── BEACH ─────────────────────────────────────────────────────────────
@@ -253,12 +253,12 @@ label location_beach:
     show screen hud
     menu:
         "The beach."
-        "Relax [1h]":
+        "Relax (1h)":
             $ spend_time(1)
             $ need_energy = min(100, need_energy + 10)
             "The waves and sun do wonders."
             jump location_beach
-        "Leave → City Map":
+        "Leave to City Map":
             jump map
 
 # ── SLEEP ─────────────────────────────────────────────────────────────
@@ -266,7 +266,8 @@ label action_sleep:
     $ new_day()
     scene expression home_bg()
     show screen hud
-    "You sleep through the night.\nDay [day+1] — [day_name(day)]."
+    $ datestr = "Day %d — %s" % (day + 1, day_name(day))
+    "You sleep through the night.\n[datestr]"
     jump map
 
 # ── MAP ────────────────────────────────────────────────────────────────

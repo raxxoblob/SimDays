@@ -4,6 +4,8 @@ screen city_map():
     tag menu
     zorder 5
 
+    $ datestr = "%s, Day %d" % (day_name(day), day + 1)
+
     # Semi-transparent panel on the left
     frame:
         xpos 30
@@ -14,7 +16,7 @@ screen city_map():
         vbox:
             spacing 2
             text "CITY MAP" style "map_title"
-            text "[day_name(day)], Day [day+1]" style "map_subtitle"
+            text "[datestr]" style "map_subtitle"
             null height 10
 
             textbutton "Home"          action Jump("location_home")    style "map_btn"

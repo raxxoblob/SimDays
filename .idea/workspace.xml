@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m" />
+    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/hud.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/hud.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/locations.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/map.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/map.rpy" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

@@ -2,6 +2,9 @@
 
 screen hud():
     zorder 10
+    # interpolation only does simple var lookups — precompute strings here
+    $ datestr = "%s, Day %d" % (day_name(day), day + 1)
+    $ timestr = time_label(hour)
     # top bar background
     frame:
         xfill True
@@ -16,8 +19,8 @@ screen hud():
             # Date + time
             vbox:
                 yalign 0.5
-                text "[day_name(day)], Day [day+1]" style "hud_label"
-                text "[time_label(hour)]"           style "hud_value"
+                text "[datestr]" style "hud_label"
+                text "[timestr]" style "hud_value"
             # Money
             vbox:
                 yalign 0.5
