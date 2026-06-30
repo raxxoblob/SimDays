@@ -1,7 +1,6 @@
 # Image declarations
 # Ren'Py looks for images relative to the game/ folder.
-# Our assets live in SimDays/game/images/ (symlinked or copied there).
-# Until assets are in game/images/, we use the absolute path trick via FileRef.
+# game/images is a directory junction -> ../../images (the shared asset folder).
 
 # Locations
 image cheaphouse_day   = "images/locations/cheaphouse_day.png"
@@ -42,10 +41,12 @@ image warehouse        = "images/locations/warehouse.png"
 image carworkshop      = "images/locations/carworkshop.png"
 image hospital1        = "images/locations/hospital1.png"
 image schoolhall       = "images/locations/schoolhall.png"
-image class            = "images/locations/class.png"
+image classroom        = "images/locations/class.png"
 
-# Map — placeholder solid color until map image is added to game/images/
-image map_city = Solid("#1a2a3a")
+# Source is 5068x2764 — force to the 1920x1080 game resolution so it fills the screen.
+# ponytail: ~3% horizontal squeeze (map is 1.834 vs 16:9 1.778); imperceptible.
+# Upgrade path: downscale the PNG to 1920x1080 to cut the 28MB / 56MB-VRAM load.
+image map_city = Transform("images/locations/map_city.png", size=(1920, 1080))
 
 # Zoe sprites
 image zoe_street_neutral   = "images/characters/zoe/zoe_street_neutral.png"

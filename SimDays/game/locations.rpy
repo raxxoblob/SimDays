@@ -52,11 +52,11 @@ label cafe_first_visit:
     "A girl behind the counter catches your eye — red hair, green eyes, a gold star clip."
     z "Hey! First time here? I'm Zoe."
     menu:
-        "\"Nice place. Yeah, first time.\""
+        "\"Nice place. Yeah, first time.\"":
             $ zoe_affection += 5
             z "Right? I love working here. Well, most of the time."
             "She smiles and goes back to the espresso machine."
-        "\"Just passing through.\""
+        "\"Just passing through.\"":
             z "Cool. Let me know if you need anything."
     $ zoe_met = True
     hide zoe_street_neutral
@@ -156,8 +156,7 @@ label location_gym:
 
 # ── LIBRARY ───────────────────────────────────────────────────────────
 label location_library:
-    $ _lib_bg = "librarynight" if hour >= 20 else "libraryday"
-    scene expression _lib_bg
+    scene expression ("librarynight" if hour >= 20 else "libraryday")
     show screen hud
     menu:
         "What do you want to do at the library?"
@@ -214,8 +213,7 @@ label location_office:
 
 # ── MALL ──────────────────────────────────────────────────────────────
 label location_mall:
-    $ _mall_bg = "mallnight" if hour >= 19 else "mallday"
-    scene expression _mall_bg
+    scene expression ("mallnight" if hour >= 19 else "mallday")
     show screen hud
     menu:
         "The mall. Pick a shop."
@@ -232,8 +230,7 @@ label location_mall:
 
 # ── PARK ──────────────────────────────────────────────────────────────
 label location_park:
-    $ _park_bg = "parknight" if hour >= 20 else "parkday"
-    scene expression _park_bg
+    scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
     menu:
         "The park."
@@ -252,8 +249,7 @@ label location_park:
 
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
-    $ _beach_bg = "beachnight" if hour >= 19 else "beachday"
-    scene expression _beach_bg
+    scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
     menu:
         "The beach."

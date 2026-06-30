@@ -8,48 +8,59 @@ screen city_map():
     frame:
         xpos 30
         ypos 70
-        xsize 220
-        background "#00000099"
-        padding (12, 12)
+        xsize 240
+        background "#000000aa"
+        padding (14, 14, 14, 14)
         vbox:
-            spacing 4
-            text "[ CITY MAP ]" style "map_title"
+            spacing 2
+            text "CITY MAP" style "map_title"
             text "[day_name(day)], Day [day+1]" style "map_subtitle"
-            null height 8
+            null height 10
 
-            textbutton "🏠  Home"          action Jump("location_home")    style "map_btn"
-            textbutton "☕  Coffee Shop"   action Jump("location_cafe")    style "map_btn"
-            textbutton "💪  Gym"           action Jump("location_gym")     style "map_btn"
-            textbutton "📚  Library"       action Jump("location_library") style "map_btn"
-            textbutton "🍸  Bar"           action Jump("location_bar")     style "map_btn"
-            textbutton "🏢  Nexus Tower"   action Jump("location_office")  style "map_btn"
-            textbutton "🛍  Mall"           action Jump("location_mall")    style "map_btn"
-            textbutton "🌳  Park"          action Jump("location_park")    style "map_btn"
-            textbutton "🏖  Beach"         action Jump("location_beach")   style "map_btn"
-            null height 8
-            textbutton "💤  Sleep / End Day" action Jump("action_sleep")   style "map_btn_sleep"
+            textbutton "Home"          action Jump("location_home")    style "map_btn"
+            textbutton "Coffee Shop"    action Jump("location_cafe")    style "map_btn"
+            textbutton "Gym"            action Jump("location_gym")     style "map_btn"
+            textbutton "Library"        action Jump("location_library") style "map_btn"
+            textbutton "Bar"            action Jump("location_bar")     style "map_btn"
+            textbutton "Nexus Tower"    action Jump("location_office")  style "map_btn"
+            textbutton "Mall"           action Jump("location_mall")    style "map_btn"
+            textbutton "Park"           action Jump("location_park")    style "map_btn"
+            textbutton "Beach"          action Jump("location_beach")   style "map_btn"
+            null height 10
+            textbutton "Sleep / End Day" action Jump("action_sleep")    style "map_btn_sleep"
 
-style map_title:
-    size 13
+
+# ── Styles ────────────────────────────────────────────────────────────
+# Text displayables (text statement) -> plain text styles
+style map_title is default:
+    size 16
     color "#f0c040"
     bold True
 
-style map_subtitle:
-    size 11
+style map_subtitle is default:
+    size 12
     color "#aaaaaa"
 
-style map_btn:
-    size 15
-    color "#ffffff"
-    hover_color "#f0c040"
-    idle_background  "#00000000"
+# Buttons: the button style holds background/padding,
+# the matching <name>_text style holds the text color/size.
+style map_btn is button:
+    background None
     hover_background "#ffffff22"
-    padding (6, 3, 6, 3)
+    padding (8, 4, 8, 4)
+    xfill True
 
-style map_btn_sleep:
-    size 14
-    color "#88aaff"
-    hover_color "#aaccff"
-    idle_background  "#00000000"
+style map_btn_text is button_text:
+    size 16
+    idle_color "#ffffff"
+    hover_color "#f0c040"
+
+style map_btn_sleep is button:
+    background None
     hover_background "#ffffff22"
-    padding (6, 3, 6, 3)
+    padding (8, 4, 8, 4)
+    xfill True
+
+style map_btn_sleep_text is button_text:
+    size 15
+    idle_color "#88aaff"
+    hover_color "#aaccff"

@@ -9,10 +9,10 @@ screen hud():
         xpos 0
         ypos 0
         background "#000000cc"
+        padding (18, 8, 18, 8)
         hbox:
             xfill True
             spacing 24
-            padding (18, 8, 18, 8)
             # Date + time
             vbox:
                 yalign 0.5
@@ -50,8 +50,8 @@ style hud_value:
     color "#ffffff"
     bold True
 
-style hud_bar_need:
+style hud_bar_need is bar:
     ysize 8
     left_bar  Solid("#e8a020")
     right_bar Solid("#444444")
-    thumb ""
+    thumb Null()

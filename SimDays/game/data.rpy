@@ -1,8 +1,6 @@
 # Core game data — stats, needs, time, money
 
 init python:
-    import datetime
-
     DAY_START = 7      # 7 AM
     DAY_END   = 27     # 3 AM next day (27 = 24+3)
     DAY_NAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
