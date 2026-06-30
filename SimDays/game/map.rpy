@@ -18,22 +18,13 @@ define MAP_ZONES = [
 screen city_map():
     tag menu
 
-    # hover + click hotspots (full-screen, masked to each parcel)
+    # district zones: idle shows a dim icon, hover brightens it + highlights the parcel
     for key, lbl, icon, cx, cy in MAP_ZONES:
         imagebutton:
-            idle "zone_blank"
+            idle ("z_%s_idle" % key)
             hover ("z_%s_hi" % key)
             focus_mask Image("images/ui/z_%s_mask.png" % key)
             action Jump(lbl)
-
-    # always-on district icon markers (display-only; clicks pass to the buttons)
-    for key, lbl, icon, cx, cy in MAP_ZONES:
-        add ("images/ui/icons/icon_%s.png" % icon):
-            xpos cx
-            ypos cy
-            xanchor 0.5
-            yanchor 0.5
-            xysize (104, 104)
 
     textbutton "Sleep / End Day":
         action Jump("action_sleep")

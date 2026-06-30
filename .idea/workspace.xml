@@ -4,25 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images.rpy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_coat_full.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_coat_full.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_coat_smile.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_coat_smile.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_hoodie_full.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_hoodie_full.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_hoodie_smile.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_hoodie_smile.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_back.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_back.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_sit.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_sit.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_wave.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_full_wave.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_smile.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_punk_smile.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_full.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_full.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_neutral.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_neutral.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_smile.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_smile.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_surprised.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_surprised.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_talk.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/characters/zoe/zoe_street_talk.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/locations.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/map.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/map.rpy" afterDir="false" />
-    </list>
+    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

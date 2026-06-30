@@ -32,9 +32,9 @@ init python:
     # Upgrade path: downscale the PNG to 1920x1080 to cut the VRAM load.
     _bg("map_city")
 
-    # Map district hover-zones (road-aligned overlays generated in images/ui/)
-    renpy.image("zone_blank", "images/ui/zone_blank.png")
+    # Map district zones: idle = dim icon, hover = bright icon + highlight + name
     for _z in ["bogate_domki", "warehouse", "park", "domki", "bloki", "centrum", "szpital", "mall", "plaza"]:
+        renpy.image("z_%s_idle" % _z, "images/ui/z_%s_idle.png" % _z)
         renpy.image("z_%s_hi" % _z, "images/ui/z_%s_hi.png" % _z)
 
 # ── Sprite positioning transforms ─────────────────────────────────────

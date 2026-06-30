@@ -206,11 +206,32 @@ style input:
 ## https://www.renpy.org/doc/html/screen_special.html#choice
 
 screen choice(items):
-    style_prefix "choice"
+    # Activity menu — left-side panel of pill items (icon + label).
+    # Panel/item use Frame() so they stretch to the item count (dynamic height).
+    # Scrolls past ~5 items.
+    frame:
+        xpos 48
+        yalign 0.5
+        background Frame("images/ui/activity_panel.png", 40, 50, 40, 130)
+        padding (34, 44, 34, 56)
 
-    vbox:
-        for i in items:
-            textbutton i.caption action i.action
+        viewport:
+            mousewheel True
+            scrollbars ("vertical" if len(items) > 5 else None)
+            ymaximum 560
+            vbox:
+                spacing 12
+                for i in items:
+                    button:
+                        action i.action
+                        xsize 380
+                        ysize 80
+                        background Frame("images/ui/activity_item.png", 58, 30, 58, 30)
+                        hbox:
+                            yalign 0.5
+                            spacing 14
+                            add "images/ui/activity_dot.png" xysize (52, 52) yalign 0.5
+                            text i.caption yalign 0.5 size 19 color "#0a3a6e"
 
 
 style choice_vbox is vbox
