@@ -10,7 +10,7 @@ label location_home_actions:
     scene expression home_bg()
     show screen hud
 
-    menu:
+    menu (screen="activity"):
         "What do you want to do at home?"
 
         "Sleep — end the day (8h)":
@@ -48,7 +48,7 @@ label location_cafe:
 label cafe_first_visit:
     scene expression cafe_bg()
     show screen hud
-    show zoe_punk_smile at sprite_c
+    show zoe_punk_smile at sprite_r
     "A girl behind the counter catches your eye — red hair, green eyes, a gold star clip."
     z "Hey! First time here? I'm Zoe."
     menu:
@@ -66,7 +66,7 @@ label cafe_actions:
     scene expression cafe_bg()
     show screen hud
 
-    menu:
+    menu (screen="activity"):
         "What do you want to do at the cafe?"
 
         "Buy a coffee ($3, 0.5h)":
@@ -90,7 +90,7 @@ label cafe_talk_zoe:
     $ zoe_affection += 3
     scene expression cafe_bg()
     show screen hud
-    show zoe_punk_smile at sprite_c
+    show zoe_punk_smile at sprite_r
     if zoe_affection < 20:
         z "So what do you do when you're not hanging around cafes?"
         menu:
@@ -138,7 +138,7 @@ label cafe_work_shift:
 label location_gym:
     scene gymdaypeople
     show screen hud
-    menu:
+    menu (screen="activity"):
         "What do you want to do at the gym?"
         "Train — weights (1.5h, +2 STR, +1 APP)":
             $ spend_time(1.5)
@@ -158,7 +158,7 @@ label location_gym:
 label location_library:
     scene expression ("librarynight" if hour >= 20 else "libraryday")
     show screen hud
-    menu:
+    menu (screen="activity"):
         "What do you want to do at the library?"
         "Study (2h, +2 INT)":
             $ spend_time(2)
@@ -172,7 +172,7 @@ label location_library:
 label location_bar:
     scene bar
     show screen hud
-    menu:
+    menu (screen="activity"):
         "What do you want to do at the bar?"
         "Have a drink ($8, 0.5h)":
             $ spend_time(0.5)
@@ -197,7 +197,7 @@ label location_office:
     if stat_int < 20:
         "The receptionist politely tells you this position requires more experience. (Need INT 20)"
         jump map
-    menu:
+    menu (screen="activity"):
         "Nexus Tower — corporate floor."
         "Work a shift (8h, +$120, +1 INT)":
             if hour + 8 > DAY_END:
@@ -215,7 +215,7 @@ label location_office:
 label location_mall:
     scene expression ("mallnight" if hour >= 19 else "mallday")
     show screen hud
-    menu:
+    menu (screen="activity"):
         "The mall. Pick a shop."
         "Clothes shop — outfit ($80, +2 APP)":
             if money < 80:
@@ -232,7 +232,7 @@ label location_mall:
 label location_park:
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    menu:
+    menu (screen="activity"):
         "The park."
         "Morning jog (1h, +1 STR)":
             $ spend_time(1)
@@ -251,7 +251,7 @@ label location_park:
 label location_beach:
     scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
-    menu:
+    menu (screen="activity"):
         "The beach."
         "Relax (1h)":
             $ spend_time(1)
@@ -275,7 +275,7 @@ label location_warehouse:
     if stat_str < 25:
         "The foreman looks you over: \"Come back when you can lift, kid.\" (Need STR 25)"
         jump map
-    menu:
+    menu (screen="activity"):
         "LogiCity Warehouse."
         "Work a shift (8h, +$110, +2 STR)":
             if hour + 8 > DAY_END:

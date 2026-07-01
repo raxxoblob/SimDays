@@ -13,11 +13,11 @@ screen hud():
         add "images/ui/hud_topbar.png"
 
         add "images/ui/icons/stat_time.png" xpos 180 ypos 36 xysize (56, 56)
-        text "[datestr]" xpos 250 ypos 28 size 20 color "#143c6e"
-        text "[timestr]" xpos 250 ypos 56 size 30 color "#0a285a" bold True
+        text "[datestr]" xpos 250 ypos 30 size 19 color "#143c6e" font "fonts/VarelaRound.ttf"
+        text "[timestr]" xpos 250 ypos 56 size 28 color "#0a285a" font "fonts/VarelaRound.ttf"
 
         add "images/ui/icons/stat_money.png" xpos 620 ypos 36 xysize (56, 56)
-        text "$[money]" xpos 686 ypos 46 size 30 color "#8a5a00" bold True
+        text "$[money]" xpos 686 ypos 48 size 28 color "#8a5a00" font "fonts/VarelaRound.ttf"
 
         add "images/ui/icons/stat_hunger.png" xpos 930 ypos 42 xysize (44, 44)
         bar value StaticValue(need_hunger, 100) xpos 980 ypos 62 xysize (112, 16) left_bar Solid("#ef9f27") right_bar Solid("#ffffffa0") thumb Null()
