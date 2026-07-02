@@ -51,6 +51,7 @@ label cafe_first_visit:
     show zoe_punk_smile at sprite_r
     "A girl behind the counter catches your eye — red hair, green eyes, a gold star clip."
     z "Hey! First time here? I'm Zoe."
+    window show   # keep her line visible above the choices
     menu:
         "\"Nice place. Yeah, first time.\"":
             $ zoe_affection += 5
@@ -93,6 +94,7 @@ label cafe_talk_zoe:
     show zoe_punk_smile at sprite_r
     if zoe_affection < 20:
         z "So what do you do when you're not hanging around cafes?"
+        window show
         menu:
             "\"Still figuring that out.\"":
                 z "Ha. Honest. I respect that."
@@ -102,6 +104,7 @@ label cafe_talk_zoe:
                 $ zoe_affection += 2
     elif zoe_affection < 40:
         z "You're becoming a regular, you know."
+        window show
         menu:
             "\"Worst things to be.\"":
                 z "True. At least you tip well."
@@ -110,6 +113,7 @@ label cafe_talk_zoe:
                 z "I'll tell Henry you said that. He'll frame it."
     else:
         z "Hey, I finished a new sketch last night. Wanna see?"
+        window show
         menu:
             "\"Absolutely.\"":
                 z "It's nothing serious — just city rooftops. But I kinda love it."

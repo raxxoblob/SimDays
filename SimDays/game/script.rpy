@@ -13,6 +13,7 @@ label start:
     scene intro3 with dissolve
     m "Hey — new blood! Heard the key fight through the wall. That lock's a jerk, you gotta lift the handle while you turn it."
 
+    window show
     menu:
         "\"Thanks. I'm still figuring the place out.\"":
             $ marcus_affection += 3
@@ -29,6 +30,7 @@ label start:
     "You introduce yourself."
     m "Good to meet you, man. Moving's the worst. You eat yet? I've got half a pot of chili doing nothing."
 
+    window show
     menu:
         "\"Yeah, actually — that'd be great.\"":
             $ marcus_affection += 5
