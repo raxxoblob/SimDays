@@ -198,11 +198,11 @@ label npc_interact(npc_id):
     show expression _spr as npcsprite at sprite_c
     show screen npc_relbar(npc_id)
     call expression NPC_DATA[npc_id]["greet"]
-    while True:
+    $ _act = ""
+    while _act != "leave":
         $ _act = renpy.call_screen("npc_actions", npc_id)
-        if _act == "leave":
-            break
-        call expression _act
+        if _act != "leave":
+            call expression _act
     hide screen npc_relbar
     hide npcsprite
     return
