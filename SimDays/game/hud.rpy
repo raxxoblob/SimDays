@@ -29,8 +29,8 @@ screen hud():
         text "$[money]" xpos 686 ypos 48 size 28 color "#8a5a00" font "fonts/VarelaRound.ttf"
 
         add "images/ui/icons/stat_hunger.png" xpos 930 ypos 42 xysize (44, 44)
-        bar value StaticValue(need_hunger, 100) xpos 980 ypos 62 xysize (112, 16) left_bar Solid("#ef9f27") right_bar Solid("#ffffffa0") thumb Null()
+        bar value StaticValue(need_hunger, 100) xpos 980 ypos 64 xysize (112, 18) left_bar Frame("images/ui/bar_fill_hunger.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
         add "images/ui/icons/stat_hygiene.png" xpos 1108 ypos 42 xysize (44, 44)
-        bar value StaticValue(need_hygiene, 100) xpos 1158 ypos 62 xysize (112, 16) left_bar Solid("#1d9e75") right_bar Solid("#ffffffa0") thumb Null()
+        bar value StaticValue(need_hygiene, 100) xpos 1158 ypos 64 xysize (112, 18) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
         add "images/ui/icons/stat_energy.png" xpos 1286 ypos 42 xysize (44, 44)
-        bar value StaticValue(need_energy, 100) xpos 1336 ypos 62 xysize (112, 16) left_bar Solid("#97c459") right_bar Solid("#ffffffa0") thumb Null()
+        bar value StaticValue(need_energy, 100) xpos 1336 ypos 64 xysize (112, 18) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()

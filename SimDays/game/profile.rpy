@@ -1,82 +1,83 @@
-# Profile / status panel - slides in from the right. Skills + current job.
-# Opened from the HUD button (or the C key). Matches the glass-bar UI style.
+# Profile / status strip - a horizontal, scrollable bar under the HUD.
+# NON-modal: it floats on top but you can still click activities behind it.
+# Toggle with the "Me" button (top-right of HUD) or the C key.
 
 define PROFILE_FONT = "fonts/Quicksand-SemiBold.ttf"
 
-# One skill row: optional icon, label, coloured bar, numeric value.
-screen skill_row(icon, label, value, colour):
-    hbox:
-        spacing 12
-        xsize 400
-        if icon:
-            add icon xysize (40, 40) yalign 0.5
-        else:
-            null width 40
-        text label font PROFILE_FONT size 20 color "#cfe0f5" yalign 0.5 xsize 128
-        bar:
-            value StaticValue(value, 100)
-            xsize 150 ysize 16 yalign 0.5
-            left_bar Solid(colour) right_bar Solid("#ffffff28") thumb Null()
-        text "[value]" font PROFILE_FONT size 20 color "#ffffff" yalign 0.5 xsize 40 xalign 1.0
+# One compact stat chip: icon + label on top, bar + value below.
+screen stat_chip(label, value, fill, icon=None):
+    frame:
+        xysize (238, 100)
+        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+        padding (18, 12, 18, 12)
+        vbox:
+            spacing 8
+            hbox:
+                spacing 8
+                if icon:
+                    add icon xysize (30, 30) yalign 0.5
+                text label font PROFILE_FONT size 18 color "#cfe0f5" yalign 0.5
+            hbox:
+                spacing 8
+                bar:
+                    value StaticValue(value, 100)
+                    xysize (150, 18) yalign 0.5
+                    left_bar Frame(fill, 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+                text "[value]" font PROFILE_FONT size 18 color "#ffffff" yalign 0.5
 
 
 screen profile():
     zorder 30
-    modal True
-    $ pdate = "%s . Day %d . %s" % (day_name(day), day + 1, time_label(hour))
-
-    # click anywhere outside the panel to close
-    button:
-        xfill True yfill True
-        background "#00000099"
-        action Hide("profile")
+    # NOTE: no `modal True` - actions behind the strip stay clickable.
 
     frame:
-        xalign 1.0 yalign 0.5
-        xsize 500 yfill True
+        xalign 0.5
+        ypos 150
+        xsize 1560
+        ysize 128
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (40, 40, 40, 40)
+        padding (22, 14, 14, 14)
 
-        vbox:
-            spacing 20
+        hbox:
+            spacing 12
 
-            # ── header ──
-            text "[mc_name]" font PROFILE_FONT size 40 color "#ffffff"
-            text "[pdate]" font PROFILE_FONT size 18 color "#9fb6d6"
-
-            null height 6
-
-            # ── skills ──
-            text "SKILLS" font PROFILE_FONT size 18 color "#7fa0cc"
-            use skill_row("images/ui/icons/stat_str.png",    "Strength",   stat_str, "#e0533c")
-            use skill_row("images/ui/icons/stat_int.png",    "Intellect",  stat_int, "#3c82e0")
-            use skill_row("images/ui/icons/stat_social.png", "Charisma",   stat_chr, "#e0b23c")
-            # ponytail: no stat_app icon yet -> label-only until it's generated.
-            use skill_row(None,                              "Appearance", stat_app, "#a05cd0")
-
-            null height 10
-
-            # ── work ──
-            text "WORK" font PROFILE_FONT size 18 color "#7fa0cc"
-            if job_title:
-                text "[job_title]" font PROFILE_FONT size 22 color "#ffffff"
+            viewport id "profstrip":
+                xsize 1430
+                mousewheel "horizontal"
+                draggable True
+                scrollbars "horizontal"
                 hbox:
-                    spacing 12
-                    text "Performance" font PROFILE_FONT size 18 color "#cfe0f5" yalign 0.5 xsize 150
-                    bar:
-                        value StaticValue(job_performance, 100)
-                        xsize 190 ysize 18 yalign 0.5
-                        left_bar Solid("#39c07a") right_bar Solid("#ffffff28") thumb Null()
-                    text "[job_performance]" font PROFILE_FONT size 18 color "#ffffff" yalign 0.5
-                if job_next:
-                    text "Next rank: [job_next]" font PROFILE_FONT size 17 color "#9fb6d6"
-                if job_schedule:
-                    text "Shift: [job_schedule]" font PROFILE_FONT size 17 color "#9fb6d6"
-            else:
-                text "Unemployed" font PROFILE_FONT size 22 color "#ffffff"
-                text "Find work out in the city to start a career." font PROFILE_FONT size 17 color "#9fb6d6"
+                    spacing 14
+                    use stat_chip("Strength",   stat_str, "images/ui/bar_fill_str.png", "images/ui/icons/stat_str.png")
+                    use stat_chip("Intellect",  stat_int, "images/ui/bar_fill_int.png", "images/ui/icons/stat_int.png")
+                    use stat_chip("Charisma",   stat_chr, "images/ui/bar_fill_chr.png", "images/ui/icons/stat_social.png")
+                    use stat_chip("Appearance", stat_app, "images/ui/bar_fill_app.png")  # no icon yet
 
-            null height 20
-            textbutton "Close":
+                    # Job chip (wider). Shows Performance, or "Unemployed".
+                    frame:
+                        xysize (360, 100)
+                        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                        padding (18, 12, 18, 12)
+                        vbox:
+                            spacing 8
+                            if job_title:
+                                text "[job_title]" font PROFILE_FONT size 18 color "#ffffff"
+                                hbox:
+                                    spacing 8
+                                    text "Perf" font PROFILE_FONT size 16 color "#cfe0f5" yalign 0.5
+                                    bar:
+                                        value StaticValue(job_performance, 100)
+                                        xysize (210, 18) yalign 0.5
+                                        left_bar Frame("images/ui/bar_fill_perf.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+                                    text "[job_performance]" font PROFILE_FONT size 16 color "#ffffff" yalign 0.5
+                                if job_next:
+                                    text "Next: [job_next]" font PROFILE_FONT size 15 color "#9fb6d6"
+                            else:
+                                text "Unemployed" font PROFILE_FONT size 20 color "#ffffff"
+                                text "Find work in the city." font PROFILE_FONT size 15 color "#9fb6d6"
+
+            # close button (X) pinned right
+            textbutton "X":
+                yalign 0.0
                 action Hide("profile")
-                text_font PROFILE_FONT text_size 20 text_color "#cfe0f5" text_hover_color "#ffffff"
+                text_font PROFILE_FONT text_size 26 text_color "#9fb6d6" text_hover_color "#ffffff"

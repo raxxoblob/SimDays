@@ -71,7 +71,7 @@ label cafe_actions:
 
         "Buy a coffee ($3, 0.5h)":
             $ spend_time(0.5)
-            $ money -= 3
+            $ gain_money(-3)
             $ need_hunger = min(100, need_hunger + 10)
             "You sip a good coffee. Worth it."
             jump cafe_actions
@@ -125,8 +125,8 @@ label cafe_work_shift:
         "It's too late to start a full shift."
         jump cafe_actions
     $ spend_time(4)
-    $ money += 60
-    $ stat_chr = min(100, stat_chr + 1)
+    $ gain_money(60)
+    $ gain_stat("chr", 1)
     "Four hours of steaming milk and small talk. You pocket $60."
     if zoe_met:
         show zoe_punk_smile at sprite_r
@@ -142,13 +142,13 @@ label location_gym:
         "What do you want to do at the gym?"
         "Train - weights (1.5h, +2 STR, +1 APP)":
             $ spend_time(1.5)
-            $ stat_str = min(100, stat_str + 2)
-            $ stat_app = min(100, stat_app + 1)
+            $ gain_stat("str", 2)
+            $ gain_stat("app", 1)
             "A solid session. You can feel it already."
             jump location_gym
         "Cardio run (1h, +1 STR)":
             $ spend_time(1)
-            $ stat_str = min(100, stat_str + 1)
+            $ gain_stat("str", 1)
             "You run until your lungs complain."
             jump location_gym
         "Leave to City Map":
@@ -162,7 +162,7 @@ label location_library:
         "What do you want to do at the library?"
         "Study (2h, +2 INT)":
             $ spend_time(2)
-            $ stat_int = min(100, stat_int + 2)
+            $ gain_stat("int", 2)
             "Two hours of focused reading. Your brain hurts in a good way."
             jump location_library
         "Leave to City Map":
@@ -176,12 +176,12 @@ label location_bar:
         "What do you want to do at the bar?"
         "Have a drink ($8, 0.5h)":
             $ spend_time(0.5)
-            $ money -= 8
+            $ gain_money(-8)
             "The noise and the drinks do their job."
             jump location_bar
         "Socialize (1h, +2 CHR)" if stat_chr >= 25:
             $ spend_time(1)
-            $ stat_chr = min(100, stat_chr + 2)
+            $ gain_stat("chr", 2)
             "You work the room. A few numbers exchanged."
             jump location_bar
         "Socialize (need CHR 25)" if stat_chr < 25:
@@ -204,8 +204,8 @@ label location_office:
                 "Too late to start a full shift today."
                 jump location_office
             $ spend_time(8)
-            $ money += 120
-            $ stat_int = min(100, stat_int + 1)
+            $ gain_money(120)
+            $ gain_stat("int", 1)
             "A long day of meetings and spreadsheets. The pay is solid."
             jump location_office
         "Leave to City Map":
@@ -221,8 +221,8 @@ label location_mall:
             if money < 80:
                 "Not enough money."
             else:
-                $ money -= 80
-                $ stat_app = min(100, stat_app + 2)
+                $ gain_money(-80)
+                $ gain_stat("app", 2)
                 "New fit. You look sharper."
             jump location_mall
         "Leave to City Map":
@@ -236,12 +236,12 @@ label location_park:
         "The park."
         "Morning jog (1h, +1 STR)":
             $ spend_time(1)
-            $ stat_str = min(100, stat_str + 1)
+            $ gain_stat("str", 1)
             "The air is crisp. Good start to the day."
             jump location_park
         "Read a book (1.5h, +1 INT)":
             $ spend_time(1.5)
-            $ stat_int = min(100, stat_int + 1)
+            $ gain_stat("int", 1)
             "A quiet hour on the bench."
             jump location_park
         "Leave to City Map":
@@ -282,8 +282,8 @@ label location_warehouse:
                 "Too late to start a full shift today."
                 jump location_warehouse
             $ spend_time(8)
-            $ money += 110
-            $ stat_str = min(100, stat_str + 2)
+            $ gain_money(110)
+            $ gain_stat("str", 2)
             "Eight hours of hauling and stacking. Your back aches; your wallet's heavier."
             jump location_warehouse
         "Leave to City Map":
