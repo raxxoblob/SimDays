@@ -15,9 +15,9 @@ screen activity(items):
     # left column, ~19% of a 1920 screen; height grows with item count.
     viewport:
         xpos 44
-        yalign 0.5
+        ypos 360          # sits below the top-left gain toasts so they don't overlap
         xsize 372
-        ymaximum 720
+        ymaximum 660
         mousewheel True
         scrollbars ("vertical" if len(items) > 7 else None)
         vbox:
