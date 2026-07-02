@@ -1,4 +1,4 @@
-# Core game data — stats, needs, time, money
+# Core game data - stats, needs, time, money
 
 init python:
     DAY_START = 7      # 7 AM
@@ -17,22 +17,22 @@ init python:
 
 default money    = 500
 default day      = 0       # days since game start (0 = Day 1, Monday)
-default hour     = 8.0     # current hour (float, 7.0–27.0)
+default hour     = 8.0     # current hour (float, 7.0-27.0)
 
-# Core stats (0–100)
+# Core stats (0-100)
 default stat_str = 10
 default stat_int = 10
 default stat_chr = 10
 default stat_app = 10
 
-# Needs (0–100, decay each day)
+# Needs (0-100, decay each day)
 default need_hunger  = 80
 default need_hygiene = 80
 default need_energy  = 90
 
 default mc_name = "Alex"   # player's name; set during the intro, personalizable
 
-# Relationship (affection 0–100, trust 0–100)
+# Relationship (affection 0-100, trust 0-100)
 default zoe_affection = 0
 default zoe_trust     = 0
 default marcus_affection = 0
@@ -46,6 +46,12 @@ default marcus_met    = False
 default marcus_chili  = False
 default martha_met    = False
 default apartment_tier = 1    # 1=cheap, 2=mid, 3=rich
+
+# Job / career (filled out by jobs_system later; None = unemployed)
+default job_title       = None   # e.g. "Junior Dev @ The Hub"
+default job_performance = 0      # 0-100 Performance bar for current rank
+default job_next        = ""     # promotion requirement hint, e.g. "INT 50"
+default job_schedule    = ""     # e.g. "Mon-Fri 09-17"
 
 # Time helpers called from script
 init python:

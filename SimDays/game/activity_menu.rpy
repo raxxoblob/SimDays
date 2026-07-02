@@ -1,4 +1,4 @@
-# Activity chooser — floating left-side list of rounded 'glass' bars.
+# Activity chooser - floating left-side list of rounded 'glass' bars.
 # No panel background: just the bars themselves (narrower, lighter, nicer type).
 # Used by location action menus via `menu (screen="activity"):`.
 # Dialogue menus keep the default centred `choice` screen.

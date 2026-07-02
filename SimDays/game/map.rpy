@@ -1,4 +1,4 @@
-# City map — road-aligned district zones with always-on icon markers.
+# City map - road-aligned district zones with always-on icon markers.
 # Idle: district icon at the zone centre. Hover: blue parallelogram + name.
 # Click area = the zone's mask PNG.
 

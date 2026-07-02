@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m" />
+    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m">
+      <change beforePath="$PROJECT_DIR$/SimDays/game/activity_menu.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/activity_menu.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/data.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/data.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/hud.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/hud.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/locations.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/map.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/map.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/screens.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/screens.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/script.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/script.rpy" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -19,12 +28,12 @@
     &quot;assignee&quot;: &quot;pawelrdmkot21-debug&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/pawelrdmkot21-debug/SimDays.git&quot;,
-    &quot;accountId&quot;: &quot;8a1cea24-53e0-4219-b89a-e445ea4d9cb6&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/raxxoblob/simdays",
+    "accountId": "8a1cea24-53e0-4219-b89a-e445ea4d9cb6"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo"><![CDATA[{
   "customColor": "",
   "associatedIndex": 8
@@ -75,7 +84,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1782980490933</updated>
-      <workItem from="1782980492394" duration="1804000" />
+      <workItem from="1782980492394" duration="2514000" />
     </task>
     <option name="localTasksCounter" value="2" />
     <servers />

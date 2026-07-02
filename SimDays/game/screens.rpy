@@ -262,7 +262,7 @@ screen quick_menu():
 init python:
     config.overlay_screens.append("quick_menu")
 
-default quick_menu = False   # hide the bottom Back/Skip/Save bar — it covered the screen
+default quick_menu = False   # hide the bottom Back/Skip/Save bar - it covered the screen
 
 style quick_menu is hbox
 style quick_button is default

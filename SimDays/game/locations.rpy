@@ -13,7 +13,7 @@ label location_home_actions:
     menu (screen="activity"):
         "What do you want to do at home?"
 
-        "Sleep — end the day (8h)":
+        "Sleep - end the day (8h)":
             jump action_sleep
 
         "Cook and eat (1h)" if need_hunger < 90:
@@ -49,9 +49,8 @@ label cafe_first_visit:
     scene expression cafe_bg()
     show screen hud
     show zoe_punk_smile at sprite_r
-    "A girl behind the counter catches your eye — red hair, green eyes, a gold star clip."
+    "A girl behind the counter catches your eye - red hair, green eyes, a gold star clip."
     z "Hey! First time here? I'm Zoe."
-    window show   # keep her line visible above the choices
     menu:
         "\"Nice place. Yeah, first time.\"":
             $ zoe_affection += 5
@@ -80,7 +79,7 @@ label cafe_actions:
         "Talk to Zoe (1h)" if zoe_met:
             jump cafe_talk_zoe
 
-        "Work a shift — Barista (4h, +$60)":
+        "Work a shift - Barista (4h, +$60)":
             jump cafe_work_shift
 
         "Leave to City Map":
@@ -94,7 +93,6 @@ label cafe_talk_zoe:
     show zoe_punk_smile at sprite_r
     if zoe_affection < 20:
         z "So what do you do when you're not hanging around cafes?"
-        window show
         menu:
             "\"Still figuring that out.\"":
                 z "Ha. Honest. I respect that."
@@ -104,7 +102,6 @@ label cafe_talk_zoe:
                 $ zoe_affection += 2
     elif zoe_affection < 40:
         z "You're becoming a regular, you know."
-        window show
         menu:
             "\"Worst things to be.\"":
                 z "True. At least you tip well."
@@ -113,10 +110,9 @@ label cafe_talk_zoe:
                 z "I'll tell Henry you said that. He'll frame it."
     else:
         z "Hey, I finished a new sketch last night. Wanna see?"
-        window show
         menu:
             "\"Absolutely.\"":
-                z "It's nothing serious — just city rooftops. But I kinda love it."
+                z "It's nothing serious - just city rooftops. But I kinda love it."
                 $ zoe_affection += 5
                 $ zoe_trust += 3
             "\"Maybe another time.\"":
@@ -144,7 +140,7 @@ label location_gym:
     show screen hud
     menu (screen="activity"):
         "What do you want to do at the gym?"
-        "Train — weights (1.5h, +2 STR, +1 APP)":
+        "Train - weights (1.5h, +2 STR, +1 APP)":
             $ spend_time(1.5)
             $ stat_str = min(100, stat_str + 2)
             $ stat_app = min(100, stat_app + 1)
@@ -202,7 +198,7 @@ label location_office:
         "The receptionist politely tells you this position requires more experience. (Need INT 20)"
         jump map
     menu (screen="activity"):
-        "Nexus Tower — corporate floor."
+        "Nexus Tower - corporate floor."
         "Work a shift (8h, +$120, +1 INT)":
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
@@ -221,7 +217,7 @@ label location_mall:
     show screen hud
     menu (screen="activity"):
         "The mall. Pick a shop."
-        "Clothes shop — outfit ($80, +2 APP)":
+        "Clothes shop - outfit ($80, +2 APP)":
             if money < 80:
                 "Not enough money."
             else:
@@ -266,7 +262,7 @@ label location_beach:
             jump map
 
 # ── CENTRUM (downtown hub) ────────────────────────────────────────────
-# Clicking the downtown district drops you "on the street" — pick a venue.
+# Clicking the downtown district drops you "on the street" - pick a venue.
 label location_centrum:
     scene expression ("centerstreet_night" if (hour >= 20 or hour < 6) else "centerstreet_day")
     # bottom bar of venue icons (screen handles navigation)
@@ -298,7 +294,7 @@ label location_hospital:
     scene hospital1
     show screen hud
     "City Hospital. Clean, quiet, smells of antiseptic. Nothing you need here right now."
-    # ponytail: stub — no health system yet; future: treat injuries, medical job, an NPC.
+    # ponytail: stub - no health system yet; future: treat injuries, medical job, an NPC.
     jump map
 
 # ── SLEEP ─────────────────────────────────────────────────────────────
@@ -306,7 +302,7 @@ label action_sleep:
     $ new_day()
     scene expression home_bg()
     show screen hud
-    $ datestr = "Day %d — %s" % (day + 1, day_name(day))
+    $ datestr = "Day %d - %s" % (day + 1, day_name(day))
     "You sleep through the night.\n[datestr]"
     jump map
 

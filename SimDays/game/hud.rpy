@@ -6,6 +6,15 @@ screen hud():
     $ datestr = "%s . Day %d" % (day_name(day), day + 1)
     $ timestr = time_label(hour)
 
+    # Profile / status panel: click "Me" (top-right) or press C.
+    key "K_c" action ToggleScreen("profile")
+    button:
+        xpos 1792 ypos 22
+        xysize (104, 52)
+        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+        action ToggleScreen("profile")
+        text "Me" font "fonts/Quicksand-SemiBold.ttf" size 24 color "#cfe0f5" align (0.5, 0.5)
+
     fixed:
         xalign 0.5
         ypos 8
