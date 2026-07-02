@@ -30,6 +30,8 @@ default need_hunger  = 80
 default need_hygiene = 80
 default need_energy  = 90
 
+default mc_name = "Alex"   # player's name; set during the intro, personalizable
+
 # Relationship (affection 0–100, trust 0–100)
 default zoe_affection = 0
 default zoe_trust     = 0

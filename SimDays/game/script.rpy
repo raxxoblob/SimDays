@@ -2,9 +2,15 @@
 
 label start:
     # Move-in day intro (M0). No HUD during the cinematic — it's a cutscene.
-    scene intro1 with fade
-    "Day 1. One bag, one plan: make something of yourself."
-    "You slide the key into the lock of apartment 12. It sticks."
+    scene hallway with fade
+    "Day 1."
+    "The stairwell smells of old wood, fresh paint, and someone's cooking two floors down."
+    "One bag on your shoulder. A key in your pocket. Apartment 12 — small, cheap, and, as of this morning, yours."
+    "One plan: make something of yourself in this city."
+    "Well. First things first."
+
+    scene intro1 with dissolve
+    "You slide the key into the lock of number 12. It sticks."
     mc "Come on... there we go."
 
     scene intro2 with dissolve
@@ -27,8 +33,14 @@ label start:
 
     scene intro4 with dissolve
     m "Marcus. Marc. I'm right next door — 14. Lived here two years, so if the hot water does the cold-then-boiling thing, that's normal. Ride it out."
-    "You introduce yourself."
-    m "Good to meet you, man. Moving's the worst. You eat yet? I've got half a pot of chili doing nothing."
+    m "Anyway — who am I gonna be yelling at through the wall? What's your name?"
+
+    # Name entry — sets the MC's name (blank falls back to the default).
+    $ mc_name = renpy.input("What's your name?", default=mc_name, length=20).strip()
+    $ mc_name = mc_name or "Alex"
+
+    m "[mc_name]. Good to meet you, man."
+    m "Moving's the worst. You eat yet? I've got half a pot of chili doing nothing."
 
     window show
     menu:
@@ -55,10 +67,24 @@ label start:
 
     $ marcus_met = True
 
-    # Into the world.
+    # Into the world — you start inside your own place (apartment 12).
     scene cheaphouse_day with fade
     show screen hud
     "You drop your bag inside apartment 12. Home. For now."
+    jump location_home
+
+
+# Nicer neighbourhoods you can't afford to live in yet (locked homes).
+label zone_locked_uptown:
+    scene map_city
+    "Uptown. Gated lawns, glass and stone, cars worth more than a year of your rent."
+    "Nothing for you here — yet. Come back when your name opens doors like these."
+    jump map
+
+label zone_locked_suburbs:
+    scene map_city
+    "The Suburbs. Quiet streets, real houses, room to breathe."
+    "Someday, maybe. For now your lease says apartment 12, downtown."
     jump map
 
 
@@ -68,7 +94,7 @@ label location_hallway:
     call screen hallway_hub
 
 
-# Repeatable chat with Marcus (knock on 14, or find him at the bar later).
+# Marcus's place (14). Left panel = actions; talking opens centred choices.
 label marcus_talk:
     scene expression ("marcus_home_night" if (hour >= 20 or hour < 6) else "marcus_home_day")
     show screen hud
@@ -81,30 +107,43 @@ label marcus_talk:
     else:
         m "Hey, neighbor. Surviving?"
 
-    label marcus_talk_menu:
-        menu (screen="activity"):
-            "Talk to Marcus."
+# Left-side action hub at Marcus's place.
+label marcus_actions:
+    show marcus_casual_normal as marcus at sprite_r
+    menu (screen="activity"):
+        "Marcus's place (14)."
 
-            "\"How's the bar?\"":
-                show marcus_casual_talk as marcus at sprite_r
-                m "Static? Busy. Loud. Tips are decent if you can fake liking the music."
-                if marcus_affection >= 40:
-                    m "I keep thinking... I could run a place better than this. Smaller. Mine."
-                $ marcus_affection += 1
-                jump marcus_talk_menu
+        "Talk to Marcus":
+            jump marcus_chat
 
-            "\"Just hanging out.\"":
-                show marcus_casual_laugh as marcus at sprite_r
-                m "We should ball sometime. Park, Saturday. You'll lose, but you'll have fun."
-                $ marcus_affection += 2
-                jump marcus_talk_menu
+        "Head out":
+            hide marcus
+            jump location_hallway
 
-            "\"You good?\"" if marcus_trust >= 30:
-                show marcus_casual_talk as marcus at sprite_r
-                m "Honestly? Money's tight, the owner's a pain. But I'm figuring it out. Thanks for asking."
-                $ marcus_trust += 2
-                jump marcus_talk_menu
+# The conversation itself — standard centred Ren'Py choices.
+label marcus_chat:
+    window show
+    menu:
+        "\"How's the bar?\"":
+            show marcus_casual_talk as marcus at sprite_r
+            m "Static? Busy. Loud. Tips are decent if you can fake liking the music."
+            if marcus_affection >= 40:
+                m "I keep thinking... I could run a place better than this. Smaller. Mine."
+            $ marcus_affection += 1
+            jump marcus_chat
 
-            "Head out":
-                hide marcus
-                jump location_hallway
+        "\"Just hanging out.\"":
+            show marcus_casual_laugh as marcus at sprite_r
+            m "We should ball sometime. Park, Saturday. You'll lose, but you'll have fun."
+            $ marcus_affection += 2
+            jump marcus_chat
+
+        "\"You good?\"" if marcus_trust >= 30:
+            show marcus_casual_talk as marcus at sprite_r
+            m "Honestly? Money's tight, the owner's a pain. But I'm figuring it out. Thanks for asking."
+            $ marcus_trust += 2
+            jump marcus_chat
+
+        "(That's enough for now.)":
+            show marcus_casual_normal as marcus at sprite_r
+            jump marcus_actions

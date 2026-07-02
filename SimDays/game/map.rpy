@@ -4,10 +4,10 @@
 
 # key, jump target, icon file (in images/ui/icons/), centre x, centre y
 define MAP_ZONES = [
-    ("bogate_domki", "location_home",      "apartment_ext",  220, 148),
+    ("bogate_domki", "zone_locked_uptown", "house_uptown",   220, 148),
     ("warehouse",    "location_warehouse", "garage",        1665, 147),
     ("park",         "location_park",      "park",           930, 254),
-    ("domki",        "location_home",      "apartment_ext",  426, 384),
+    ("domki",        "zone_locked_suburbs","house_suburb",   426, 384),
     ("bloki",        "location_hallway",   "apartment_ext",  739, 397),
     ("centrum",      "location_centrum",   "office_ext",    1196, 387),
     ("szpital",      "location_hospital",  "szpital",        289, 599),

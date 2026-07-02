@@ -26,8 +26,8 @@ init python:
         _bg(_n)
 
     _bg("classroom", "class")   # 'class' is a Python keyword — rename the image
-    _bg("hallway", "hallway")   # apartment stairwell (doors 12 = you, 14 = Marcus)
-    # Marcus's apartment (14) — PNGs, day/night.
+    # apartment stairwell (doors 12 = you, 14 = Marcus) + Marcus's place — all PNGs.
+    renpy.image("hallway",           Transform("images/locations/hallway.png",           size=(1920, 1080)))
     renpy.image("marcus_home_day",   Transform("images/locations/marcus_home_day.png",   size=(1920, 1080)))
     renpy.image("marcus_home_night", Transform("images/locations/marcus_home_night.png", size=(1920, 1080)))
 
