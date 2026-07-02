@@ -4,58 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m">
-      <change beforePath="$PROJECT_DIR$/SimDays/game/hud.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/hud.rpy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/activity_item.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/activity_item.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/activity_panel.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/activity_panel.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/hud_topbar.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/hud_topbar.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_apartment_ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_apartment_ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_bar.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_bar.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_beach.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_beach.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_coffee_shop.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_coffee_shop.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_college.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_college.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_garage.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_garage.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_lobby_luxury.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_lobby_luxury.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_mall.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_mall.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_budget.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_budget.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_exec.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_exec.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_ext.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_mid.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_office_mid.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_park.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_park.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_restaurant.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_restaurant.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_restaurant_eleven.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_restaurant_eleven.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_shop_clothing.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_shop_clothing.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_shop_electronics.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_shop_electronics.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_shop_lifestyle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_shop_lifestyle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_energy.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_energy.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hunger.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hunger.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hygiene.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hygiene.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_int.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_int.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_money.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_money.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_mood.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_mood.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_social.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_social.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_str.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_str.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_time.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_time.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_bloki_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_bloki_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_bloki_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_bloki_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_bogate_domki_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_bogate_domki_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_bogate_domki_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_bogate_domki_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_centrum_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_centrum_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_centrum_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_centrum_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_domki_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_domki_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_domki_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_domki_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_mall_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_mall_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_mall_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_mall_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_park_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_park_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_park_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_park_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_plaza_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_plaza_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_plaza_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_plaza_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_warehouse_hi.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_warehouse_hi.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/z_warehouse_idle.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/z_warehouse_idle.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/images/zones_labeled.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/zones_labeled.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/locations.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/screens.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/screens.rpy" afterDir="false" />
-    </list>
+    <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

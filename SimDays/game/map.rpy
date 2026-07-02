@@ -8,7 +8,7 @@ define MAP_ZONES = [
     ("warehouse",    "location_warehouse", "garage",        1665, 147),
     ("park",         "location_park",      "park",           930, 254),
     ("domki",        "location_home",      "apartment_ext",  426, 384),
-    ("bloki",        "location_home",      "apartment_ext",  739, 397),
+    ("bloki",        "location_hallway",   "apartment_ext",  739, 397),
     ("centrum",      "location_centrum",   "office_ext",    1196, 387),
     ("szpital",      "location_hospital",  "szpital",        289, 599),
     ("mall",         "location_mall",      "mall",           964, 552),
@@ -50,9 +50,36 @@ define CENTRUM_VENUES = [
     ("coffee_shop", "Coffee Shop", "location_cafe"),
     ("office_exec", "Nexus Tower", "location_office"),
     ("gym",         "Gym",         "location_gym"),
-    ("college",     "Library",     "location_library"),
+    ("library",     "Library",     "location_library"),
     ("bar",         "Bar",         "location_bar"),
 ]
+
+screen hallway_hub():
+    use hud
+    # Two doors + the metro back to the city. Icons come from new_icons_3.
+    frame:
+        xalign 0.5
+        yalign 1.0
+        yoffset -16
+        background "#000000aa"
+        padding (24, 14, 24, 14)
+        hbox:
+            spacing 40
+            for icon, caption, target, need in [
+                ("door_12", "Your Place", "location_home",  True),
+                ("door_14", "Marcus (14)", "marcus_talk",    marcus_met),
+                ("metro",   "Metro → City", "map",      True),
+            ]:
+                if need:
+                    vbox:
+                        xsize 150
+                        spacing 4
+                        imagebutton:
+                            xalign 0.5
+                            idle  Transform("images/ui/icons/icon_%s.png" % icon, size=(120, 120))
+                            hover Transform("images/ui/icons/icon_%s.png" % icon, size=(132, 132))
+                            action Jump(target)
+                        text caption xalign 0.5 size 16 color "#ffffff"
 
 screen centrum_hub():
     use hud

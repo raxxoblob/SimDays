@@ -33,9 +33,16 @@ default need_energy  = 90
 # Relationship (affection 0–100, trust 0–100)
 default zoe_affection = 0
 default zoe_trust     = 0
+default marcus_affection = 0
+default marcus_trust     = 0
+default martha_affection = 0
+default martha_trust     = 0
 
 # Progression flags
 default zoe_met       = False
+default marcus_met    = False
+default marcus_chili  = False
+default martha_met    = False
 default apartment_tier = 1    # 1=cheap, 2=mid, 3=rich
 
 # Time helpers called from script
