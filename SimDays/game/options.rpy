@@ -111,10 +111,6 @@ define config.end_game_transition = None
 
 define config.window = "auto"
 
-## Keep the last line of dialogue visible above choice menus (so the player
-## can see what the character just said while picking a reply).
-define config.menu_include_dialogue = True
-
 
 ## Przejścia używane do pokazywania i ukrywania okna dialogowego
 
