@@ -97,55 +97,9 @@ label location_hallway:
     call screen hallway_hub
 
 
-# Marcus's place (14). Left panel = actions; talking opens centred choices.
+# Marcus's place (14). Knock -> unified interaction hub (see interact.rpy).
 label marcus_talk:
     scene expression ("marcus_home_night" if (hour >= 20 or hour < 6) else "marcus_home_day")
     show screen hud
-    show marcus_casual_normal as marcus at sprite_r
-    # Greeting scales with how well he knows you.
-    if marcus_affection >= 50:
-        m "Was just about to text you. What's up, man?"
-    elif marcus_affection >= 25:
-        m "There he is. Grab a spot."
-    else:
-        m "Hey, neighbor. Surviving?"
-
-# Left-side action hub at Marcus's place.
-label marcus_actions:
-    show marcus_casual_normal as marcus at sprite_r
-    menu (screen="activity"):
-        "Marcus's place (14)."
-
-        "Talk to Marcus":
-            jump marcus_chat
-
-        "Head out":
-            hide marcus
-            jump location_hallway
-
-# The conversation itself - standard centred Ren'Py choices.
-label marcus_chat:
-    menu:
-        "\"How's the bar?\"":
-            show marcus_casual_talk as marcus at sprite_r
-            m "Static? Busy. Loud. Tips are decent if you can fake liking the music."
-            if marcus_affection >= 40:
-                m "I keep thinking... I could run a place better than this. Smaller. Mine."
-            $ marcus_affection += 1
-            jump marcus_chat
-
-        "\"Just hanging out.\"":
-            show marcus_casual_laugh as marcus at sprite_r
-            m "We should ball sometime. Park, Saturday. You'll lose, but you'll have fun."
-            $ marcus_affection += 2
-            jump marcus_chat
-
-        "\"You good?\"" if marcus_trust >= 30:
-            show marcus_casual_talk as marcus at sprite_r
-            m "Honestly? Money's tight, the owner's a pain. But I'm figuring it out. Thanks for asking."
-            $ marcus_trust += 2
-            jump marcus_chat
-
-        "(That's enough for now.)":
-            show marcus_casual_normal as marcus at sprite_r
-            jump marcus_actions
+    call npc_interact("marcus")
+    jump location_hallway

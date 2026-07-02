@@ -30,27 +30,55 @@ default need_hunger  = 80
 default need_hygiene = 80
 default need_energy  = 90
 
+# Professional skills (0-10; learned via courses at the college + on the job).
+# These GATE careers alongside core stats (e.g. Doctor needs Medicine 5 + INT 50).
+default skill_med  = 0   # Medicine   -> hospital careers
+default skill_prog = 0   # Programming-> IT / The Hub
+default skill_biz  = 0   # Business   -> corporate / management
+default skill_cook = 0   # Cooking    -> restaurant / kitchen
+default skill_fit  = 0   # Fitness    -> gym / personal trainer
+default skill_mech = 0   # Mechanics  -> garage / warehouse
+default skill_art  = 0   # Art        -> creative / gallery (Zoe's world)
+
 default mc_name = "Alex"   # player's name; set during the intro, personalizable
 
 # Relationship (affection 0-100, trust 0-100)
 default zoe_affection = 0
 default zoe_trust     = 0
+default nora_affection = 0
+default nora_trust     = 0
 default marcus_affection = 0
 default marcus_trust     = 0
 default martha_affection = 0
 default martha_trust     = 0
+default caroline_affection = 0
+default caroline_trust     = 0
+default lena_affection     = 0
+default lena_trust         = 0
+default natalie_affection  = 0
+default natalie_trust      = 0
+default elle_affection     = 0
+default elle_trust         = 0
 
 # Progression flags
 default zoe_met       = False
+default nora_met      = False
 default marcus_met    = False
 default marcus_chili  = False
 default martha_met    = False
+# Career NPCs - introduced through the career, not by wandering in.
+default caroline_met  = False
+default lena_met      = False
+default natalie_met   = False
 default apartment_tier = 1    # 1=cheap, 2=mid, 3=rich
 
-# Job / career (filled out by jobs_system later; None = unemployed)
-default job_title       = None   # e.g. "Junior Dev @ The Hub"
-default job_performance = 0      # 0-100 Performance bar for current rank
-default job_next        = ""     # promotion requirement hint, e.g. "INT 50"
+# Job / career. job_id = career key in CAREERS (None = unemployed); the rest is
+# derived from CAREERS[job_id]["ranks"][job_rank] via _sync_job() in careers.rpy.
+default job_id          = None
+default job_rank        = 0
+default job_performance = 0      # 0-100 Performance bar for the current rank
+default job_title       = None   # display, e.g. "Junior Dev - The Hub"
+default job_next        = ""     # promotion requirement hint
 default job_schedule    = ""     # e.g. "Mon-Fri 09-17"
 
 # Time helpers called from script

@@ -50,7 +50,30 @@ screen profile():
             use stat_chip("Strength",   stat_str, "images/ui/bar_fill_str.png", "images/ui/icons/stat_str.png")
             use stat_chip("Intellect",  stat_int, "images/ui/bar_fill_int.png", "images/ui/icons/stat_int.png")
             use stat_chip("Charisma",   stat_chr, "images/ui/bar_fill_chr.png", "images/ui/icons/stat_social.png")
-            use stat_chip("Appearance", stat_app, "images/ui/bar_fill_app.png")  # no icon yet
+            use stat_chip("Appearance", stat_app, "images/ui/bar_fill_app.png", "images/ui/icons/stat_app.png")
+
+            null height 4
+            text "TRADES" font PROFILE_FONT size 15 color "#7fa0cc"
+            $ _learned = [k for k in PRO_SKILLS if skill_val(k) > 0]
+            if _learned:
+                for _k in _learned:
+                    $ _lv = skill_val(_k)
+                    frame:
+                        xfill True
+                        ysize 54
+                        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                        padding (16, 8, 18, 8)
+                        hbox:
+                            spacing 10
+                            add ("images/ui/icons/skill_%s.png" % _k) xysize (30, 30) yalign 0.5
+                            text PRO_SKILLS[_k][0] font PROFILE_FONT size 18 color "#cfe0f5" yalign 0.5 xsize 108
+                            bar:
+                                value StaticValue(_lv, 10)
+                                xsize 128 ysize 14 yalign 0.5
+                                left_bar Frame("images/ui/bar_fill_%s.png" % PRO_SKILLS[_k][2], 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
+                            text "[_lv]/10" font PROFILE_FONT size 17 color "#ffffff" yalign 0.5 xalign 1.0
+            else:
+                text "No trades learned yet - take a course at the college." font PROFILE_FONT size 15 color "#9fb6d6"
 
             null height 4
             text "WORK" font PROFILE_FONT size 15 color "#7fa0cc"

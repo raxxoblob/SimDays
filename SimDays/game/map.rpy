@@ -48,7 +48,9 @@ style pin_sleep_text is button_text:
 # icon file (images/ui/icons/), label, jump target
 define CENTRUM_VENUES = [
     ("coffee_shop", "Coffee Shop", "location_cafe"),
+    ("hub",         "The Hub",     "location_hub"),
     ("office_exec", "Nexus Tower", "location_office"),
+    ("university",  "College",     "location_college"),
     ("gym",         "Gym",         "location_gym"),
     ("library",     "Library",     "location_library"),
     ("bar",         "Bar",         "location_bar"),
@@ -67,7 +69,7 @@ screen hallway_hub():
             spacing 40
             for icon, caption, target, need in [
                 ("door_12", "Your Place", "location_home",  True),
-                ("door_14", "Marcus (14)", "marcus_talk",    marcus_met),
+                ("door_14", "Marcus (14)", "marcus_talk",    marcus_met and npc_here("marcus")),
                 ("metro",   "Metro → City", "map",      True),
             ]:
                 if need:
