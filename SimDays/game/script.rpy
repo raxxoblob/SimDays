@@ -1,6 +1,7 @@
 # Entry point
 
 label start:
+    $ stocks_init()
     # Move-in day intro (M0). No HUD during the cinematic - it's a cutscene.
     scene hallway with fade
     "Day 1."

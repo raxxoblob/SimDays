@@ -31,9 +31,10 @@ screen activity(items):
                     at act_item
                     text i.caption:
                         font ACT_FONT
-                        size 22
+                        size 20
                         color "#cfe0f5"
                         hover_color "#ffffff"
-                        xpos 34
+                        xpos 30
+                        xsize 300
                         yalign 0.5
-                        line_leading 2
+                        line_leading 0

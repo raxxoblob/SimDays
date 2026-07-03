@@ -15,6 +15,7 @@ init python:
         "fit":  ("Fitness",     "#8fd94f", "energy"),
         "mech": ("Mechanics",   "#9aa5b5", "perf"),
         "art":  ("Art",         "#c07bff", "app"),
+        "music": ("Music",      "#ff7fb0", "app"),
     }
 
     def skill_val(key):
@@ -136,12 +137,16 @@ init python:
         r = CAREERS[cid]["ranks"][store.job_rank]
         spend_time(hours)
         gain_money(r["pay"])
-        low = (store.need_energy < 30 or store.need_hunger < 30)
-        store.job_performance = min(100, store.job_performance + (7 if low else 13))
-        for kind, key, chance in CAREER_TRAIN.get(cid, []):
-            if renpy.random.random() < chance:
-                if kind == "stat": gain_stat(key, 1)
-                else: gain_skill(key, 1)
+        # Show up wrecked and you actually LOSE ground; rested, you climb.
+        low = worn_out()
+        if low:
+            store.job_performance = max(0, store.job_performance - 6)
+        else:
+            store.job_performance = min(100, store.job_performance + 13)
+            for kind, key, chance in CAREER_TRAIN.get(cid, []):
+                if renpy.random.random() < chance:
+                    if kind == "stat": gain_stat(key, 1)
+                    else: gain_skill(key, 1)
         _sync_job()
         return low
 

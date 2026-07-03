@@ -28,14 +28,14 @@ screen hud():
         add "images/ui/icons/stat_money.png" xpos 620 ypos 36 xysize (56, 56)
         text "$[money]" xpos 686 ypos 48 size 28 color "#8a5a00" font "fonts/VarelaRound.ttf"
 
-        add "images/ui/icons/stat_hunger.png" xpos 930 ypos 42 xysize (44, 44)
-        bar value StaticValue(need_hunger, 100) xpos 982 ypos 56 xysize (84, 16) left_bar Frame("images/ui/bar_fill_hunger.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_hunger]" xpos 1072 ypos 50 size 20 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_hunger.png" xpos 960 ypos 42 xysize (44, 44)
+        bar value StaticValue(need_hunger, 100) xpos 1012 ypos 56 xysize (84, 16) left_bar Frame("images/ui/bar_fill_hunger.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_hunger]" xpos 1102 ypos 50 size 20 color "#143c6e" font "fonts/VarelaRound.ttf"
 
-        add "images/ui/icons/stat_hygiene.png" xpos 1110 ypos 42 xysize (44, 44)
-        bar value StaticValue(need_hygiene, 100) xpos 1162 ypos 56 xysize (84, 16) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_hygiene]" xpos 1252 ypos 50 size 20 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_hygiene.png" xpos 1136 ypos 42 xysize (44, 44)
+        bar value StaticValue(need_hygiene, 100) xpos 1188 ypos 56 xysize (84, 16) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_hygiene]" xpos 1278 ypos 50 size 20 color "#143c6e" font "fonts/VarelaRound.ttf"
 
-        add "images/ui/icons/stat_energy.png" xpos 1290 ypos 42 xysize (44, 44)
-        bar value StaticValue(need_energy, 100) xpos 1342 ypos 56 xysize (84, 16) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_energy]" xpos 1432 ypos 50 size 20 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_energy.png" xpos 1312 ypos 42 xysize (44, 44)
+        bar value StaticValue(need_energy, 100) xpos 1364 ypos 56 xysize (84, 16) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_energy]" xpos 1454 ypos 50 size 20 color "#143c6e" font "fonts/VarelaRound.ttf"
