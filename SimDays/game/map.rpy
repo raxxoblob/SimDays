@@ -54,7 +54,38 @@ define CENTRUM_VENUES = [
     ("gym",         "Gym",         "location_gym"),
     ("library",     "Library",     "location_library"),
     ("bar",         "Bar",         "location_bar"),
+    ("nightclub",   "Club",        "location_nightclub"),
 ]
+
+# Mall shops (own backgrounds + icons). Shown as an icon bar inside the mall.
+define MALL_SHOPS = [
+    ("shop_clothing",    "Clothing",    "location_shop_clothing"),
+    ("shop_electronics", "Electronics", "location_shop_electronics"),
+    ("shop_lifestyle",   "Gifts",       "location_shop_gifts"),
+]
+
+init python:
+    # Opening hours per venue (open, close). Game clock is 7.0-27.0, so a close
+    # value > 24 means "into the small hours" (e.g. bar 17-27 = 5pm-3am).
+    # Venues with no night art close before evening (e.g. College).
+    VENUE_HOURS = {
+        "coffee_shop": (7, 19),
+        "hub":         (8, 22),
+        "office_exec": (8, 20),
+        "university":  (8, 18),   # day art only
+        "gym":         (6, 23),
+        "library":     (8, 22),
+        "bar":         (17, 27),  # evening into the night
+        "nightclub":   (21, 27),
+    }
+
+    def venue_open(key):
+        o, c = VENUE_HOURS.get(key, (0, 27))
+        return o <= store.hour < c
+
+    def venue_hours_str(key):
+        o, c = VENUE_HOURS.get(key, (0, 27))
+        return "%02d:00-%02d:00" % (o % 24, c % 24)
 
 screen hallway_hub():
     use hud
@@ -95,13 +126,48 @@ screen centrum_hub():
         hbox:
             spacing 26
             for icon, label, target in CENTRUM_VENUES:
+                $ _open = venue_open(icon)
                 vbox:
                     xsize 132
                     spacing 4
                     imagebutton:
                         xalign 0.5
-                        idle  Transform("images/ui/icons/icon_%s.png" % icon, size=(108, 108))
+                        sensitive _open
+                        idle  Transform("images/ui/icons/icon_%s.png" % icon, size=(108, 108), alpha=(1.0 if _open else 0.32))
                         hover Transform("images/ui/icons/icon_%s.png" % icon, size=(120, 120))
+                        action Jump(target)
+                    if _open:
+                        text label xalign 0.5 size 16 color "#ffffff"
+                    else:
+                        text label xalign 0.5 size 15 color "#7a8aa0"
+                        text venue_hours_str(icon) xalign 0.5 size 12 color "#7a8aa0"
+
+    textbutton "Back to City Map":
+        action Jump("map")
+        style "pin_sleep"
+        xpos 30
+        ypos 1008
+
+# Inside the mall: pick a shop (each has its own interior).
+screen mall_hub():
+    use hud
+
+    frame:
+        xalign 0.5
+        yalign 1.0
+        yoffset -16
+        background "#000000aa"
+        padding (24, 14, 24, 14)
+        hbox:
+            spacing 40
+            for icon, label, target in MALL_SHOPS:
+                vbox:
+                    xsize 150
+                    spacing 4
+                    imagebutton:
+                        xalign 0.5
+                        idle  Transform("images/ui/icons/icon_%s.png" % icon, size=(112, 112))
+                        hover Transform("images/ui/icons/icon_%s.png" % icon, size=(124, 124))
                         action Jump(target)
                     text label xalign 0.5 size 16 color "#ffffff"
 

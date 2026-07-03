@@ -70,6 +70,8 @@ label cafe_first_visit:
 label cafe_actions:
     scene expression cafe_bg()
     show screen hud
+    if npc_talkable("nora"):
+        show nora_cafe_normal as npcsprite at sprite_r
 
     menu (screen="activity"):
         "What do you want to do at the cafe?"
@@ -81,12 +83,8 @@ label cafe_actions:
             "You sip a good coffee. Worth it."
             jump cafe_actions
 
-        "Talk to Nora" if nora_met and npc_here("nora"):
+        "Talk to Nora" if npc_talkable("nora"):
             call npc_interact("nora")
-            jump cafe_actions
-
-        "Nora's off shift" if nora_met and not npc_here("nora"):
-            "Nora's not behind the counter right now. She works days."
             jump cafe_actions
 
         "Work a shift - Barista (4h, +$60)":
@@ -101,11 +99,14 @@ label cafe_work_shift:
         jump cafe_actions
     $ spend_time(4)
     $ gain_money(60)
-    $ gain_stat("chr", 1)
     "Four hours of steaming milk and small talk. You pocket $60."
-    if nora_met:
+    if npc_here("nora"):
         show nora_cafe_normal at sprite_r
-        n "Not bad for your first shift. Henry says you're a natural. That's high praise - he called me 'adequate' for a year."
+        if not cafe_shift_done:
+            $ cafe_shift_done = True
+            n "Not bad for a first shift. Henry says you're a natural - high praise, he called me 'adequate' for a year."
+        else:
+            n "Another one down. You're basically furniture now. The good kind."
         hide nora_cafe_normal
     jump cafe_actions
 
@@ -169,6 +170,8 @@ label location_bar:
 label location_office:
     scene goodoffice1
     show screen hud
+    if npc_talkable("caroline"):
+        show caroline_normal as npcsprite at sprite_r
     menu (screen="activity"):
         "Nexus Tower - corporate floor."
         "Work a shift (8h, +$120, +1 INT)" if stat_int >= 20:
@@ -190,27 +193,86 @@ label location_office:
         "Talk to Caroline" if npc_talkable("caroline"):
             call npc_interact("caroline")
             jump location_office
-
-        "Caroline's not in" if npc_known("caroline") and not npc_here("caroline"):
-            "HR's dark. Caroline works weekday office hours - come back then."
-            jump location_office
         "Leave to City Map":
             jump map
 
-# ── MALL ──────────────────────────────────────────────────────────────
+# ── MALL (shop hub) ───────────────────────────────────────────────────
 label location_mall:
     scene expression ("mallnight" if hour >= 19 else "mallday")
+    call screen mall_hub
+
+label location_shop_clothing:
+    scene clothesshop
     show screen hud
     menu (screen="activity"):
-        "The mall. Pick a shop."
-        "Clothes shop - outfit ($80, +2 APP)":
+        "Clothing store."
+        "Buy an outfit ($80, +2 APP)":
             if money < 80:
                 "Not enough money."
             else:
                 $ gain_money(-80)
                 $ gain_stat("app", 2)
                 "New fit. You look sharper."
+            jump location_shop_clothing
+        "Back to the mall":
             jump location_mall
+
+label location_shop_electronics:
+    scene electronicsshop
+    show screen hud
+    menu (screen="activity"):
+        "Electronics store."
+        "Buy a gadget ($100, +1 INT)":
+            if money < 100:
+                "Not enough money."
+            else:
+                $ gain_money(-100)
+                $ gain_stat("int", 1)
+                "A new toy to tinker with. You learn a thing or two."
+            jump location_shop_electronics
+        "Back to the mall":
+            jump location_mall
+
+label location_shop_gifts:
+    scene giftshop
+    show screen hud
+    menu (screen="activity"):
+        "Gift & lifestyle shop."
+        "Treat yourself ($30, +energy)":
+            if money < 30:
+                "Not enough money."
+            else:
+                $ gain_money(-30)
+                $ need_energy = min(100, need_energy + 15)
+                "A small indulgence. You feel a little brighter."
+            jump location_shop_gifts
+        "Back to the mall":
+            jump location_mall
+
+# ── NIGHTCLUB ─────────────────────────────────────────────────────────
+label location_nightclub:
+    scene nightclub
+    show screen hud
+    menu (screen="activity"):
+        "The club - lights, bass, a wall of bodies."
+        "Hit the dance floor (1h)":
+            $ spend_time(1)
+            $ need_energy = max(0, need_energy - 10)
+            "You lose an hour to the beat. Worth it."
+            jump location_nightclub
+        "Work the crowd (1h, +2 CHR)" if stat_chr >= 30:
+            $ spend_time(1)
+            $ gain_stat("chr", 2)
+            "You move room to room, easy and loud. A few new contacts."
+            jump location_nightclub
+        "Work the crowd (need CHR 30)" if stat_chr < 30:
+            "The in-crowd closes ranks. You can't quite break in yet. (Need CHR 30.)"
+            jump location_nightclub
+        "Buy a round ($15)":
+            $ spend_time(0.5)
+            $ gain_money(-15)
+            "Drinks all around. Cheap way to be popular for ten minutes."
+            jump location_nightclub
         "Leave to City Map":
             jump map
 
@@ -237,6 +299,8 @@ label location_park:
 label location_beach:
     scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
+    if npc_talkable("elle"):
+        show elle_sundress_normal as npcsprite at sprite_r
     menu (screen="activity"):
         "The beach."
         "Relax (1h)":
@@ -244,7 +308,7 @@ label location_beach:
             $ need_energy = min(100, need_energy + 10)
             "The waves and sun do wonders."
             jump location_beach
-        "Talk to Elle" if npc_here("elle"):
+        "Talk to Elle" if npc_talkable("elle"):
             call npc_interact("elle")
             jump location_beach
         "Leave to City Map":
@@ -261,6 +325,8 @@ label location_centrum:
 label location_warehouse:
     scene warehouse
     show screen hud
+    if npc_talkable("natalie"):
+        show natalie_normal as npcsprite at sprite_r
     menu (screen="activity"):
         "LogiCity Warehouse."
         "Work a shift (8h, +$110, +2 STR)" if stat_str >= 25:
@@ -282,10 +348,6 @@ label location_warehouse:
         "Talk to Natalie" if npc_talkable("natalie"):
             call npc_interact("natalie")
             jump location_warehouse
-
-        "Natalie's off the floor" if npc_known("natalie") and not npc_here("natalie"):
-            "She's not on the floor right now. Day shifts only."
-            jump location_warehouse
         "Leave to City Map":
             jump map
 
@@ -293,6 +355,8 @@ label location_warehouse:
 label location_hospital:
     scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
     show screen hud
+    if npc_talkable("lena"):
+        show drlena_normal as npcsprite at sprite_r
     menu (screen="activity"):
         "City Hospital - reception. Antiseptic and quiet hurry."
 
@@ -329,20 +393,20 @@ label location_hospital:
             jump location_hospital
 
         "Drop off your CV (apply for medicine)" if job_id is None and can_apply("hospital"):
+            show drlena_normal at sprite_r
+            "A doctor at the desk skims your file. \"Med Student it is. Try not to faint.\" You're in."
+            hide drlena_normal
             $ apply_job("hospital")
-            "The chief reviews your file. \"Med Student it is. Try not to faint.\" You're in."
             jump location_hospital
 
         "Drop off your CV (apply for medicine)" if job_id is None and not can_apply("hospital"):
+            show drlena_normal at sprite_r
             "A tired doctor skims your CV and hands it back. \"You're not there yet - Medicine 1 and INT 20, minimum. The college teaches it.\""
+            hide drlena_normal
             jump location_hospital
 
         "Talk to Dr. Lena" if npc_talkable("lena"):
             call npc_interact("lena")
-            jump location_hospital
-
-        "Dr. Lena's on rounds" if npc_known("lena") and not npc_here("lena"):
-            "She's somewhere in the ward, not the desk. Catch her on a day shift."
             jump location_hospital
 
         "Quit medicine" if job_id == "hospital":

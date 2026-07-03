@@ -70,6 +70,7 @@ default martha_met    = False
 default caroline_met  = False
 default lena_met      = False
 default natalie_met   = False
+default cafe_shift_done = False   # so the "first shift" line only plays once
 default apartment_tier = 1    # 1=cheap, 2=mid, 3=rich
 
 # Job / career. job_id = career key in CAREERS (None = unemployed); the rest is
