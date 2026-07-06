@@ -52,21 +52,27 @@ label location_home_cook:
             if money < 2:
                 "Not enough for even this. Pick up groceries on your phone."
                 jump location_home_cook
-            $ spend_time(0.25); $ gain_money(-2); $ need_hunger = min(100, need_hunger + 15)
+            $ spend_time(0.25)
+            $ gain_money(-2)
+            $ need_hunger = min(100, need_hunger + 15)
             "Two slices of toast. Better than nothing."
             jump location_home_actions
         "Instant noodles ($3, +22 hunger)":
             if money < 3:
                 "No noodles in the cupboard."
                 jump location_home_cook
-            $ spend_time(0.25); $ gain_money(-3); $ need_hunger = min(100, need_hunger + 22)
+            $ spend_time(0.25)
+            $ gain_money(-3)
+            $ need_hunger = min(100, need_hunger + 22)
             "Straight out of the packet, four minutes. Fine."
             jump location_home_actions
         "Scrambled eggs ($5, +32 hunger)":
             if money < 5:
                 "Out of eggs. Get groceries."
                 jump location_home_cook
-            $ spend_time(0.5); $ gain_money(-5); $ need_hunger = min(100, need_hunger + 32)
+            $ spend_time(0.5)
+            $ gain_money(-5)
+            $ need_hunger = min(100, need_hunger + 32)
             "Oil, heat, three eggs. You feel a bit more human."
             jump location_home_actions
         "Pasta bolognese ($8, +55 hunger) [Cooking Lv 2]":
@@ -76,7 +82,10 @@ label location_home_cook:
             if money < 8:
                 "You'd need $8 of groceries for this one."
                 jump location_home_cook
-            $ spend_time(0.5); $ gain_money(-8); $ need_hunger = min(100, need_hunger + 55); $ gain_skill("cook", 2)
+            $ spend_time(0.5)
+            $ gain_money(-8)
+            $ need_hunger = min(100, need_hunger + 55)
+            $ gain_skill("cook", 2)
             "Proper sauce, actual garlic. Getting the hang of this."
             jump location_home_actions
         "Chicken stir-fry ($10, +65 hunger, +8 energy) [Cooking Lv 4]":
@@ -86,7 +95,11 @@ label location_home_cook:
             if money < 10:
                 "Not enough for the ingredients right now."
                 jump location_home_cook
-            $ spend_time(0.75); $ gain_money(-10); $ need_hunger = min(100, need_hunger + 65); $ need_energy = min(100, need_energy + 8); $ gain_skill("cook", 2)
+            $ spend_time(0.75)
+            $ gain_money(-10)
+            $ need_hunger = min(100, need_hunger + 65)
+            $ need_energy = min(100, need_energy + 8)
+            $ gain_skill("cook", 2)
             "Fast, hot, loud. A proper meal - you feel it in the energy too."
             jump location_home_actions
         "Sunday roast ($18, +80 hunger, +15 energy) [Cooking Lv 7]":
@@ -96,7 +109,11 @@ label location_home_cook:
             if money < 18:
                 "You'd need $18 for a proper roast's worth of ingredients."
                 jump location_home_cook
-            $ spend_time(1.0); $ gain_money(-18); $ need_hunger = min(100, need_hunger + 80); $ need_energy = min(100, need_energy + 15); $ gain_skill("cook", 3)
+            $ spend_time(1.0)
+            $ gain_money(-18)
+            $ need_hunger = min(100, need_hunger + 80)
+            $ need_energy = min(100, need_energy + 15)
+            $ gain_skill("cook", 3)
             "An afternoon's prep. The apartment smells like a real home. You feel genuinely full for the first time in a while."
             jump location_home_actions
         "Close the fridge.":
