@@ -26,21 +26,22 @@ screen activity(items):
         vbox:
             spacing 12
             for i in items:
-                button:
-                    action i.action
-                    xysize (360, 72)
-                    background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                    hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-                    at act_item
-                    text i.caption:
-                        font ACT_FONT
-                        size 20
-                        color "#cfe0f5"
-                        hover_color "#ffffff"
-                        xpos 30
-                        xsize 300
-                        yalign 0.5
-                        line_leading 0
+                if i.action is not None:
+                    button:
+                        action i.action
+                        xysize (360, 72)
+                        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        at act_item
+                        text i.caption:
+                            font ACT_FONT
+                            size 20
+                            color "#cfe0f5"
+                            hover_color "#ffffff"
+                            xpos 30
+                            xsize 300
+                            yalign 0.5
+                            line_leading 0
 
     frame:
         xalign 0.5
