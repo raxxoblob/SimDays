@@ -47,13 +47,7 @@ init python:
                        icon="images/ui/icons/stat_money.png")
 
     def gain_aff(npc_name, delta):
-        """Flash an affection toast (called from do_talk / do_gift)."""
-        if delta > 0:
-            _push_gain(kind="aff", text="+%d  %s" % (delta, npc_name), color="#f07888",
-                       icon="images/ui/icons/stat_social.png")
-        elif delta < 0:
-            _push_gain(kind="aff", text="%d  %s" % (delta, npc_name), color="#e86a55",
-                       icon="images/ui/icons/stat_social.png")
+        pass  # bar animates in npc_relbar; no toast needed
 
     NEED_DRAIN_META = {
         "need_energy":  ("Energy",  "images/ui/icons/stat_energy.png"),

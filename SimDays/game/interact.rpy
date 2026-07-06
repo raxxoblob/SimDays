@@ -224,9 +224,9 @@ screen npc_relbar(npc_id):
                 text "Affection" font PROFILE_FONT size 17 color "#cfe0f5" xpos 0 ypos 4
                 bar:
                     xpos 110 ypos 7
-                    value StaticValue(_aff, 100)
+                    value AnimatedValue(_aff, 100, delay=0.6)
                     xsize 150 ysize 16
-                    left_bar Frame("images/ui/bar_fill_str.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
+                    left_bar Frame("images/ui/bar_fill_chr.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
                 text "[_aff]" font PROFILE_FONT size 17 color "#ffffff" xpos 270 ypos 4
             fixed:
                 xsize 356
@@ -234,7 +234,7 @@ screen npc_relbar(npc_id):
                 text "Trust" font PROFILE_FONT size 17 color "#cfe0f5" xpos 0 ypos 4
                 bar:
                     xpos 110 ypos 7
-                    value StaticValue(_tr, 100)
+                    value AnimatedValue(_tr, 100, delay=0.6)
                     xsize 150 ysize 16
                     left_bar Frame("images/ui/bar_fill_int.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
                 text "[_tr]" font PROFILE_FONT size 17 color "#ffffff" xpos 270 ypos 4
@@ -296,6 +296,8 @@ screen npc_topics(npc_id):
 
 # ── Driver ─────────────────────────────────────────────────────────────
 label npc_interact(npc_id):
+    $ renpy.hide_screen("npc_relbar")
+    $ renpy.hide("npcsprite")
     $ _spr = NPC_DATA[npc_id]["sprite"]
     show expression _spr as npcsprite at sprite_c
     show screen npc_relbar(npc_id)

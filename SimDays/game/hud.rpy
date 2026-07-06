@@ -36,20 +36,20 @@ screen hud():
         text "$[money]" xpos 448 ypos 48 size 30 color "#8a5a00" font "fonts/VarelaRound.ttf"
 
         # ── Needs: icon + label + bar + value ─────────────────────────────
-        add "images/ui/icons/stat_hunger.png" xpos 680 ypos 32 xysize (50, 50)
-        text "HUNGER" xpos 740 ypos 26 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_hunger, 100) xpos 740 ypos 50 xysize (150, 22) left_bar Frame("images/ui/bar_fill_chr.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_hunger]" xpos 900 ypos 48 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_hunger.png" xpos 680 ypos 44 xysize (50, 50)
+        text "HUNGER" xpos 740 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
+        bar value StaticValue(need_hunger, 100) xpos 740 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_chr.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_hunger]" xpos 900 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
 
-        add "images/ui/icons/stat_hygiene.png" xpos 1000 ypos 32 xysize (50, 50)
-        text "HYGIENE" xpos 1060 ypos 26 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_hygiene, 100) xpos 1060 ypos 50 xysize (150, 22) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_hygiene]" xpos 1220 ypos 48 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_hygiene.png" xpos 1000 ypos 44 xysize (50, 50)
+        text "HYGIENE" xpos 1060 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
+        bar value StaticValue(need_hygiene, 100) xpos 1060 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_hygiene]" xpos 1220 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
 
-        add "images/ui/icons/stat_energy.png" xpos 1320 ypos 32 xysize (50, 50)
-        text "ENERGY" xpos 1380 ypos 26 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_energy, 100) xpos 1380 ypos 50 xysize (150, 22) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_energy]" xpos 1540 ypos 48 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_energy.png" xpos 1320 ypos 44 xysize (50, 50)
+        text "ENERGY" xpos 1380 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
+        bar value StaticValue(need_energy, 100) xpos 1380 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_energy]" xpos 1540 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
 
         button:
             xpos 676 ypos 28 xysize (264, 72)
@@ -71,14 +71,3 @@ screen hud():
             font "fonts/Quicksand-SemiBold.ttf"
             outlines [(2, "#000000cc", 0, 0)]
 
-    if not renpy.get_screen("city_map") and not renpy.get_screen("centrum_hub") and not renpy.get_screen("hallway_hub") and not renpy.get_screen("mall_hub"):
-        frame:
-            xalign 0.5
-            yalign 1.0
-            yoffset -16
-            background "#000000aa"
-            padding (16, 10, 16, 10)
-            imagebutton:
-                idle  Transform("images/ui/icons/icon_metro.png", size=(82, 82))
-                hover Transform("images/ui/icons/icon_metro.png", size=(92, 92))
-                action Jump("take_metro")

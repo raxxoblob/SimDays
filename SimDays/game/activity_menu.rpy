@@ -5,6 +5,9 @@
 
 define ACT_FONT = "fonts/Quicksand-SemiBold.ttf"   # swap weight here globally
 
+default activity_exit_jump = "map"
+default activity_exit_name = "City"
+
 transform act_item:
     on idle:
         linear 0.12 zoom 1.0 xoffset 0
@@ -38,3 +41,19 @@ screen activity(items):
                         xsize 300
                         yalign 0.5
                         line_leading 0
+
+    frame:
+        xalign 0.5
+        yalign 1.0
+        yoffset -16
+        background "#000000aa"
+        padding (24, 14, 24, 14)
+        vbox:
+            xsize 150
+            spacing 4
+            imagebutton:
+                xalign 0.5
+                idle  Transform("images/ui/icons/icon_metro.png", size=(120, 120))
+                hover Transform("images/ui/icons/icon_metro.png", size=(132, 132))
+                action Jump(activity_exit_jump)
+            text "[activity_exit_name]" xalign 0.5 size 16 color "#ffffff"

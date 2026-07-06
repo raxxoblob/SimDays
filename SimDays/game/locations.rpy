@@ -7,6 +7,8 @@ label location_home:
     jump location_home_actions
 
 label location_home_actions:
+    $ activity_exit_jump = "location_hallway"
+    $ activity_exit_name = "Hallway"
     scene expression home_bg()
     show screen hud
 
@@ -177,6 +179,8 @@ label cafe_actions:
     if hour >= 19:
         "The café lights are going off. Time to head out."
         jump take_metro
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene expression cafe_bg()
     show screen hud
     if npc_talkable("nora"):
@@ -227,6 +231,8 @@ label location_gym:
     if not venue_open("gym"):
         "The gym is closed for the night."
         jump take_metro
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene gymdaypeople
     show screen hud
     menu (screen="activity"):
@@ -260,6 +266,8 @@ label location_library:
     if not venue_open("library"):
         "The library is closing. Time to head out."
         jump take_metro
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene expression ("librarynight" if hour >= 20 else "libraryday")
     show screen hud
     if npc_talkable("eli"):
@@ -307,6 +315,8 @@ label location_library:
 
 # ── BAR ───────────────────────────────────────────────────────────────
 label location_bar:
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene bar
     show screen hud
     menu (screen="activity"):
@@ -330,6 +340,8 @@ label location_office:
     if not venue_open("office_exec"):
         "Nexus Tower is locked up for the night."
         jump take_metro
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene goodoffice1
     show screen hud
     menu (screen="activity"):
@@ -366,6 +378,8 @@ label location_mall:
     call screen mall_hub
 
 label location_shop_clothing:
+    $ activity_exit_jump = "location_mall"
+    $ activity_exit_name = "Mall"
     scene clothesshop
     show screen hud
     menu (screen="activity"):
@@ -386,10 +400,10 @@ label location_shop_clothing:
                 $ wardrobe_tier += 1
                 "Designer pieces, tailored. You carry yourself differently - people notice."
             jump location_shop_clothing
-        "Back to the mall":
-            jump location_mall
 
 label location_shop_electronics:
+    $ activity_exit_jump = "location_mall"
+    $ activity_exit_name = "Mall"
     scene electronicsshop
     show screen hud
     menu (screen="activity"):
@@ -410,10 +424,10 @@ label location_shop_electronics:
                 $ own_guitar = True
                 "A decent starter guitar. Now you can practice music at home."
             jump location_shop_electronics
-        "Back to the mall":
-            jump location_mall
 
 label location_shop_gifts:
+    $ activity_exit_jump = "location_mall"
+    $ activity_exit_name = "Mall"
     scene giftshop
     show screen hud
     menu (screen="activity"):
@@ -450,11 +464,11 @@ label location_shop_gifts:
                 $ gift_count += 1
                 "A nicely wrapped little something. Give it to someone you're getting to know."
             jump location_shop_gifts
-        "Back to the mall":
-            jump location_mall
 
 # ── CAR DEALER (status via car_tier) ──────────────────────────────────
 label location_cardealer:
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene cardealer_day
     show screen hud
     menu (screen="activity"):
@@ -489,6 +503,8 @@ label location_cardealer:
 
 # ── KITCHEN / Eleven (Culinary career) ────────────────────────────────
 label location_kitchen:
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene kitchen
     show screen hud
     menu (screen="activity"):
@@ -533,6 +549,8 @@ label location_kitchen:
 
 # ── NIGHTCLUB ─────────────────────────────────────────────────────────
 label location_nightclub:
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene nightclub
     show screen hud
     menu (screen="activity"):
@@ -558,6 +576,8 @@ label location_nightclub:
 
 # ── PARK ──────────────────────────────────────────────────────────────
 label location_park:
+    $ activity_exit_jump = "map"
+    $ activity_exit_name = "City Map"
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
     if npc_talkable("zoe"):
@@ -592,6 +612,8 @@ label location_park:
 
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
+    $ activity_exit_jump = "map"
+    $ activity_exit_name = "City Map"
     scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
     if not zoe_met and hour < 19:
@@ -780,6 +802,8 @@ label location_centrum:
 
 # ── WAREHOUSE ─────────────────────────────────────────────────────────
 label location_warehouse:
+    $ activity_exit_jump = "take_metro"
+    $ activity_exit_name = "City Map"
     scene warehouse
     show screen hud
     if npc_talkable("natalie"):
@@ -815,6 +839,8 @@ label location_warehouse:
 
 # ── HOSPITAL ──────────────────────────────────────────────────────────
 label location_hospital:
+    $ activity_exit_jump = "take_metro"
+    $ activity_exit_name = "City Map"
     scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
     show screen hud
     if npc_talkable("lena"):
@@ -887,6 +913,8 @@ label location_hub:
     if not venue_open("hub"):
         "The Hub is shut. Back at 08:00."
         jump take_metro
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene expression ("hub_night" if (hour >= 20 or hour < 6) else "hub_day")
     show screen hud
     menu (screen="activity"):
@@ -934,6 +962,8 @@ label location_college:
     if not venue_open("university"):
         "The college is closed for the day. Back at 08:00."
         jump take_metro
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
     scene college_day
     show screen hud
     menu (screen="activity"):
