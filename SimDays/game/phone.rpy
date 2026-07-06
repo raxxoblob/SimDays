@@ -3,6 +3,7 @@
 
 init python:
     def _phone_order(kind):
+
         if kind == "full":
             if store.money < 40: return
             gain_money(-40); spend_time(0.5)
@@ -13,6 +14,72 @@ init python:
             store.need_hunger = min(100, store.need_hunger + 40)
 
 
+screen phone_home():
+    modal True
+    add "#000000aa"
+    $ _clock = time_label(hour)
+    $ _day   = day_name(day)
+
+    # centred phone panel; frame PNG sits on top as overlay (transparent hole)
+    fixed:
+        xalign 0.5
+        yalign 0.5
+        xysize (480, 900)
+
+        # app content — inside the screen hole (~400×640, shifted up from centre)
+        fixed:
+            xalign 0.5
+            yalign 0.5
+            xsize 400
+            ysize 680
+            yoffset -20
+
+            vbox:
+                spacing 0
+                xalign 0.5
+
+                # status bar
+                null height 18
+                text "[_clock]   [_day]" font PROFILE_FONT size 20 color "#9fb6d6" xalign 0.5
+                null height 28
+
+                # app grid (3 cols × 3 rows)
+                $ _apps = [
+                    ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_messages_scr")]),
+                    ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_messages_scr")]),
+                    ("app_map",       "Map",        Hide("phone_home")),
+                    ("app_jobs",      "Jobs",       Hide("phone_home")),
+                    ("app_bank",      "Bank",       Hide("phone_home")),
+                    ("app_stocks",    "Stocks",     [Hide("phone_home"), Show("stock_market")]),
+                    ("app_groceries", "Groceries",  [Hide("phone_home"), Show("phone_groceries_scr")]),
+                    ("app_tips",      "Tips",       Hide("phone_home")),
+                    ("app_settings",  "Settings",   [Hide("phone_home"), Show("phone_settings")]),
+                ]
+                vpgrid:
+                    cols 3
+                    spacing 18
+                    xalign 0.5
+                    for _icon, _lbl, _act in _apps:
+                        button:
+                            xysize (108, 130)
+                            background None
+                            hover_background None
+                            action _act
+                            vbox:
+                                spacing 6
+                                add Transform("images/ui/icons/%s.png" % _icon,
+                                              size=(88, 88)) xalign 0.5
+                                text _lbl font ACT_FONT size 14 color "#ffffff" xalign 0.5
+
+                null height 20
+                textbutton "Close" action Hide("phone_home") xalign 0.5
+                    text_font ACT_FONT text_size 18 text_color "#9fb6d6" text_hover_color "#ffffff"
+
+        # phone frame on top — transparent hole lets content show through
+        add "images/ui/phone_frame.png" xalign 0.5 yalign 0.5
+
+
+# text-row helper used by sub-screens (messages list, groceries)
 screen _phone_app(label, act):
     button:
         xfill True
@@ -21,30 +88,6 @@ screen _phone_app(label, act):
         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
         action act
         text label font ACT_FONT size 22 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
-
-
-screen phone_home():
-    modal True
-    add "#000000aa"
-    $ _clock = time_label(hour)
-    frame:
-        xalign 0.985
-        yalign 0.5
-        xsize 380
-        ysize 720
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (24, 22, 24, 22)
-        vbox:
-            spacing 14
-            text "[_clock]" font PROFILE_FONT size 20 color "#9fb6d6" xalign 0.5
-            text "Phone" font PROFILE_FONT size 30 color "#ffffff" xalign 0.5
-            null height 6
-            use _phone_app("Messages",  [Hide("phone_home"), Show("phone_messages_scr")])
-            use _phone_app("Stocks",    [Hide("phone_home"), Show("stock_market")])
-            use _phone_app("Groceries", [Hide("phone_home"), Show("phone_groceries_scr")])
-            use _phone_app("Settings",  [Hide("phone_home"), Show("phone_settings")])
-            null height 6
-            textbutton "Close" action Hide("phone_home") xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 screen phone_messages_scr():

@@ -262,58 +262,74 @@ screen npc_relbar(npc_id):
                 text "[_tr]" font PROFILE_FONT size 17 color ("#7fe0ff" if _tr_hot else "#ffffff") xpos 270 ypos 4
 
 
-# reusable glass action button
-screen _act_btn(label, ret, enabled=True):
-    button:
-        sensitive enabled
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-        padding (22, 12, 22, 12)
-        action Return(ret)
-        text label font ACT_FONT size 20 color ("#cfe0f5" if enabled else "#6b82a6") hover_color "#ffffff"
-
-
-# ── Main action bar (bottom) ───────────────────────────────────────────
+# ── Main action bar (bottom) — icon tiles ──────────────────────────────
 screen npc_actions(npc_id):
     zorder 22
+    $ _gift_ok  = gift_count > 0
+    $ _date_ok  = npc_aff(npc_id) >= 30
     frame:
         xalign 0.5
         yalign 1.0
         yoffset -26
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (18, 12, 18, 12)
+        padding (18, 14, 18, 14)
         hbox:
-            spacing 12
-            use _act_btn("Talk", "talk")
-            use _act_btn("Give gift (%d)" % gift_count, "gift", gift_count > 0)
-            use _act_btn("Invite out", "date", npc_aff(npc_id) >= 30)
-            use _act_btn("Leave", "leave")
+            spacing 16
+            for _icon, _lbl, _ret, _ok in [
+                    ("act_talk",   "Talk",                    "talk",  True),
+                    ("act_gift",   "Gift (%d)" % gift_count,  "gift",  _gift_ok),
+                    ("act_invite", "Invite",                  "date",  _date_ok),
+                    ("act_leave",  "Leave",                   "leave", True)]:
+                button:
+                    sensitive _ok
+                    action Return(_ret)
+                    background None
+                    hover_background None
+                    vbox:
+                        spacing 4
+                        add Transform("images/ui/icons/%s.png" % _icon,
+                                      size=(72, 72),
+                                      alpha=(1.0 if _ok else 0.35)) xalign 0.5
+                        text _lbl font ACT_FONT size 15 xalign 0.5
+                            color ("#cfe0f5" if _ok else "#4a6080")
+                            hover_color "#ffffff"
 
 
-# ── Topic picker (the 9 shared topics) ─────────────────────────────────
+# ── Topic picker — 3×3 icon grid ───────────────────────────────────────
 screen npc_topics(npc_id):
     zorder 22
+    $ _likes    = NPC_DATA[npc_id].get("likes", [])
+    $ _dislikes = NPC_DATA[npc_id].get("dislikes", [])
     frame:
         xalign 0.5
         yalign 1.0
         yoffset -26
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (22, 16, 22, 16)
+        padding (22, 18, 22, 18)
         vbox:
-            spacing 12
-            text "Talk about..." font ACT_FONT size 20 color "#9fb6d6" xalign 0.5
+            spacing 14
+            hbox:
+                spacing 0
+                xfill True
+                text "Talk about..." font ACT_FONT size 20 color "#9fb6d6" xalign 0.0 yalign 0.5
+                textbutton "Back" action Return("back") xalign 1.0
+                    text_font ACT_FONT text_size 17 text_color "#9fb6d6" text_hover_color "#ffffff"
             vpgrid:
                 cols 3
-                spacing 12
+                spacing 10
                 for key, label in TOPICS:
+                    $ _tint = ("#ffd76a" if key in _likes else ("#6b82a6" if key in _dislikes else "#cfe0f5"))
                     button:
-                        xsize 240
+                        xysize (148, 120)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-                        padding (16, 10, 16, 10)
                         action Return(key)
-                        text label font ACT_FONT size 19 color "#cfe0f5" hover_color "#ffffff" xalign 0.5
-            textbutton "Back" action Return("back") xalign 0.5 text_font ACT_FONT text_size 18 text_color "#9fb6d6" text_hover_color "#ffffff"
+                        vbox:
+                            spacing 6
+                            xalign 0.5 yalign 0.5
+                            add Transform("images/ui/icons/topic_%s.png" % key,
+                                          size=(60, 60)) xalign 0.5
+                            text label font ACT_FONT size 15 color _tint hover_color "#ffffff" xalign 0.5
 
 
 # ── Driver ─────────────────────────────────────────────────────────────

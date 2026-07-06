@@ -13,8 +13,6 @@ label location_home_actions:
     show screen hud
 
     menu (screen="activity"):
-        "What do you want to do at home?"
-
         "Sleep":
             jump action_sleep_menu
 
@@ -47,7 +45,6 @@ label location_home_cook:
     scene expression home_bg()
     show screen hud
     menu (screen="activity"):
-        "Kitchen. What are you making?"
         "Toast ($2, +15 hunger)":
             if money < 2:
                 "Not enough for even this. Pick up groceries on your phone."
@@ -124,7 +121,6 @@ label use_computer:
     scene expression home_bg()
     show screen hud
     menu (screen="activity"):
-        "At the computer."
         "Practice coding (3h)":
             $ spend_time(3)
             $ gain_skill("prog", 3)
@@ -187,8 +183,6 @@ label cafe_actions:
         show nora_cafe_normal as npcsprite at sprite_r
 
     menu (screen="activity"):
-        "What do you want to do at the cafe?"
-
         "Buy a coffee ($3, 0.5h)":
             $ spend_time(0.5)
             $ gain_money(-3)
@@ -236,7 +230,6 @@ label location_gym:
     scene gymdaypeople
     show screen hud
     menu (screen="activity"):
-        "What do you want to do at the gym?"
         "Train - weights (1.5h)":
             if too_tired():
                 "You're too wiped out to lift anything worth lifting. Sleep first."
@@ -273,7 +266,6 @@ label location_library:
     if npc_talkable("eli"):
         show eli_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "What do you want to do at the library?"
         "Study — general (2h)":
             if too_tired():
                 "Too tired to focus. The words blur. Sleep first."
@@ -320,7 +312,6 @@ label location_bar:
     scene bar
     show screen hud
     menu (screen="activity"):
-        "What do you want to do at the bar?"
         "Have a drink ($8, 0.5h)":
             $ spend_time(0.5)
             $ gain_money(-8)
@@ -345,7 +336,6 @@ label location_office:
     scene goodoffice1
     show screen hud
     menu (screen="activity"):
-        "Nexus Tower - corporate floor."
         "Work a shift (8h)" if stat_int >= 20:
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
@@ -383,7 +373,6 @@ label location_shop_clothing:
     scene clothesshop
     show screen hud
     menu (screen="activity"):
-        "Clothing store."
         "Buy an outfit ($80)":
             if money < 80:
                 "Not enough money."
@@ -407,7 +396,6 @@ label location_shop_electronics:
     scene electronicsshop
     show screen hud
     menu (screen="activity"):
-        "Electronics store."
         "Buy a gadget ($100)":
             if money < 100:
                 "Not enough money."
@@ -431,7 +419,6 @@ label location_shop_gifts:
     scene giftshop
     show screen hud
     menu (screen="activity"):
-        "Gift & lifestyle shop."
         "Treat yourself ($30, +energy)":
             if money < 30:
                 "Not enough money."
@@ -472,7 +459,6 @@ label location_cardealer:
     scene cardealer_day
     show screen hud
     menu (screen="activity"):
-        "City Motors - the showroom floor."
         "Buy a used runabout ($1500)" if car_tier < 1:
             if money < 1500:
                 "Not enough money. The salesman's smile cools."
@@ -508,8 +494,6 @@ label location_kitchen:
     scene kitchen
     show screen hud
     menu (screen="activity"):
-        "Eleven - the kitchen. Heat, steel, tickets."
-
         "Work a shift (8h)" if job_id == "culinary":
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
@@ -554,7 +538,6 @@ label location_nightclub:
     scene nightclub
     show screen hud
     menu (screen="activity"):
-        "The club - lights, bass, a wall of bodies."
         "Hit the dance floor (1h)":
             $ spend_time(1)
             $ need_energy = max(0, need_energy - 10)
@@ -585,7 +568,6 @@ label location_park:
     elif npc_talkable("sam"):
         show sam_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "The park."
         "Morning jog (1h)":
             $ spend_time(1)
             $ gain_stat("str", 1)
@@ -625,7 +607,6 @@ label location_beach:
     elif npc_talkable("kai"):
         show kai_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "The beach."
         "Relax (1h)":
             $ spend_time(1)
             $ need_energy = min(100, need_energy + 10)
@@ -809,7 +790,6 @@ label location_warehouse:
     if npc_talkable("natalie"):
         show natalie_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "LogiCity Warehouse."
         "Work a shift (8h)" if stat_str >= 25:
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
@@ -846,8 +826,6 @@ label location_hospital:
     if npc_talkable("lena"):
         show drlena_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "City Hospital - reception. Antiseptic and quiet hurry."
-
         "Cosmetic touch-up ($200, 2h)":
             if money < 200:
                 "The clinic coordinator slides the price sheet back. You can't cover $200 today."
@@ -918,8 +896,6 @@ label location_hub:
     scene expression ("hub_night" if (hour >= 20 or hour < 6) else "hub_day")
     show screen hud
     menu (screen="activity"):
-        "The Hub - IT coworking."
-
         "Work a shift (8h)" if job_id == "it":
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
@@ -967,8 +943,6 @@ label location_college:
     scene college_day
     show screen hud
     menu (screen="activity"):
-        "City College — courses raise a professional skill. Cost rises with your level. (3h)"
-
         "Programming course":
             call college_course("prog")
             jump location_college
@@ -1001,7 +975,6 @@ label action_sleep_menu:
     scene expression home_bg()
     show screen hud
     menu (screen="activity"):
-        "How long do you want to sleep?"
         "Until morning (8h) — new day, full rest":
             jump action_sleep
         "6 hours (+60 energy)":
