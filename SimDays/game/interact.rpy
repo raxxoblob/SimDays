@@ -36,76 +36,76 @@ init python:
     MON_SAT = {0, 1, 2, 3, 4, 5}
     NPC_DATA = {
         "nora": {
-            "name": "Nora", "sprite": "nora_cafe_normal", "say": "n",
+            "name": "Nora", "portrait": "portrait_nora", "sprite": "nora_cafe_normal", "say": "n",
             "aff": "nora_affection", "trust": "nora_trust", "greet": "nora_greet",
             "world": True,
             "sched": [
-                ({0}, (9,  14)),   # Mon  09-14
-                ({1}, (14, 20)),   # Tue  14-20
-                ({2}, (10, 16)),   # Wed  10-16
-                ({3}, (14, 20)),   # Thu  14-20
-                ({4}, (9,  15)),   # Fri  09-15
+                ({0}, (9,  14)),
+                ({1}, (14, 20)),
+                ({2}, (10, 16)),
+                ({3}, (14, 20)),
+                ({4}, (9,  15)),
             ],
             "likes": ["food", "ambition", "movies"], "dislikes": ["nightlife"],
         },
         "marcus": {
-            "name": "Marcus", "sprite": "marcus_casual_normal", "say": "m",
+            "name": "Marcus", "portrait": "portrait_marcus", "sprite": "marcus_casual_normal", "say": "m",
             "aff": "marcus_affection", "trust": "marcus_trust", "greet": "marcus_greet",
             "world": True, "sched": [(None, (6, 11)), (None, (17, 27))],
             "likes": ["sports", "food", "nightlife"], "dislikes": ["art"],
         },
         "caroline": {
-            "name": "Caroline", "sprite": "caroline_normal", "say": "caro",
+            "name": "Caroline", "portrait": "portrait_caroline", "sprite": "caroline_normal", "say": "caro",
             "aff": "caroline_affection", "trust": "caroline_trust", "greet": "caroline_greet",
             "met": "caroline_met", "sched": [(MON_FRI, (9, 18))],
             "likes": ["work", "ambition", "nightlife"], "dislikes": ["sports"],
         },
         "lena": {
-            "name": "Dr. Lena", "sprite": "drlena_normal", "say": "lena",
+            "name": "Dr. Lena", "portrait": "portrait_lena", "sprite": "drlena_normal", "say": "lena",
             "aff": "lena_affection", "trust": "lena_trust", "greet": "lena_greet",
             "met": "lena_met", "sched": [(None, (8, 20))],
             "likes": ["work", "travel", "food"], "dislikes": ["nightlife"],
         },
         "natalie": {
-            "name": "Natalie", "sprite": "natalie_normal", "say": "nat",
+            "name": "Natalie", "portrait": "portrait_natalie", "sprite": "natalie_normal", "say": "nat",
             "aff": "natalie_affection", "trust": "natalie_trust", "greet": "natalie_greet",
             "met": "natalie_met", "sched": [(MON_SAT, (7, 15))],
             "likes": ["sports", "work", "ambition"], "dislikes": ["art"],
         },
         "martha": {
-            "name": "Martha", "sprite": "martha_neutral", "say": "ma",
+            "name": "Martha", "portrait": "portrait_martha", "sprite": "martha_neutral", "say": "ma",
             "aff": "martha_affection", "trust": "martha_trust", "greet": "martha_greet",
             "met": "martha_met", "min_status": 35, "sched": [(MON_FRI, (9, 18))],
             "likes": ["ambition", "work", "travel"], "dislikes": ["sports"],
         },
         "elle": {
-            "name": "Elle", "sprite": "elle_sundress_normal", "say": "el",
+            "name": "Elle", "portrait": "portrait_elle", "sprite": "elle_sundress_normal", "say": "el",
             "aff": "elle_affection", "trust": "elle_trust", "greet": "elle_greet",
             "world": True, "sched": [({2}, (16, 19))],
             "likes": ["travel", "music", "art"], "dislikes": ["work"],
         },
         "zoe": {
-            "name": "Zoe", "sprite": "zoe_punk_smile", "say": "z",
+            "name": "Zoe", "portrait": "portrait_zoe", "sprite": "zoe_punk_smile", "say": "z",
             "aff": "zoe_affection", "trust": "zoe_trust", "greet": "zoe_greet",
-            "world": True, "sched": [({5, 6}, (12, 18))],   # weekends at the park
+            "world": True, "sched": [({5, 6}, (12, 18))],
             "likes": ["art", "music", "nightlife"], "dislikes": ["ambition"],
         },
         "sam": {
-            "name": "Sam", "sprite": "sam_normal", "say": "sam",
+            "name": "Sam", "portrait": "portrait_sam", "sprite": "sam_normal", "say": "sam",
             "aff": "sam_affection", "trust": "sam_trust", "greet": "sam_greet",
-            "world": True, "sched": [(MON_FRI, (7, 10))],   # park, weekday mornings
+            "world": True, "sched": [(MON_FRI, (7, 10))],
             "likes": ["sports", "work", "food"], "dislikes": ["nightlife"],
         },
         "eli": {
-            "name": "Eli", "sprite": "eli_normal", "say": "eli",
+            "name": "Eli", "portrait": "portrait_eli", "sprite": "eli_normal", "say": "eli",
             "aff": "eli_affection", "trust": "eli_trust", "greet": "eli_greet",
-            "world": True, "sched": [(None, (17, 22))],   # library, evenings
+            "world": True, "sched": [(None, (17, 22))],
             "likes": ["work", "movies", "music"], "dislikes": ["sports"],
         },
         "kai": {
-            "name": "Kai", "sprite": "kai_normal", "say": "kai",
+            "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_normal", "say": "kai",
             "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
-            "world": True, "sched": [({5, 6}, (11, 19))],   # beach, weekends
+            "world": True, "sched": [({5, 6}, (11, 19))],
             "likes": ["sports", "music", "nightlife"], "dislikes": ["work"],
         },
     }
@@ -229,6 +229,9 @@ screen npc_relbar(npc_id):
     # ponytail: always-on 15fps tick; fine for the single relbar shown in-chat
     timer 0.06 repeat True action NullAction()
 
+    $ _portrait_path = "images/ui/icons/%s.png" % NPC_DATA[npc_id].get("portrait", "")
+    $ _has_portrait  = bool(NPC_DATA[npc_id].get("portrait")) and renpy.loadable(_portrait_path)
+
     frame:
         xpos 1500
         ypos 150
@@ -237,8 +240,16 @@ screen npc_relbar(npc_id):
         padding (22, 18, 22, 20)
         vbox:
             spacing 10
-            text "[_nm]" font PROFILE_FONT size 30 color "#ffffff"
-            text "[_tier]  (cap [affection_cap()])" font PROFILE_FONT size 16 color "#9fb6d6"
+            # portrait + name row
+            hbox:
+                spacing 16
+                if _has_portrait:
+                    add _portrait_path xysize (90, 90)
+                vbox:
+                    spacing 4
+                    yalign 0.5
+                    text "[_nm]" font PROFILE_FONT size 28 color "#ffffff"
+                    text "[_tier]  (cap [affection_cap()])" font PROFILE_FONT size 15 color "#9fb6d6"
             null height 4
             fixed:
                 xsize 356
@@ -290,9 +301,7 @@ screen npc_actions(npc_id):
                         add Transform("images/ui/icons/%s.png" % _icon,
                                       size=(72, 72),
                                       alpha=(1.0 if _ok else 0.35)) xalign 0.5
-                        text _lbl font ACT_FONT size 15 xalign 0.5
-                            color ("#cfe0f5" if _ok else "#4a6080")
-                            hover_color "#ffffff"
+                        text _lbl font ACT_FONT size 15 xalign 0.5 color ("#cfe0f5" if _ok else "#4a6080") hover_color "#ffffff"
 
 
 # ── Topic picker — 3×3 icon grid ───────────────────────────────────────
@@ -312,8 +321,7 @@ screen npc_topics(npc_id):
                 spacing 0
                 xfill True
                 text "Talk about..." font ACT_FONT size 20 color "#9fb6d6" xalign 0.0 yalign 0.5
-                textbutton "Back" action Return("back") xalign 1.0
-                    text_font ACT_FONT text_size 17 text_color "#9fb6d6" text_hover_color "#ffffff"
+                textbutton "Back" action Return("back") xalign 1.0 text_font ACT_FONT text_size 17 text_color "#9fb6d6" text_hover_color "#ffffff"
             vpgrid:
                 cols 3
                 spacing 10
