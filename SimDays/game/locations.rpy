@@ -13,8 +13,8 @@ label location_home_actions:
     menu (screen="activity"):
         "What do you want to do at home?"
 
-        "Sleep - end the day (8h)":
-            jump action_sleep
+        "Sleep":
+            jump action_sleep_menu
 
         "Cook something" if need_hunger < 90:
             jump location_home_cook
@@ -40,8 +40,8 @@ label location_home_actions:
             "You run scales and a couple of songs. Fingers sore, ear sharper."
             jump location_home_actions
 
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 label location_home_cook:
     scene expression home_bg()
@@ -142,12 +142,13 @@ label use_computer:
 
 # ── CAFE ──────────────────────────────────────────────────────────────
 label location_cafe:
+    if not venue_open("coffee_shop"):
+        "The café is closed. Come back between 07:00–19:00."
+        jump take_metro
     scene expression cafe_bg()
     show screen hud
     if not nora_met:
         jump cafe_first_visit
-    if nora_affection >= 40 and hour >= 19 and not nora_closing_done:
-        jump nora_closing_scene
     jump cafe_actions
 
 label cafe_first_visit:
@@ -173,6 +174,11 @@ label cafe_first_visit:
     jump cafe_actions
 
 label cafe_actions:
+    if nora_affection >= 40 and hour >= 19 and not nora_closing_done:
+        jump nora_closing_scene
+    if hour >= 19:
+        "The café lights are going off. Time to head out."
+        jump take_metro
     scene expression cafe_bg()
     show screen hud
     if npc_talkable("nora"):
@@ -195,8 +201,8 @@ label cafe_actions:
         "Work a shift - Barista (4h)":
             jump cafe_work_shift
 
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 label cafe_work_shift:
     if hour + 4 > DAY_END:
@@ -222,6 +228,9 @@ label cafe_work_shift:
 
 # ── GYM ───────────────────────────────────────────────────────────────
 label location_gym:
+    if not venue_open("gym"):
+        "The gym is closed for the night."
+        jump take_metro
     scene gymdaypeople
     show screen hud
     menu (screen="activity"):
@@ -249,11 +258,14 @@ label location_gym:
             $ gain_stat("str", 1)
             "You run until your lungs complain."
             jump location_gym
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── LIBRARY ───────────────────────────────────────────────────────────
 label location_library:
+    if not venue_open("library"):
+        "The library is closing. Time to head out."
+        jump take_metro
     scene expression ("librarynight" if hour >= 20 else "libraryday")
     show screen hud
     if npc_talkable("eli"):
@@ -277,29 +289,29 @@ label location_library:
                 "Medicine":
                     $ spend_time(2)
                     $ need_energy = max(0, need_energy - 10)
-                    $ gain_skill("med", 3)
+                    $ gain_skill("med", 1)
                     "Dense textbooks, clinical notes. Slower than a real course, but it sticks."
                 "Programming":
                     $ spend_time(2)
                     $ need_energy = max(0, need_energy - 10)
-                    $ gain_skill("prog", 3)
+                    $ gain_skill("prog", 1)
                     "Tutorials, docs, Stack Overflow rabbit holes. You get somewhere."
                 "Business":
                     $ spend_time(2)
                     $ need_energy = max(0, need_energy - 10)
-                    $ gain_skill("biz", 3)
+                    $ gain_skill("biz", 1)
                     "Case studies and frameworks. Dry but useful."
                 "Art":
                     $ spend_time(2)
                     $ need_energy = max(0, need_energy - 10)
-                    $ gain_skill("art", 3)
+                    $ gain_skill("art", 1)
                     "Theory, references, sketching. You can feel the improvement in small ways."
             jump location_library
         "Talk to Eli" if npc_talkable("eli"):
             call npc_interact("eli")
             jump location_library
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── BAR ───────────────────────────────────────────────────────────────
 label location_bar:
@@ -320,11 +332,14 @@ label location_bar:
             else:
                 "You hover near a few groups but can't quite break in. Maybe with a bit more charm."
             jump location_bar
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── OFFICE ────────────────────────────────────────────────────────────
 label location_office:
+    if not venue_open("office_exec"):
+        "Nexus Tower is locked up for the night."
+        jump take_metro
     scene goodoffice1
     show screen hud
     menu (screen="activity"):
@@ -354,8 +369,8 @@ label location_office:
         "Talk to Martha" if npc_talkable("martha"):
             call npc_interact("martha")
             jump location_office
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── MALL (shop hub) ───────────────────────────────────────────────────
 label location_mall:
@@ -483,8 +498,8 @@ label location_cardealer:
         "Your car's top of the line" if car_tier >= 3:
             "Nothing here beats what's already in your garage."
             jump location_cardealer
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── KITCHEN / Eleven (Culinary career) ────────────────────────────────
 label location_kitchen:
@@ -529,8 +544,8 @@ label location_kitchen:
             "You hang up the apron. The heat wasn't for you."
             jump location_kitchen
 
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── NIGHTCLUB ─────────────────────────────────────────────────────────
 label location_nightclub:
@@ -556,8 +571,8 @@ label location_nightclub:
             $ gain_money(-15)
             "Drinks all around. Cheap way to be popular for ten minutes."
             jump location_nightclub
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── PARK ──────────────────────────────────────────────────────────────
 label location_park:
@@ -592,8 +607,8 @@ label location_park:
         "Talk to Sam" if npc_talkable("sam"):
             call npc_interact("sam")
             jump location_park
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
@@ -620,8 +635,8 @@ label location_beach:
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
             jump location_beach
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── Zoe first meet - beach (daytime only, fires once) ─────────────────
 label beach_meet_zoe:
@@ -657,7 +672,6 @@ label zoe_beach_approach:
     "Measured. Not unfriendly. The voice of someone who has ranked interrupt-interrupters before and is simply placing you."
     menu:
         "\"I was curious what you're drawing.\"":
-            show zoe_street_talk at sprite_r
             z "Waves. The way the buildings catch in the water when there's a swell."
             scene zoe_beach_5 with dissolve
             show screen hud
@@ -686,7 +700,6 @@ label zoe_beach_approach:
                     $ zoe_affection += 4
             jump zoe_beach_shared
         "\"Hey - I'm [mc_name]. Just moved in.\"":
-            show zoe_street_talk at sprite_r
             z "Zoe."
             "She says it the way you sign a receipt. Efficient. Then she actually looks at you."
             z "New to the city or just new to this part of it?"
@@ -695,7 +708,6 @@ label zoe_beach_approach:
                     z "Then this is a good first beach. Locals mostly use it. The tourist one's two bays over - noisier, worse coffee, everyone's performing."
                     z "How long have you been here?"
                     "You tell her."
-                    show zoe_street_neutral at sprite_r
                     z "Long enough to find the beach, not long enough to know anyone. That's the good window, actually. Before the city starts feeling small."
                     $ zoe_affection += 3
                 "\"New to this neighborhood. Still working out the city.\"":
@@ -705,13 +717,13 @@ label zoe_beach_approach:
                     z "You're not the type who talks just to fill silence?"
                     menu:
                         "\"Not really.\"":
-                            show zoe_street_neutral at sprite_r
                             z "Good. Pull up some sand if you want. I've got ten more minutes of light."
                             $ zoe_affection += 4
                         "\"Sometimes. Depends on the silence.\"":
-                            show zoe_street_smile at sprite_r
                             z "Fair. That's actually fair."
                             $ zoe_affection += 3
+            scene beachday with dissolve
+            show screen hud
             jump zoe_beach_shared
 
 label zoe_beach_watch:
@@ -864,8 +876,8 @@ label location_warehouse:
         "Talk to Natalie" if npc_talkable("natalie"):
             call npc_interact("natalie")
             jump location_warehouse
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── HOSPITAL ──────────────────────────────────────────────────────────
 label location_hospital:
@@ -935,11 +947,14 @@ label location_hospital:
             "You hang up the coat. Not everyone's built for it."
             jump location_hospital
 
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── THE HUB (IT career) ───────────────────────────────────────────────
 label location_hub:
+    if not venue_open("hub"):
+        "The Hub is shut. Back at 08:00."
+        jump take_metro
     scene expression ("hub_night" if (hour >= 20 or hour < 6) else "hub_day")
     show screen hud
     menu (screen="activity"):
@@ -981,11 +996,14 @@ label location_hub:
             "You hand in your notice. Free again - broke soon, but free."
             jump location_hub
 
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 # ── CITY COLLEGE (learn professional skills) ──────────────────────────
 label location_college:
+    if not venue_open("university"):
+        "The college is closed for the day. Back at 08:00."
+        jump take_metro
     scene college_day
     show screen hud
     menu (screen="activity"):
@@ -1004,8 +1022,8 @@ label location_college:
             call college_course("art")
             jump location_college
 
-        "Leave to City Map":
-            jump map
+        "Take the metro (0.5h)":
+            jump take_metro
 
 label college_course(key):
     if too_tired():
@@ -1021,6 +1039,31 @@ label college_course(key):
     return
 
 # ── SLEEP ─────────────────────────────────────────────────────────────
+label action_sleep_menu:
+    scene expression home_bg()
+    show screen hud
+    menu (screen="activity"):
+        "How long do you want to sleep?"
+        "Until morning (8h) — new day, full rest":
+            jump action_sleep
+        "6 hours (+60 energy)":
+            $ spend_time(6)
+            $ need_energy = min(100, need_energy + 60)
+            "Six hours. You wake in the dark, properly rested."
+            jump location_home_actions
+        "4 hours (+40 energy)":
+            $ spend_time(4)
+            $ need_energy = min(100, need_energy + 40)
+            "Four hours. Functional, if not fresh."
+            jump location_home_actions
+        "2 hours (+20 energy)":
+            $ spend_time(2)
+            $ need_energy = min(100, need_energy + 20)
+            "Two hours. Takes the edge off, nothing more."
+            jump location_home_actions
+        "Stay up":
+            jump location_home_actions
+
 label action_sleep:
     $ new_day()
     scene expression home_bg()
@@ -1051,6 +1094,11 @@ label check_collapse:
         $ renpy.notify("Running low - eat, sleep, or shower soon.")
     return
 
+label take_metro:
+    $ spend_time(0.5)
+    "You take the metro. Thirty minutes of city views."
+    jump map
+
 # ── MAP ────────────────────────────────────────────────────────────────
 label map:
     call check_collapse
@@ -1067,7 +1115,6 @@ label nora_closing_scene:
     "The café looks different at this hour. Chairs stacked on half the tables. One lamp above the counter. The espresso machine, finally, quiet."
     scene nora_closing_1 with dissolve
     show screen hud
-    show nora_casual_normal at sprite_r
     n "Closing time. Lucky for you there's one cup left in the pot. Come in or don't."
     "She doesn't wait for an answer - pours two cups, sets them on a table, sits down. You sit across from her."
     scene nora_closing_2 with dissolve
@@ -1077,87 +1124,68 @@ label nora_closing_scene:
             n "It always is, after a shift. Time does something weird behind the counter."
         "\"I was hoping you'd still be here.\"":
             $ nora_affection = min(100, nora_affection + 1)
-            show nora_casual_normal at sprite_r
             n "That's a thing to say."
-    scene cafenight with dissolve
-    show screen hud
-    show nora_casual_normal at sprite_r
     scene nora_closing_3 with dissolve
     show screen hud
     n "You've been in a lot lately. What are you actually looking for in this city?"
     menu:
         "\"A reason to stay.\"":
             $ nora_affection = min(100, nora_affection + 3)
-            show nora_casual_talk at sprite_r
             n "That's the honest answer."
-            show nora_casual_normal at sprite_r
             n "I hope you find one."
         "\"Money, mostly. And something that doesn't feel like wasted time.\"":
             $ nora_trust = min(100, nora_trust + 2)
-            show nora_casual_talk at sprite_r
             n "Yeah. That's most people. They just don't say it out loud."
         "\"Still figuring that out.\"":
             $ nora_affection = min(100, nora_affection + 2)
-            show nora_casual_talk at sprite_r
             n "Same, honestly. I've been figuring it out for three years and counting."
     scene nora_closing_4 with dissolve
     show screen hud
-    show nora_casual_normal at sprite_r
     "She wraps both hands tighter around the cup."
-    show nora_casual_talk at sprite_r
     n "I was supposed to be studying nursing right now. Deferred a year. Then another. Henry offered me full-time and the timing just... worked."
     "She glances at her hands."
     n "I'm good at this job. That's the annoying part. When you're bad at something it's easy to leave."
     scene nora_closing_5 with dissolve
     show screen hud
-    show nora_casual_normal at sprite_r
     menu:
         "\"Then go. You're clearly just waiting for permission.\"":
             $ nora_trust = min(100, nora_trust + 5)
             $ nora_affection = min(100, nora_affection + 4)
-            show nora_casual_talk at sprite_r
             n "...You make it sound that easy."
         "\"Being good at something isn't a reason to stay stuck in it.\"":
             $ nora_trust = min(100, nora_trust + 3)
             $ nora_affection = min(100, nora_affection + 3)
-            show nora_casual_talk at sprite_r
             n "Henry would cope."
             "She says it quietly, like she's testing the idea."
         "\"What's actually stopping you?\"":
             $ nora_trust = min(100, nora_trust + 4)
             $ nora_affection = min(100, nora_affection + 2)
-            show nora_casual_talk at sprite_r
             "She pauses a long time."
             n "Nothing good."
         "\"Let me walk you home.\"" if nora_affection >= 50:
             $ nora_trust = min(100, nora_trust + 4)
             $ nora_affection = min(100, nora_affection + 4)
-            show nora_casual_talk at sprite_r
             n "It's late and I live close."
             "Beat."
             n "You can tell me what you're running from on the way."
         "\"Let me walk you home.\"" if nora_affection < 50:
             $ nora_trust = min(100, nora_trust + 2)
             $ nora_affection = min(100, nora_affection + 2)
-            show nora_casual_talk at sprite_r
             n "I'm fine - it's five minutes."
             "Beat."
             n "Ask me again sometime."
     scene nora_closing_6 with dissolve
     show screen hud
-    show nora_casual_normal at sprite_r
     "She puts on her coat. Keys in hand. She looks around the café for a second - the habit of checking everything before she leaves."
-    show nora_casual_talk at sprite_r
     n "You're easier to talk to when there's no counter in the way."
     "She unlocks the door, holds it open."
     scene nora_closing_7 with dissolve
     show screen hud
-    show nora_casual_laugh at sprite_r
     n "Don't tell Henry I gave away his last coffee."
-    hide nora_casual_laugh
     scene cafenight with dissolve
     show screen hud
-    jump map
+    "The café lights go off as you step outside."
+    jump take_metro
 
 # ── ELLE - BEST SPOT PAST THE PIER ────────────────────────────────────
 # Trigger: elle_affection >= 40, Wednesday 16-19, elle present — fires once
@@ -1166,16 +1194,13 @@ label elle_pier_scene:
     scene elle_pier_1 with dissolve
     show screen hud
     "She doesn't head toward the main strip. She turns the other way, past the pier, where the sand gets quieter."
-    show elle_sundress_normal at sprite_r
     el "Come on. I'll show you the actual beach."
     scene elle_pier_2 with dissolve
     show screen hud
-    show elle_sundress_normal at sprite_r
     el "Nobody comes this far down. Which is exactly the point."
     "She drops onto a rock and kicks off her sandals. The water out here is the same water, but it feels different without the noise behind it."
     scene elle_pier_3 with dissolve
     show screen hud
-    show elle_sundress_normal at sprite_r
     el "I come here when I need to not be anywhere specific, you know?"
     menu:
         "\"You come here a lot?\"":
@@ -1187,7 +1212,6 @@ label elle_pier_scene:
             el "Not running. Just... not arriving yet. There's a difference."
     scene elle_pier_4 with dissolve
     show screen hud
-    show elle_sundress_normal at sprite_r
     el "Back home everyone always asks what I'm doing with my life. Out here nobody knows I exist."
     "She says it like it's a relief, not a complaint."
     menu:
@@ -1210,7 +1234,6 @@ label elle_pier_scene:
     "You sit there without saying much. The light goes gold and orange."
     scene elle_pier_6 with dissolve
     show screen hud
-    show elle_sundress_normal at sprite_r
     el "We should do something normal sometime. Not a beach. Something where we have to actually talk."
     menu:
         "\"Is that an invitation?\"":
@@ -1219,10 +1242,10 @@ label elle_pier_scene:
         "\"I'd like that.\"":
             $ elle_affection = min(100, elle_affection + 2)
             el "Me too."
-    hide elle_sundress_normal
     scene beachday with dissolve
     show screen hud
-    jump map
+    "You walk back along the shore toward the metro stop."
+    jump take_metro
 
 # ── DR. LENA - ROOFTOP, 3 A.M. ────────────────────────────────────────
 # Trigger: hospital job rank >= 1, lena_trust >= 25, hour >= 22 — fires once after a night shift
@@ -1233,7 +1256,6 @@ label lena_rooftop_scene:
     "The stairwell door is already propped open. You weren't planning to come up here — but the ward feels impossible right now and the sky is the only ceiling that isn't fluorescent."
     scene lena_rooftop_1 with dissolve
     show screen hud
-    show drlena_normal at sprite_r
     lena "I figured someone else would come up eventually."
     "She has a paper cup of something. She doesn't look like a doctor right now. She looks like someone who's been at it too long."
     menu:
@@ -1244,12 +1266,10 @@ label lena_rooftop_scene:
             lena "Most people don't bother finding out. The view's not worth it unless you need it to be."
     scene lena_rooftop_2 with dissolve
     show screen hud
-    show drlena_normal at sprite_r
     "You sit on the ledge beside her. The city is quiet at this hour in a way it never is from ground level."
     lena "You did well tonight, by the way. That tachycardia in bed seven — you caught it before I did."
     scene lena_rooftop_3 with dissolve
     show screen hud
-    show drlena_talk at sprite_r
     lena "I keep thinking I'll get used to it. The nights where you can't actually fix anything."
     "She's looking out at the city, not at you."
     lena "You just manage. Make it slightly less bad. Go home. Come back."
@@ -1271,19 +1291,16 @@ label lena_rooftop_scene:
             lena "That's... actually something I needed to hear tonight. Thank you."
     scene lena_rooftop_4 with dissolve
     show screen hud
-    show drlena_normal at sprite_r
     "She finishes whatever's in the cup. Sets it down. Looks at the city like she's still processing something she saw eight hours ago."
     lena "I chose this. I want to be clear about that. I'm not here by accident."
     lena "I just didn't account for what it costs."
     scene lena_rooftop_5 with dissolve
     show screen hud
-    show drlena_normal at sprite_r
     "She stands, smooths her jacket, picks up the cup."
-    show drlena_talk at sprite_r
     lena "Get some sleep. You're back in seven hours."
     "She heads for the door. Stops."
     lena "It helps. Having someone up here who gets it."
-    hide drlena_talk
     scene hospital_rooftop_night with dissolve
     show screen hud
-    jump map
+    "You take the stairs down and head for the metro."
+    jump take_metro
