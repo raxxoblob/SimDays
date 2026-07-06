@@ -27,8 +27,6 @@ init python:
         return 18 + 12 * level + 3 * level * (level - 1)
 
     def gain_skill(key, amt=1):
-        """Add EXP to a professional skill; level up (0-10) when the bar fills.
-        Higher levels need more EXP. Toasts only on an actual level-up."""
         var = "skill_" + key
         lvl = getattr(store, var)
         if lvl >= 10:
@@ -42,12 +40,19 @@ init python:
         setattr(store, var, lvl)
         if lvl >= 10:
             store.skill_exp[key] = 0
+        label, colour, fillkey = PRO_SKILLS[key]
+        icon_path = "images/ui/icons/skill_%s.png" % key
+        icon_arg = icon_path if renpy.loadable(icon_path) else None
         if leveled:
-            label, colour, fillkey = PRO_SKILLS[key]
-            icon = "images/ui/icons/skill_%s.png" % key
-            _push_gain(kind="stat", text="%s  Lv %d" % (label, lvl), color=colour,
-                       icon=(icon if renpy.loadable(icon) else None),
-                       value=lvl * 10, fill="images/ui/bar_fill_%s.png" % fillkey)
+            _push_gain(kind="stat", text="%s  Lv %d!" % (label, lvl), color=colour,
+                       icon=icon_arg, value=lvl * 10,
+                       fill="images/ui/bar_fill_%s.png" % fillkey)
+        else:
+            new_exp = store.skill_exp.get(key, 0)
+            need    = skill_exp_needed(lvl)
+            _push_gain(kind="stat", text="+%d EXP  %s" % (amt, label), color=colour,
+                       icon=icon_arg, value=int(new_exp * 100 // max(need, 1)),
+                       fill="images/ui/bar_fill_%s.png" % fillkey)
 
     # Career ladders. req keys are store var names (stat_* /100, skill_* /10).
     # flex=True at the top tier = flexible hours (the freedom payoff).
@@ -65,7 +70,7 @@ init python:
         "it": {
             "name": "IT - The Hub", "location": "location_hub",
             "ranks": [
-                {"title": "Junior Dev",   "req": {"skill_prog": 1, "stat_int": 25},               "pay": 70,  "hours": "Mon-Fri 09-17", "flex": False},
+                {"title": "Junior Dev",   "req": {"skill_prog": 2, "stat_int": 35},               "pay": 70,  "hours": "Mon-Fri 09-17", "flex": False},
                 {"title": "Mid Dev",      "req": {"skill_prog": 3, "stat_int": 40},               "pay": 120, "hours": "Mon-Fri 09-17", "flex": False},
                 {"title": "Senior Dev",   "req": {"skill_prog": 5, "stat_int": 55, "stat_chr": 25}, "pay": 190, "hours": "some leeway",  "flex": False},
                 {"title": "Team Lead",    "req": {"skill_prog": 7, "stat_int": 65, "stat_chr": 40}, "pay": 260, "hours": "mostly flex",  "flex": True},

@@ -39,7 +39,7 @@ screen spec_row(key):
         ysize 52
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         action NullAction()
-        tooltip ("%s - Lv %d. %s" % (PRO_SKILLS[key][0], _lv, "Maxed out." if _maxed else "%d/%d EXP to Lv %d (higher levels take more)." % (_ex, _need, _lv + 1)))
+        tooltip ("%s - Lv %d. %s" % (PRO_SKILLS[key][0], _lv, "Maxed out." if _maxed else "%d / %d EXP to next level." % (_ex, _need)))
         padding (14, 7, 16, 7)
         hbox:
             spacing 10

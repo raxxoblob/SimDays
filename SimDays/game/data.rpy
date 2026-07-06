@@ -116,8 +116,10 @@ init python:
     def spend_time(hours):
         store.hour += hours
         for need, rate in DECAY.items():
-            setattr(store, need, max(0, getattr(store, need) - int(round(hours * rate))))
-        # Grimy -> your looks tank fast, no matter how groomed you were (floor 5).
+            old = getattr(store, need)
+            new = max(0, old - int(round(hours * rate)))
+            setattr(store, need, new)
+            _push_drain(need, new - old)
         if store.need_hygiene < 40:
             drop = hours * (4 if store.need_hygiene < 20 else 2)
             store.stat_app = max(5, store.stat_app - int(round(drop)))

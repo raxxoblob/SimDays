@@ -218,22 +218,26 @@ screen npc_relbar(npc_id):
             text "[_nm]" font PROFILE_FONT size 30 color "#ffffff"
             text "[_tier]  (cap [affection_cap()])" font PROFILE_FONT size 16 color "#9fb6d6"
             null height 4
-            hbox:
-                spacing 10
-                text "Affection" font PROFILE_FONT size 17 color "#cfe0f5" yalign 0.5 xsize 116
+            fixed:
+                xsize 356
+                ysize 30
+                text "Affection" font PROFILE_FONT size 17 color "#cfe0f5" xpos 0 ypos 4
                 bar:
+                    xpos 110 ypos 7
                     value StaticValue(_aff, 100)
-                    xsize 150 ysize 16 yalign 0.5
+                    xsize 150 ysize 16
                     left_bar Frame("images/ui/bar_fill_str.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-                text "[_aff]" font PROFILE_FONT size 17 color "#ffffff" yalign 0.5
-            hbox:
-                spacing 10
-                text "Trust" font PROFILE_FONT size 17 color "#cfe0f5" yalign 0.5 xsize 116
+                text "[_aff]" font PROFILE_FONT size 17 color "#ffffff" xpos 270 ypos 4
+            fixed:
+                xsize 356
+                ysize 30
+                text "Trust" font PROFILE_FONT size 17 color "#cfe0f5" xpos 0 ypos 4
                 bar:
+                    xpos 110 ypos 7
                     value StaticValue(_tr, 100)
-                    xsize 150 ysize 16 yalign 0.5
+                    xsize 150 ysize 16
                     left_bar Frame("images/ui/bar_fill_int.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-                text "[_tr]" font PROFILE_FONT size 17 color "#ffffff" yalign 0.5
+                text "[_tr]" font PROFILE_FONT size 17 color "#ffffff" xpos 270 ypos 4
 
 
 # reusable glass action button

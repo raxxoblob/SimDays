@@ -75,7 +75,7 @@ label location_home_cook:
             $ need_hunger = min(100, need_hunger + 32)
             "Oil, heat, three eggs. You feel a bit more human."
             jump location_home_actions
-        "Pasta bolognese ($8, +55 hunger) [Cooking Lv 2]":
+        "Pasta bolognese ($8, +55 hunger) [[Cooking Lv 2]]":
             if skill_cook < 2:
                 "Not there yet - the sauce would be embarrassing. Raise your Cooking skill first."
                 jump location_home_cook
@@ -88,7 +88,7 @@ label location_home_cook:
             $ gain_skill("cook", 2)
             "Proper sauce, actual garlic. Getting the hang of this."
             jump location_home_actions
-        "Chicken stir-fry ($10, +65 hunger, +8 energy) [Cooking Lv 4]":
+        "Chicken stir-fry ($10, +65 hunger, +8 energy) [[Cooking Lv 4]]":
             if skill_cook < 4:
                 "High heat, precise timing - you'd ruin it. Cooking Lv 4 needed."
                 jump location_home_cook
@@ -102,7 +102,7 @@ label location_home_cook:
             $ gain_skill("cook", 2)
             "Fast, hot, loud. A proper meal - you feel it in the energy too."
             jump location_home_actions
-        "Sunday roast ($18, +80 hunger, +15 energy) [Cooking Lv 7]":
+        "Sunday roast ($18, +80 hunger, +15 energy) [[Cooking Lv 7]]":
             if skill_cook < 7:
                 "This takes real skill and a whole afternoon. Cooking Lv 7 needed."
                 jump location_home_cook
@@ -127,7 +127,7 @@ label use_computer:
         "At the computer."
         "Practice coding (3h)":
             $ spend_time(3)
-            $ gain_skill("prog", 5)
+            $ gain_skill("prog", 3)
             "Three hours deep in a side project. The docs finally click."
             jump use_computer
         "Trade stocks":
@@ -146,8 +146,9 @@ label location_cafe:
     show screen hud
     if not nora_met:
         jump cafe_first_visit
-    else:
-        jump cafe_actions
+    if nora_affection >= 40 and hour >= 19 and not nora_closing_done:
+        jump nora_closing_scene
+    jump cafe_actions
 
 label cafe_first_visit:
     scene expression cafe_bg()
@@ -172,8 +173,6 @@ label cafe_first_visit:
     jump cafe_actions
 
 label cafe_actions:
-    if nora_affection >= 40 and hour >= 19 and not nora_closing_done:
-        jump nora_closing_scene
     scene expression cafe_bg()
     show screen hud
     if npc_talkable("nora"):
@@ -234,6 +233,7 @@ label location_gym:
             scene pov_gym_weights
             show screen hud
             $ spend_time(1.5)
+            $ need_energy = max(0, need_energy - 15)
             $ gain_stat("str", 2)
             $ gain_stat("app", 1)
             "A solid session. You can feel it already."
@@ -245,6 +245,7 @@ label location_gym:
             scene gym_cardio
             show screen hud
             $ spend_time(1)
+            $ need_energy = max(0, need_energy - 12)
             $ gain_stat("str", 1)
             "You run until your lungs complain."
             jump location_gym
@@ -275,18 +276,22 @@ label location_library:
                 "What are you working through?"
                 "Medicine":
                     $ spend_time(2)
+                    $ need_energy = max(0, need_energy - 10)
                     $ gain_skill("med", 3)
                     "Dense textbooks, clinical notes. Slower than a real course, but it sticks."
                 "Programming":
                     $ spend_time(2)
+                    $ need_energy = max(0, need_energy - 10)
                     $ gain_skill("prog", 3)
                     "Tutorials, docs, Stack Overflow rabbit holes. You get somewhere."
                 "Business":
                     $ spend_time(2)
+                    $ need_energy = max(0, need_energy - 10)
                     $ gain_skill("biz", 3)
                     "Case studies and frameworks. Dry but useful."
                 "Art":
                     $ spend_time(2)
+                    $ need_energy = max(0, need_energy - 10)
                     $ gain_skill("art", 3)
                     "Theory, references, sketching. You can feel the improvement in small ways."
             jump location_library
@@ -643,12 +648,12 @@ label beach_meet_zoe:
 label zoe_beach_approach:
     "You cross the sand. She hears you coming - a slight adjustment of posture, but the charcoal keeps moving."
     "Then you're close enough that staying silent becomes its own thing, and she looks up."
-    scene zoe_beach_4 with dissolve
-    show screen hud
     scene beachday with dissolve
     show screen hud
     show zoe_street_neutral at sprite_r
     z "Can I help you?"
+    scene zoe_beach_4 with dissolve
+    show screen hud
     "Measured. Not unfriendly. The voice of someone who has ranked interrupt-interrupters before and is simply placing you."
     menu:
         "\"I was curious what you're drawing.\"":

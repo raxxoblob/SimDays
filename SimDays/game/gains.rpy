@@ -55,6 +55,19 @@ init python:
             _push_gain(kind="aff", text="%d  %s" % (delta, npc_name), color="#e86a55",
                        icon="images/ui/icons/stat_social.png")
 
+    NEED_DRAIN_META = {
+        "need_energy":  ("Energy",  "images/ui/icons/stat_energy.png"),
+        "need_hunger":  ("Hunger",  "images/ui/icons/stat_hunger.png"),
+        "need_hygiene": ("Hygiene", "images/ui/icons/stat_hygiene.png"),
+    }
+
+    def _push_drain(need_key, delta):
+        if delta >= -4:   # ignore tiny drains (toast spam)
+            return
+        label, icon = NEED_DRAIN_META.get(need_key, (need_key, None))
+        _push_gain(kind="drain", text="%d  %s" % (delta, label), color="#e86a55",
+                   icon=(icon if (icon and renpy.loadable(icon)) else None), life=1.8)
+
 default _gains = []   # underscore -> excluded from rollback (transient UI)
 
 
