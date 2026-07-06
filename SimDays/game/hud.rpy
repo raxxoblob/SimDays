@@ -14,12 +14,12 @@ screen hud():
         action ToggleScreen("profile")
         text "Me" font "fonts/Quicksand-SemiBold.ttf" size 24 color "#cfe0f5" align (0.5, 0.5)
 
-    key "K_p" action Call("open_phone")
+    key "K_p" action Show("phone_home")
     button:
         xpos 1792 ypos 980
         xysize (104, 52)
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        action Call("open_phone")
+        action Show("phone_home")
         text "Phone" font "fonts/Quicksand-SemiBold.ttf" size 22 color "#cfe0f5" align (0.5, 0.5)
 
     fixed:
@@ -73,16 +73,12 @@ screen hud():
 
     if not renpy.get_screen("city_map") and not renpy.get_screen("centrum_hub") and not renpy.get_screen("hallway_hub") and not renpy.get_screen("mall_hub"):
         frame:
-            xpos 30
+            xalign 0.5
             yalign 1.0
             yoffset -16
             background "#000000aa"
             padding (16, 10, 16, 10)
-            vbox:
-                spacing 4
-                imagebutton:
-                    xalign 0.5
-                    idle  Transform("images/ui/icons/icon_metro.png", size=(82, 82))
-                    hover Transform("images/ui/icons/icon_metro.png", size=(92, 92))
-                    action Jump("take_metro")
-                text "Metro" xalign 0.5 size 15 color "#aaccff"
+            imagebutton:
+                idle  Transform("images/ui/icons/icon_metro.png", size=(82, 82))
+                hover Transform("images/ui/icons/icon_metro.png", size=(92, 92))
+                action Jump("take_metro")

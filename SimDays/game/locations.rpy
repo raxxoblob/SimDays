@@ -629,8 +629,6 @@ label beach_meet_zoe:
     show screen hud
     "She holds a charcoal stick the way some people hold a cigarette - like it's part of the hand. The page is full of lines: the angle of waves, the smear of city buildings reflected in moving water."
     "She hasn't looked up once."
-    scene beachday with dissolve
-    show screen hud
     menu:
         "Go over. Say something.":
             jump zoe_beach_approach
@@ -640,8 +638,6 @@ label beach_meet_zoe:
 label zoe_beach_approach:
     "You cross the sand. She hears you coming - a slight adjustment of posture, but the charcoal keeps moving."
     "Then you're close enough that staying silent becomes its own thing, and she looks up."
-    scene beachday with dissolve
-    show screen hud
     z "Can I help you?"
     scene zoe_beach_4 with dissolve
     show screen hud
@@ -652,8 +648,6 @@ label zoe_beach_approach:
             scene zoe_beach_5 with dissolve
             show screen hud
             "She angles the sketchbook toward you, briefly - just enough. The lines are loose and confident. Building reflections broken into something almost abstract."
-            scene beachday with dissolve
-            show screen hud
             z "It doesn't translate in a photo. Which is the entire point."
             "She pulls it back."
             z "Most people who interrupt me out here want to know if I'm a 'real artist.' Like there's a counterfeit version."
@@ -693,8 +687,6 @@ label zoe_beach_approach:
                         "\"Sometimes. Depends on the silence.\"":
                             z "Fair. That's actually fair."
                             $ zoe_affection += 3
-            scene beachday with dissolve
-            show screen hud
             jump zoe_beach_shared
 
 label zoe_beach_watch:
@@ -709,8 +701,6 @@ label zoe_beach_watch:
     scene zoe_beach_4 with dissolve
     show screen hud
     "A long pause. She looks at you, then back at the water, then at you again."
-    scene beachday with dissolve
-    show screen hud
     z "...You've been standing there this whole time."
     "Not a question."
     z "I would have heard you leave."
@@ -741,8 +731,6 @@ label zoe_beach_watch:
     scene zoe_beach_5 with dissolve
     show screen hud
     "The sea does that thing where it sounds like breathing."
-    scene beachday with dissolve
-    show screen hud
     "After a minute:"
     z "What do you see? In the water."
     "It's a test. You can feel it."
@@ -779,8 +767,6 @@ label zoe_beach_shared:
     show screen hud
     "You watch for a second."
     "You think: {i}that one's going to be interesting.{/i}"
-    scene beachday with dissolve
-    show screen hud
     $ zoe_met = True
     $ spend_time(1)
     jump location_beach
@@ -1124,8 +1110,6 @@ label nora_closing_scene:
     scene nora_closing_7 with dissolve
     show screen hud
     n "Don't tell Henry I gave away his last coffee."
-    scene cafenight with dissolve
-    show screen hud
     "The café lights go off as you step outside."
     jump take_metro
 
@@ -1184,8 +1168,6 @@ label elle_pier_scene:
         "\"I'd like that.\"":
             $ elle_affection = min(100, elle_affection + 2)
             el "Me too."
-    scene beachday with dissolve
-    show screen hud
     "You walk back along the shore toward the metro stop."
     jump take_metro
 
@@ -1242,7 +1224,5 @@ label lena_rooftop_scene:
     lena "Get some sleep. You're back in seven hours."
     "She heads for the door. Stops."
     lena "It helps. Having someone up here who gets it."
-    scene hospital_rooftop_night with dissolve
-    show screen hud
     "You take the stairs down and head for the metro."
     jump take_metro

@@ -26,11 +26,6 @@ screen city_map():
             focus_mask Image("images/ui/z_%s_mask.png" % key)
             action Jump(lbl)
 
-    textbutton "Sleep / End Day":
-        action Jump("action_sleep")
-        style "pin_sleep"
-        xpos 30
-        ypos 1008
 
 
 style pin_sleep is button:
@@ -145,12 +140,14 @@ screen centrum_hub():
                     else:
                         text label xalign 0.5 size 15 color "#7a8aa0"
                         text venue_hours_str(icon) xalign 0.5 size 12 color "#7a8aa0"
-
-    textbutton "Back to City Map":
-        action Jump("map")
-        style "pin_sleep"
-        xpos 30
-        ypos 1008
+            vbox:
+                xsize 132
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_metro.png", size=(108, 108))
+                    hover Transform("images/ui/icons/icon_metro.png", size=(120, 120))
+                    action Jump("map")
 
 # Inside the mall: pick a shop (each has its own interior).
 screen mall_hub():
@@ -174,9 +171,11 @@ screen mall_hub():
                         hover Transform("images/ui/icons/icon_%s.png" % icon, size=(124, 124))
                         action Jump(target)
                     text label xalign 0.5 size 16 color "#ffffff"
-
-    textbutton "Back to City Map":
-        action Jump("map")
-        style "pin_sleep"
-        xpos 30
-        ypos 1008
+            vbox:
+                xsize 150
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_metro.png", size=(112, 112))
+                    hover Transform("images/ui/icons/icon_metro.png", size=(124, 124))
+                    action Jump("map")
