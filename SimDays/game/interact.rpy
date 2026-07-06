@@ -298,9 +298,7 @@ screen npc_actions(npc_id):
                     hover_background None
                     vbox:
                         spacing 4
-                        add Transform("images/ui/icons/%s.png" % _icon,
-                                      size=(72, 72),
-                                      alpha=(1.0 if _ok else 0.35)) xalign 0.5
+                        add Transform("images/ui/icons/%s.png" % _icon, size=(72, 72), alpha=(1.0 if _ok else 0.35)) xalign 0.5
                         text _lbl font ACT_FONT size 15 xalign 0.5 color ("#cfe0f5" if _ok else "#4a6080") hover_color "#ffffff"
 
 
@@ -335,8 +333,7 @@ screen npc_topics(npc_id):
                         vbox:
                             spacing 6
                             xalign 0.5 yalign 0.5
-                            add Transform("images/ui/icons/topic_%s.png" % key,
-                                          size=(60, 60)) xalign 0.5
+                            add Transform("images/ui/icons/topic_%s.png" % key, size=(60, 60)) xalign 0.5
                             text label font ACT_FONT size 15 color _tint hover_color "#ffffff" xalign 0.5
 
 

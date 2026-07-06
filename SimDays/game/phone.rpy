@@ -67,13 +67,11 @@ screen phone_home():
                             action _act
                             vbox:
                                 spacing 6
-                                add Transform("images/ui/icons/%s.png" % _icon,
-                                              size=(88, 88)) xalign 0.5
+                                add Transform("images/ui/icons/%s.png" % _icon, size=(88, 88)) xalign 0.5
                                 text _lbl font ACT_FONT size 14 color "#ffffff" xalign 0.5
 
                 null height 20
-                textbutton "Close" action Hide("phone_home") xalign 0.5
-                    text_font ACT_FONT text_size 18 text_color "#9fb6d6" text_hover_color "#ffffff"
+                textbutton "Close" action Hide("phone_home") xalign 0.5 text_font ACT_FONT text_size 18 text_color "#9fb6d6" text_hover_color "#ffffff"
 
         # phone frame on top — transparent hole lets content show through
         add "images/ui/phone_frame.png" xalign 0.5 yalign 0.5
