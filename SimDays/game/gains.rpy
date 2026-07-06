@@ -46,6 +46,15 @@ init python:
             _push_gain(kind="money", text="-$%d" % (-amt), color="#e86a55",
                        icon="images/ui/icons/stat_money.png")
 
+    def gain_aff(npc_name, delta):
+        """Flash an affection toast (called from do_talk / do_gift)."""
+        if delta > 0:
+            _push_gain(kind="aff", text="+%d  %s" % (delta, npc_name), color="#f07888",
+                       icon="images/ui/icons/stat_social.png")
+        elif delta < 0:
+            _push_gain(kind="aff", text="%d  %s" % (delta, npc_name), color="#e86a55",
+                       icon="images/ui/icons/stat_social.png")
+
 default _gains = []   # underscore -> excluded from rollback (transient UI)
 
 

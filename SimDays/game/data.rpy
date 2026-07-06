@@ -40,6 +40,7 @@ default skill_fit  = 0   # Fitness    -> gym / personal trainer
 default skill_mech = 0   # Mechanics  -> garage / warehouse
 default skill_art  = 0   # Art        -> creative / gallery (Zoe's world)
 default skill_music = 0  # Music      -> guitar practice, busking / gigs later
+default skill_exp = {}   # key -> exp banked toward the NEXT level (see gain_skill)
 
 default mc_name = "Alex"   # player's name; set during the intro, personalizable
 
@@ -60,6 +61,12 @@ default natalie_affection  = 0
 default natalie_trust      = 0
 default elle_affection     = 0
 default elle_trust         = 0
+default sam_affection      = 0
+default sam_trust          = 0
+default eli_affection      = 0
+default eli_trust          = 0
+default kai_affection      = 0
+default kai_trust          = 0
 
 # Progression flags
 default zoe_met       = False
@@ -72,6 +79,9 @@ default caroline_met  = False
 default lena_met      = False
 default natalie_met   = False
 default cafe_shift_done = False   # so the "first shift" line only plays once
+default nora_closing_done = False
+default elle_pier_done = False
+default lena_rooftop_done = False
 default warned_today    = False   # low-need heads-up fires at most once a day
 default gift_count      = 0       # generic gifts on hand (give to NPCs for affection)
 default apartment_tier = 1    # 1=cheap, 2=mid, 3=rich
@@ -101,7 +111,7 @@ default job_schedule    = ""     # e.g. "Mon-Fri 09-17"
 init python:
     # Gentle per-hour decay so a normal day needs ~1-2 meals, sleep, and a shower
     # every day or two - present but not nagging.
-    DECAY = {"need_energy": 3.0, "need_hunger": 2.5, "need_hygiene": 1.5}
+    DECAY = {"need_energy": 2.5, "need_hunger": 2.5, "need_hygiene": 1.5}
 
     def spend_time(hours):
         store.hour += hours
@@ -123,8 +133,12 @@ init python:
         stocks_step()   # each stock moves independently overnight (see stocks.rpy)
 
     def worn_out():
-        # too tired or too hungry to perform well (used by jobs/activities)
-        return store.need_energy < 25 or store.need_hunger < 25
+        # performance penalty zone: shift quality suffers but work still possible
+        return store.need_energy < 30 or store.need_hunger < 25
+
+    def too_tired():
+        # hard block: below this you can't start demanding activities at all
+        return store.need_energy < 20
 
     def status_score():
         # 0-100, from what you own. Apartment tier 1 gives a small baseline.

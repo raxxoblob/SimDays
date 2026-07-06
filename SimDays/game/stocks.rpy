@@ -24,8 +24,14 @@ init python:
         if store.stock_price:
             return
         for sym, name, p, dn, up in STOCK_META:
-            store.stock_price[sym] = p
-            store.stock_hist[sym]  = [p]
+            # seed ~10 days of plausible history so the chart shows a line day 1
+            val = p
+            hist = [val]
+            for _ in range(10):
+                val = max(1.0, val * (1.0 + renpy.random.uniform(-dn, up)))
+                hist.append(val)
+            store.stock_price[sym] = val   # today = end of the seeded history
+            store.stock_hist[sym]  = hist
             store.stock_owned[sym] = 0
 
     def stocks_step():

@@ -38,7 +38,14 @@ init python:
         "nora": {
             "name": "Nora", "sprite": "nora_cafe_normal", "say": "n",
             "aff": "nora_affection", "trust": "nora_trust", "greet": "nora_greet",
-            "world": True, "sched": [(None, (8, 18))],
+            "world": True,
+            "sched": [
+                ({0}, (9,  14)),   # Mon  09-14
+                ({1}, (14, 20)),   # Tue  14-20
+                ({2}, (10, 16)),   # Wed  10-16
+                ({3}, (14, 20)),   # Thu  14-20
+                ({4}, (9,  15)),   # Fri  09-15
+            ],
             "likes": ["food", "ambition", "movies"], "dislikes": ["nightlife"],
         },
         "marcus": {
@@ -76,6 +83,30 @@ init python:
             "aff": "elle_affection", "trust": "elle_trust", "greet": "elle_greet",
             "world": True, "sched": [({2}, (16, 19))],
             "likes": ["travel", "music", "art"], "dislikes": ["work"],
+        },
+        "zoe": {
+            "name": "Zoe", "sprite": "zoe_punk_smile", "say": "z",
+            "aff": "zoe_affection", "trust": "zoe_trust", "greet": "zoe_greet",
+            "world": True, "sched": [({5, 6}, (12, 18))],   # weekends at the park
+            "likes": ["art", "music", "nightlife"], "dislikes": ["ambition"],
+        },
+        "sam": {
+            "name": "Sam", "sprite": "sam_normal", "say": "sam",
+            "aff": "sam_affection", "trust": "sam_trust", "greet": "sam_greet",
+            "world": True, "sched": [(MON_FRI, (7, 10))],   # park, weekday mornings
+            "likes": ["sports", "work", "food"], "dislikes": ["nightlife"],
+        },
+        "eli": {
+            "name": "Eli", "sprite": "eli_normal", "say": "eli",
+            "aff": "eli_affection", "trust": "eli_trust", "greet": "eli_greet",
+            "world": True, "sched": [(None, (17, 22))],   # library, evenings
+            "likes": ["work", "movies", "music"], "dislikes": ["sports"],
+        },
+        "kai": {
+            "name": "Kai", "sprite": "kai_normal", "say": "kai",
+            "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
+            "world": True, "sched": [({5, 6}, (11, 19))],   # beach, weekends
+            "likes": ["sports", "music", "nightlife"], "dislikes": ["work"],
         },
     }
 
@@ -129,20 +160,42 @@ init python:
         d = NPC_DATA[npc_id]
         spend_time(0.5)
         if topic in d.get("likes", []):
-            delta, pool = 3, LIKE_LINES
+            delta, pool = 2, LIKE_LINES
         elif topic in d.get("dislikes", []):
             delta, pool = -1, DISLIKE_LINES
         else:
-            delta, pool = 1, NEUTRAL_LINES
+            delta, pool = 0, NEUTRAL_LINES
         _apply_aff(npc_id, delta)
+        gain_aff(d["name"], delta)
         line = renpy.random.choice(pool) % TOPIC_LABEL[topic]
         renpy.say(getattr(store, d["say"]), line)
+
+    # First-contact rebuffs (world characters only, before they know you).
+    COLD_REBUFF = [
+        "%s glances at you, then pointedly looks away. Not today.",
+        "%s pretends not to hear you and drifts off.",
+        "%s gives you a quick once-over and keeps walking.",
+        "You start to say something - %s is already somewhere else. \"...\"",
+    ]
+
+    def cold_approach_ok(npc_id):
+        """World strangers may brush you off on first contact. Higher Charisma +
+        status = better odds. Once you've broken the ice (affection > 0), never again."""
+        d = NPC_DATA[npc_id]
+        if not d.get("world") or npc_aff(npc_id) > 0:
+            return True
+        chance = 45 + store.stat_chr * 2 + status_score() // 3
+        if renpy.random.randint(1, 100) <= chance:
+            _apply_aff(npc_id, 2)   # broke the ice
+            return True
+        return False
 
     def do_gift(npc_id):
         if store.gift_count <= 0:
             return
         store.gift_count -= 1
-        _apply_aff(npc_id, 8)
+        _apply_aff(npc_id, 3)
+        gain_aff(NPC_DATA[npc_id]["name"], 3)
         renpy.say(getattr(store, NPC_DATA[npc_id]["say"]),
                   "For me? ...That's genuinely thoughtful. Thank you.")
 
@@ -243,6 +296,13 @@ label npc_interact(npc_id):
     show expression _spr as npcsprite at sprite_c
     show screen npc_relbar(npc_id)
     $ _nm = NPC_DATA[npc_id]["name"]
+    # cold approach: a stranger might brush you off
+    if not cold_approach_ok(npc_id):
+        $ _rb = renpy.random.choice(COLD_REBUFF) % _nm
+        "[_rb]"
+        hide screen npc_relbar
+        hide npcsprite
+        return
     if need_hygiene < 25:
         "[_nm] leans back a little, trying to be polite about it. You could really use a shower."
     call expression NPC_DATA[npc_id]["greet"]
@@ -350,4 +410,40 @@ label elle_greet:
         el "Oh - hi! Didn't think I'd see you out here again. Good surprise."
     else:
         el "Hi there. You look a little lost for a beach. First time?"
+    return
+
+label zoe_greet:
+    if zoe_affection >= 50:
+        z "Hey, you. Pull up some grass. I'm avoiding a canvas that's avoiding me."
+    elif zoe_affection >= 25:
+        z "Oh, it's you. Good - I needed an excuse to stop pretending to sketch."
+    else:
+        z "You're blocking my light. ...Kidding. Mostly. I'm Zoe."
+    return
+
+label sam_greet:
+    if sam_affection >= 50:
+        sam "Hey! Perfect timing, I need a break before my legs stage a mutiny."
+    elif sam_affection >= 25:
+        sam "Oh hey, it's you! Still can't keep up, but I respect the effort."
+    else:
+        sam "Morning! You run, or just admiring people who do? I'm Sam."
+    return
+
+label eli_greet:
+    if eli_affection >= 50:
+        eli "Oh good, a friendly face. Save me from this thesis for five minutes?"
+    elif eli_affection >= 25:
+        eli "Hey. Sorry - deep in it. But a break's probably healthy. Allegedly."
+    else:
+        eli "Uh, hi. I'm Eli. Don't mind the mess, this is just... my whole personality."
+    return
+
+label kai_greet:
+    if kai_affection >= 50:
+        kai "Yo! Was just thinking about you. Good timing as always."
+    elif kai_affection >= 25:
+        kai "Hey! You're back. This beach has a way of pulling people in, right?"
+    else:
+        kai "Sup. You look like someone who doesn't come here enough."
     return

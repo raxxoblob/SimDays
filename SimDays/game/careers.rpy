@@ -21,16 +21,33 @@ init python:
     def skill_val(key):
         return getattr(store, "skill_" + key)
 
+    def skill_exp_needed(level):
+        # 18, 30, 48, 72, 102, 138, 180, 228, 282, 342
+        # level 0->1 ≈ 3 courses, 1->2 ≈ 5, 2->3 ≈ 8, 3->4 ≈ 12...
+        return 18 + 12 * level + 3 * level * (level - 1)
+
     def gain_skill(key, amt=1):
-        """Raise a professional skill (0-10) and flash a toast (reuses gains.py)."""
+        """Add EXP to a professional skill; level up (0-10) when the bar fills.
+        Higher levels need more EXP. Toasts only on an actual level-up."""
         var = "skill_" + key
-        new = min(10, getattr(store, var) + amt)
-        setattr(store, var, new)
-        label, colour, fillkey = PRO_SKILLS[key]
-        icon = "images/ui/icons/skill_%s.png" % key
-        _push_gain(kind="stat", text="+%d %s" % (amt, label), color=colour,
-                   icon=(icon if renpy.loadable(icon) else None),
-                   value=new * 10, fill="images/ui/bar_fill_%s.png" % fillkey)
+        lvl = getattr(store, var)
+        if lvl >= 10:
+            return
+        store.skill_exp[key] = store.skill_exp.get(key, 0) + amt
+        leveled = 0
+        while lvl < 10 and store.skill_exp[key] >= skill_exp_needed(lvl):
+            store.skill_exp[key] -= skill_exp_needed(lvl)
+            lvl += 1
+            leveled += 1
+        setattr(store, var, lvl)
+        if lvl >= 10:
+            store.skill_exp[key] = 0
+        if leveled:
+            label, colour, fillkey = PRO_SKILLS[key]
+            icon = "images/ui/icons/skill_%s.png" % key
+            _push_gain(kind="stat", text="%s  Lv %d" % (label, lvl), color=colour,
+                       icon=(icon if renpy.loadable(icon) else None),
+                       value=lvl * 10, fill="images/ui/bar_fill_%s.png" % fillkey)
 
     # Career ladders. req keys are store var names (stat_* /100, skill_* /10).
     # flex=True at the top tier = flexible hours (the freedom payoff).
@@ -38,11 +55,11 @@ init python:
         "hospital": {
             "name": "Medicine - City Hospital", "location": "location_hospital",
             "ranks": [
-                {"title": "Med Student",       "req": {"skill_med": 1, "stat_int": 20},              "pay": 40,  "hours": "Mon-Fri 08-16", "flex": False},
-                {"title": "Resident",          "req": {"skill_med": 3, "stat_int": 35},              "pay": 90,  "hours": "long shifts",   "flex": False},
-                {"title": "Doctor",            "req": {"skill_med": 5, "stat_int": 50},              "pay": 160, "hours": "shifts",        "flex": False},
-                {"title": "Attending",         "req": {"skill_med": 7, "stat_int": 60, "stat_chr": 40}, "pay": 240, "hours": "mostly set", "flex": False},
-                {"title": "Chief of Medicine", "req": {"skill_med": 9, "stat_int": 70, "stat_chr": 55}, "pay": 340, "hours": "flexible",   "flex": True},
+                {"title": "Med Student",       "req": {"skill_med": 3, "stat_int": 30},                        "pay": 45,  "hours": "Mon-Fri 08-16", "flex": False},
+                {"title": "Resident",          "req": {"skill_med": 5, "stat_int": 45},                        "pay": 100, "hours": "long shifts",   "flex": False},
+                {"title": "Doctor",            "req": {"skill_med": 7, "stat_int": 58},                        "pay": 175, "hours": "shifts",        "flex": False},
+                {"title": "Attending",         "req": {"skill_med": 8, "stat_int": 68, "stat_chr": 45},        "pay": 260, "hours": "mostly set",    "flex": False},
+                {"title": "Chief of Medicine", "req": {"skill_med": 9, "stat_int": 78, "stat_chr": 60},        "pay": 360, "hours": "flexible",      "flex": True},
             ],
         },
         "it": {
@@ -99,7 +116,7 @@ init python:
     # Which stats/skills a shift slowly trains: (kind, key, chance).
     CAREER_TRAIN = {
         "it":        [("stat", "int", 0.5), ("skill", "prog", 0.3)],
-        "hospital":  [("stat", "int", 0.4), ("skill", "med", 0.3)],
+        "hospital":  [("stat", "int", 0.25), ("skill", "med", 0.15)],
         "corporate": [("stat", "chr", 0.4), ("skill", "biz", 0.3)],
         "trainer":   [("stat", "str", 0.4), ("skill", "fit", 0.3)],
         "culinary":  [("stat", "str", 0.3), ("skill", "cook", 0.4)],
@@ -146,7 +163,7 @@ init python:
             for kind, key, chance in CAREER_TRAIN.get(cid, []):
                 if renpy.random.random() < chance:
                     if kind == "stat": gain_stat(key, 1)
-                    else: gain_skill(key, 1)
+                    else: gain_skill(key, 3)
         _sync_job()
         return low
 
@@ -163,12 +180,14 @@ init python:
         _sync_job()
         return True
 
-    def take_course(key, cost=60):
+    def take_course(key):
+        lvl = skill_val(key)
+        if lvl >= 10: return "max"
+        cost = 50 + lvl * 20   # $50 at lv0, $70 at lv1, $150 at lv5 ...
         if store.money < cost: return "money"
-        if skill_val(key) >= 10:  return "max"
         spend_time(3)
         gain_money(-cost)
-        gain_skill(key, 1)
+        gain_skill(key, 6)
         return "ok"
 
     def next_rank_hint(req):

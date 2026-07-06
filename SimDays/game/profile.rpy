@@ -5,11 +5,13 @@
 define PROFILE_FONT = "fonts/Quicksand-SemiBold.ttf"
 
 # One skill row that fills the panel width: icon + label + bar + value.
-screen stat_chip(label, value, fill, icon=None):
-    frame:
+screen stat_chip(label, value, fill, icon=None, tip=""):
+    button:
         xfill True
         ysize 76
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+        action NullAction()
+        tooltip tip
         padding (16, 10, 18, 10)
         hbox:
             spacing 12
@@ -29,10 +31,15 @@ screen stat_chip(label, value, fill, icon=None):
 # player sees the full set of trades, learned or not.
 screen spec_row(key):
     $ _lv = skill_val(key)
-    frame:
+    $ _ex = skill_exp.get(key, 0)
+    $ _need = skill_exp_needed(_lv)
+    $ _maxed = _lv >= 10
+    button:
         xfill True
         ysize 52
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+        action NullAction()
+        tooltip ("%s - Lv %d. %s" % (PRO_SKILLS[key][0], _lv, "Maxed out." if _maxed else "%d/%d EXP to Lv %d (higher levels take more)." % (_ex, _need, _lv + 1)))
         padding (14, 7, 16, 7)
         hbox:
             spacing 10
@@ -41,12 +48,12 @@ screen spec_row(key):
                 add _ic xysize (28, 28) yalign 0.5
             else:
                 null width 28
-            text PRO_SKILLS[key][0] font PROFILE_FONT size 17 color ("#cfe0f5" if _lv > 0 else "#7f8ba0") yalign 0.5 xsize 108
+            text ("%s  Lv%d" % (PRO_SKILLS[key][0], _lv)) font PROFILE_FONT size 17 color ("#cfe0f5" if _lv > 0 else "#7f8ba0") yalign 0.5 xsize 120
             bar:
-                value StaticValue(_lv, 10)
-                xsize 120 ysize 13 yalign 0.5
+                value StaticValue((10 if _maxed else _ex), (10 if _maxed else _need))
+                xsize 108 ysize 13 yalign 0.5
                 left_bar Frame("images/ui/bar_fill_%s.png" % PRO_SKILLS[key][2], 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-            text "[_lv]/10" font PROFILE_FONT size 16 color "#ffffff" yalign 0.5 xalign 1.0
+            text ("MAX" if _maxed else "%d/%d" % (_ex, _need)) font PROFILE_FONT size 15 color "#ffffff" yalign 0.5 xalign 1.0
 
 
 screen profile():
@@ -85,10 +92,10 @@ screen profile():
                     spacing 8
 
                     text "CORE STATS" font PROFILE_FONT size 15 color "#7fa0cc"
-                    use stat_chip("Strength",   stat_str, "images/ui/bar_fill_str.png", "images/ui/icons/stat_str.png")
-                    use stat_chip("Intellect",  stat_int, "images/ui/bar_fill_int.png", "images/ui/icons/stat_int.png")
-                    use stat_chip("Charisma",   stat_chr, "images/ui/bar_fill_chr.png", "images/ui/icons/stat_social.png")
-                    use stat_chip("Appearance", stat_app, "images/ui/bar_fill_app.png", "images/ui/icons/stat_app.png")
+                    use stat_chip("Strength",   stat_str, "images/ui/bar_fill_str.png", "images/ui/icons/stat_str.png", "Strength - train at the gym. Gates physical jobs.")
+                    use stat_chip("Intellect",  stat_int, "images/ui/bar_fill_int.png", "images/ui/icons/stat_int.png", "Intellect - study at the library / work desk jobs. Gates IT, corporate, medicine.")
+                    use stat_chip("Charisma",   stat_chr, "images/ui/bar_fill_chr.png", "images/ui/icons/stat_social.png", "Charisma - socialize (bar, club). Helps relationships and people-facing work.")
+                    use stat_chip("Appearance", stat_app, "images/ui/bar_fill_app.png", "images/ui/icons/stat_app.png", "Appearance - gym, clothes, grooming. Low hygiene tanks it fast.")
 
                     null height 4
                     text "SPECIALIZATIONS" font PROFILE_FONT size 15 color "#7fa0cc"
@@ -131,3 +138,8 @@ screen profile():
                             spacing 4
                             text "[_tiers]" font PROFILE_FONT size 15 color "#cfe0f5"
                             text "Items: [_items]" font PROFILE_FONT size 15 color "#cfe0f5"
+
+            # hover footer: shows the tooltip of whatever stat/skill you point at
+            $ _ptt = GetTooltip()
+            if _ptt:
+                text "[_ptt]" font PROFILE_FONT size 14 color "#e0c060" xsize 386

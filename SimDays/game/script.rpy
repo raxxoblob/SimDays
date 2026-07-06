@@ -75,6 +75,12 @@ label start:
     scene cheaphouse_day with fade
     show screen hud
     "You drop your bag inside apartment 12. Home. For now."
+    "The place came furnished - barely. A table, a chair, a mattress that could be worse."
+    "You notice the three bars at the top of your vision: hunger, energy, hygiene. The city's way of keeping score on how well you're taking care of yourself."
+    "Let any of them drop to zero and the consequences show up fast - missed shifts, bad decisions, a hospital bill you can't afford."
+    "Right now you're fine. But hunger's already ticking down, and money doesn't grow on its own."
+    "Marcus's parting shot comes back to you: {i}Grounds Café, downtown. Always short-staffed. If you can carry a tray, you're in.{/i}"
+    "A place to start."
     jump location_home
 
 

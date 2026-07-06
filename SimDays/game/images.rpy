@@ -32,8 +32,55 @@ init python:
     renpy.image("marcus_home_night", Transform("images/locations/marcus_home_night.png", size=(1920, 1080)))
     # New career venues + nightlife/hi-status (per to_generate/locations.md).
     for _pn in ["hub_day", "hub_night", "college_day", "hospital_exam", "hospital_night",
-                "bank_day", "bank_night", "nightclub", "bar_rooftop_night", "vip_lounge_airport"]:
+                "bank_day", "bank_night", "nightclub", "bar_rooftop_night", "vip_lounge_airport",
+                "cardealer_day", "basketball_court_day"]:
         renpy.image(_pn, Transform("images/locations/%s.png" % _pn, size=(1920, 1080)))
+    # kitchen has no windows -> one image for day and night
+    renpy.image("kitchen", Transform("images/locations/kitchen_dayandnight.png", size=(1920, 1080)))
+    # POV "on the job" full-screen frames (shown during a shift / activity)
+    renpy.image("pov_barista",      Transform("images/locations/pov_barista.png",             size=(1920, 1080)))
+    renpy.image("hub_pov",          Transform("images/locations/hub_pov.png",                 size=(1920, 1080)))
+    renpy.image("pov_warehouse",    Transform("images/locations/warehouse_pov.png",            size=(1920, 1080)))
+    renpy.image("pov_doctor",       Transform("images/locations/doctor_pov.png",               size=(1920, 1080)))
+    renpy.image("pov_chef",         Transform("images/locations/kitchen_pov.png",              size=(1920, 1080)))
+    renpy.image("pov_trainer",      Transform("images/locations/pov_gym_work_trainer.png",     size=(1920, 1080)))
+    renpy.image("pov_gym_weights",  Transform("images/locations/pov_gym_weights.png",          size=(1920, 1080)))
+    renpy.image("gym_cardio",       Transform("images/locations/gym_cardio.png",               size=(1920, 1080)))
+
+    # hospital rooftop (Lena scene bg)
+    renpy.image("hospital_rooftop_night", Transform("images/locations/hospital_rooftop_night.png", size=(1920, 1080)))
+
+    # Elle pier CGs (scenes/elle_pier/)
+    for _i in range(1, 7):
+        renpy.image("elle_pier_%d" % _i,
+            Transform("images/scenes/elle_pier/elle_pier_%d.png" % _i, size=(1920, 1080)))
+
+    # Lena rooftop CGs (scenes/lena_rooftop/)
+    for _i in range(1, 6):
+        renpy.image("lena_rooftop_%d" % _i,
+            Transform("images/scenes/lena_rooftop/lena_rooftop_%d.png" % _i, size=(1920, 1080)))
+
+    # Zoe beach meeting CGs (7-frame sequence, scenes/zoe_beach/)
+    for _i in range(1, 8):
+        renpy.image("zoe_beach_%d" % _i,
+            Transform("images/scenes/zoe_beach/zoe_beach_%d.png" % _i, size=(1920, 1080)))
+
+    # Nora closing-time CGs (scenes/nora_closing/)
+    for _i in range(1, 8):
+        renpy.image("nora_closing_%d" % _i,
+            Transform("images/scenes/nora_closing/cg_nora_closing%d.png" % _i, size=(1920, 1080)))
+
+    # Marcus "Shoot hoops" court CGs (scenes/marcus_court/)
+    for _nm, _fn in [
+        ("cg_court_trash_talk",  "cg_marcus_court_trash_talk"),
+        ("cg_court_jump_shot",   "cg_marcus_court_jump_shot"),
+        ("cg_court_bench",       "cg_marcus_court_bench_after_game"),
+        ("cg_court_hoop",        "cg_marcus_court_ball_in_hoop"),
+        ("cg_court_hoop_insert", "cg_court_success_hoop_insert"),
+        ("cg_court_miss",        "cg_player_court_shot_miss"),
+        ("cg_court_success",     "cg_player_court_shot_success"),
+    ]:
+        renpy.image(_nm, Transform("images/scenes/marcus_court/%s.png" % _fn, size=(1920, 1080)))
 
     # Intro cinematic frames (pre-rendered POV, full-screen). 1672x941 -> 1920x1080.
     for _i, _f in enumerate(["intro_scene_1", "intro_scene2", "intro_scene3",
@@ -86,12 +133,18 @@ image zoe_punk_smile       = "images/characters/zoe/zoe_punk_smile.webp"
 image zoe_hoodie_smile     = "images/characters/zoe/zoe_hoodie_smile.webp"
 image zoe_coat_smile       = "images/characters/zoe/zoe_coat_smile.webp"
 
-# ── Nora sprites (café barista) ────────────────────────────────────────
+# ── Nora sprites ───────────────────────────────────────────────────────
+# Work outfit (behind the counter)
 image nora_cafe_normal = "images/characters/nora/nora_cafe_normal.png"
 image nora_cafe_talk   = "images/characters/nora/nora_cafe_talk.png"
 image nora_cafe_laugh  = "images/characters/nora/nora_cafe_laugh.png"
 image nora_cafe_sad    = "images/characters/nora/nora_cafe_sad.png"
 image nora_cafe_angry  = "images/characters/nora/nora_cafe_angry.png"
+# Casual / off-duty (closing time, high-aff visits)
+image nora_casual_normal = "images/characters/nora/nora_casual_normal.png"
+image nora_casual_talk   = "images/characters/nora/nora_casual_talk.png"
+image nora_casual_laugh  = "images/characters/nora/nora_casual_laugh.png"
+image nora_casual_angry  = "images/characters/nora/nora_casual_angry.png"
 
 # ── Caroline (corporate / HR) ──────────────────────────────────────────
 image caroline_normal = "images/characters/caroline/caroline_normal.png"
@@ -130,9 +183,25 @@ image marcus_park_talk      = "images/characters/marcus/marcus_park_talk.png"
 image marcus_park_laugh     = "images/characters/marcus/marcus_park_laugh.png"
 image marcus_park_sad       = "images/characters/marcus/marcus_park_sad.png"
 
+# ── Sam (park, world) + Eli (library, world) ───────────────────────────
+image sam_normal     = "images/characters/sam/sam_normal.png"
+image sam_talk       = "images/characters/sam/sam_talk.png"
+image sam_laugh      = "images/characters/sam/sam_laugh.png"
+image sam_determined = "images/characters/sam/sam_determined.png"
+image eli_normal     = "images/characters/eli/eli_normal.png"
+image eli_talk       = "images/characters/eli/eli_talk.png"
+image eli_laugh      = "images/characters/eli/eli_laugh.png"
+image eli_nervous    = "images/characters/eli/eli_nervous.png"
+
 # ── Martha sprites (transparent PNGs) ──────────────────────────────────
 image martha_neutral = "images/characters/martha/martha_neutral.png"
 image martha_talk    = "images/characters/martha/martha_talk.png"
 image martha_smile   = "images/characters/martha/martha_smile.png"
 image martha_cold    = "images/characters/martha/martha_cold.png"
 image martha_worried = "images/characters/martha/martha_worried.png"
+
+# ── Kai (beach / weekends) ─────────────────────────────────────────────
+image kai_normal = "images/characters/kai/kai_normal.png"
+image kai_talk   = "images/characters/kai/kai_talk.png"
+image kai_laugh  = "images/characters/kai/kai_laugh.png"
+image kai_angry  = "images/characters/kai/kai_angrh.png"

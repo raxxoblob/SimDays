@@ -56,6 +56,7 @@ define CENTRUM_VENUES = [
     ("bar",         "Bar",         "location_bar"),
     ("nightclub",   "Club",        "location_nightclub"),
     ("garage",      "Car Dealer",  "location_cardealer"),
+    ("restaurant_eleven", "Eleven", "location_kitchen"),
 ]
 
 # Mall shops (own backgrounds + icons). Shown as an icon bar inside the mall.
@@ -79,6 +80,7 @@ init python:
         "bar":         (17, 27),  # evening into the night
         "nightclub":   (21, 27),
         "garage":      (9, 19),
+        "restaurant_eleven": (16, 27),   # kitchen runs evenings
     }
 
     def venue_open(key):
