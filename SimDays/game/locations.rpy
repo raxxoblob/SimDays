@@ -40,8 +40,6 @@ label location_home_actions:
             "You run scales and a couple of songs. Fingers sore, ear sharper."
             jump location_home_actions
 
-        "Take the metro (0.5h)":
-            jump take_metro
 
 label location_home_cook:
     scene expression home_bg()
@@ -201,8 +199,6 @@ label cafe_actions:
         "Work a shift - Barista (4h)":
             jump cafe_work_shift
 
-        "Take the metro (0.5h)":
-            jump take_metro
 
 label cafe_work_shift:
     if hour + 4 > DAY_END:
@@ -258,8 +254,6 @@ label location_gym:
             $ gain_stat("str", 1)
             "You run until your lungs complain."
             jump location_gym
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── LIBRARY ───────────────────────────────────────────────────────────
 label location_library:
@@ -310,8 +304,6 @@ label location_library:
         "Talk to Eli" if npc_talkable("eli"):
             call npc_interact("eli")
             jump location_library
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── BAR ───────────────────────────────────────────────────────────────
 label location_bar:
@@ -332,8 +324,6 @@ label location_bar:
             else:
                 "You hover near a few groups but can't quite break in. Maybe with a bit more charm."
             jump location_bar
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── OFFICE ────────────────────────────────────────────────────────────
 label location_office:
@@ -369,8 +359,6 @@ label location_office:
         "Talk to Martha" if npc_talkable("martha"):
             call npc_interact("martha")
             jump location_office
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── MALL (shop hub) ───────────────────────────────────────────────────
 label location_mall:
@@ -498,8 +486,6 @@ label location_cardealer:
         "Your car's top of the line" if car_tier >= 3:
             "Nothing here beats what's already in your garage."
             jump location_cardealer
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── KITCHEN / Eleven (Culinary career) ────────────────────────────────
 label location_kitchen:
@@ -544,8 +530,6 @@ label location_kitchen:
             "You hang up the apron. The heat wasn't for you."
             jump location_kitchen
 
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── NIGHTCLUB ─────────────────────────────────────────────────────────
 label location_nightclub:
@@ -571,8 +555,6 @@ label location_nightclub:
             $ gain_money(-15)
             "Drinks all around. Cheap way to be popular for ten minutes."
             jump location_nightclub
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── PARK ──────────────────────────────────────────────────────────────
 label location_park:
@@ -607,8 +589,6 @@ label location_park:
         "Talk to Sam" if npc_talkable("sam"):
             call npc_interact("sam")
             jump location_park
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
@@ -635,8 +615,6 @@ label location_beach:
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
             jump location_beach
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── Zoe first meet - beach (daytime only, fires once) ─────────────────
 label beach_meet_zoe:
@@ -653,7 +631,6 @@ label beach_meet_zoe:
     "She hasn't looked up once."
     scene beachday with dissolve
     show screen hud
-    show zoe_street_neutral at sprite_r
     menu:
         "Go over. Say something.":
             jump zoe_beach_approach
@@ -665,7 +642,6 @@ label zoe_beach_approach:
     "Then you're close enough that staying silent becomes its own thing, and she looks up."
     scene beachday with dissolve
     show screen hud
-    show zoe_street_neutral at sprite_r
     z "Can I help you?"
     scene zoe_beach_4 with dissolve
     show screen hud
@@ -678,23 +654,18 @@ label zoe_beach_approach:
             "She angles the sketchbook toward you, briefly - just enough. The lines are loose and confident. Building reflections broken into something almost abstract."
             scene beachday with dissolve
             show screen hud
-            show zoe_street_talk at sprite_r
             z "It doesn't translate in a photo. Which is the entire point."
-            show zoe_street_neutral at sprite_r
             "She pulls it back."
             z "Most people who interrupt me out here want to know if I'm a 'real artist.' Like there's a counterfeit version."
             menu:
                 "\"Are you?\"":
-                    show zoe_street_talk at sprite_r
                     z "Define it and I'll tell you. I make things. Whether that qualifies depends on who's reviewing the grant."
                     "She gives you another look. Slower this time."
                     z "You're new. You've got the look."
                     $ zoe_affection += 2
                 "\"What does the fake kind look like?\"":
-                    show zoe_street_smile at sprite_r
                     z "Ha."
                     "Short. Real. She wasn't expecting that one."
-                    show zoe_street_talk at sprite_r
                     z "Sells prints on a website. Talks a lot about their 'process' at dinner parties. But I try not to be mean about it."
                     z "You're new here. I can always tell."
                     $ zoe_affection += 4
@@ -740,38 +711,30 @@ label zoe_beach_watch:
     "A long pause. She looks at you, then back at the water, then at you again."
     scene beachday with dissolve
     show screen hud
-    show zoe_street_surprised at sprite_r
     z "...You've been standing there this whole time."
     "Not a question."
     z "I would have heard you leave."
     menu:
         "\"I didn't want to interrupt.\"":
-            show zoe_street_talk at sprite_r
             z "You were going to eventually. Everyone does."
             z "What stopped you?"
             menu:
                 "\"You were getting somewhere. I could see it from here.\"":
                     "She blinks. Looks at the sketchbook. Then back at you."
-                    show zoe_street_neutral at sprite_r
                     z "...I wasn't, actually. But that's the right thing to look for."
                     $ zoe_affection += 5
                 "\"Breaking flow felt rude.\"":
                     z "Most people don't think about that."
-                    show zoe_street_neutral at sprite_r
                     z "Sit down. You're making me self-conscious."
                     $ zoe_affection += 3
         "\"You looked like you were in it.\"":
-            show zoe_street_talk at sprite_r
             z "I was. I'm not anymore. Something I was chasing got away from me."
             "She doesn't sound angry. Just honest about it."
-            show zoe_street_neutral at sprite_r
             z "You can come over. Since you've been hovering."
             $ zoe_affection += 3
-        "[Say nothing. Just hold up a hand - caught, fair enough.]":
-            show zoe_street_talk at sprite_r
+        "[[Say nothing. Just hold up a hand - caught, fair enough.]]":
             "She stares at you for a second. Then a short exhale. Almost a laugh."
             z "Okay."
-            show zoe_street_neutral at sprite_r
             z "Come sit. You're going to get a crick in your neck standing like that."
             $ zoe_affection += 4
     "You cross the sand and sit down next to her. She goes back to the page, or pretends to."
@@ -780,27 +743,21 @@ label zoe_beach_watch:
     "The sea does that thing where it sounds like breathing."
     scene beachday with dissolve
     show screen hud
-    show zoe_street_neutral at sprite_r
     "After a minute:"
     z "What do you see? In the water."
     "It's a test. You can feel it."
     menu:
         "\"Reflections. The city upside-down.\"":
-            show zoe_street_talk at sprite_r
             z "Yeah. That's it exactly."
             z "Nobody looks at that. They look at the waves or the horizon. The interesting part's always in the middle somewhere."
-            show zoe_street_neutral at sprite_r
             $ zoe_affection += 3
         "\"Just water. I'm not going to pretend otherwise.\"":
-            show zoe_street_talk at sprite_r
             z "Honest."
             z "The water's fine. It's what it does to everything around it that matters. But that comes with practice."
             $ zoe_affection += 2
         "\"The city. But softer.\"":
-            show zoe_street_smile at sprite_r
             "She looks at you sideways."
             z "Okay. You pass."
-            show zoe_street_neutral at sprite_r
             $ zoe_affection += 4
     jump zoe_beach_shared
 
@@ -808,15 +765,12 @@ label zoe_beach_shared:
     "Eventually she closes the sketchbook. Taps it twice with one charcoal-stained finger like she's filing the whole session away."
     z "First time at this beach?"
     "You tell her it is."
-    show zoe_street_talk at sprite_r
     z "It's the right one. The other two are for people who want to be seen at the beach. This one's for people who actually want the beach."
     "She starts brushing sand from her jeans. There's charcoal on two fingers. She doesn't bother with it."
-    show zoe_street_neutral at sprite_r
     z "I'm here most weeks when it's not raining. Trying to get the reflections right before the season changes and the light goes flat."
     "She tucks the sketchbook under her arm and stands."
     z "You're not the worst person to run into."
     "She says it the way someone gives a verdict. Which, you think, she basically did."
-    show zoe_street_smile at sprite_r
     "The smile that follows - half-turned away, like she didn't sign off on it - happens anyway."
     scene zoe_beach_6 with dissolve
     show screen hud
@@ -829,10 +783,6 @@ label zoe_beach_shared:
     show screen hud
     $ zoe_met = True
     $ spend_time(1)
-    hide zoe_street_neutral
-    hide zoe_street_smile
-    hide zoe_street_talk
-    hide zoe_street_surprised
     jump location_beach
 
 # ── CENTRUM (downtown hub) ────────────────────────────────────────────
@@ -876,8 +826,6 @@ label location_warehouse:
         "Talk to Natalie" if npc_talkable("natalie"):
             call npc_interact("natalie")
             jump location_warehouse
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── HOSPITAL ──────────────────────────────────────────────────────────
 label location_hospital:
@@ -947,8 +895,6 @@ label location_hospital:
             "You hang up the coat. Not everyone's built for it."
             jump location_hospital
 
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── THE HUB (IT career) ───────────────────────────────────────────────
 label location_hub:
@@ -996,8 +942,6 @@ label location_hub:
             "You hand in your notice. Free again - broke soon, but free."
             jump location_hub
 
-        "Take the metro (0.5h)":
-            jump take_metro
 
 # ── CITY COLLEGE (learn professional skills) ──────────────────────────
 label location_college:
@@ -1022,8 +966,6 @@ label location_college:
             call college_course("art")
             jump location_college
 
-        "Take the metro (0.5h)":
-            jump take_metro
 
 label college_course(key):
     if too_tired():

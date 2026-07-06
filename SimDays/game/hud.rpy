@@ -70,3 +70,19 @@ screen hud():
             xalign 0.5 ypos 146 size 17 color "#ffffff"
             font "fonts/Quicksand-SemiBold.ttf"
             outlines [(2, "#000000cc", 0, 0)]
+
+    if not renpy.get_screen("city_map") and not renpy.get_screen("centrum_hub") and not renpy.get_screen("hallway_hub") and not renpy.get_screen("mall_hub"):
+        frame:
+            xpos 30
+            yalign 1.0
+            yoffset -16
+            background "#000000aa"
+            padding (16, 10, 16, 10)
+            vbox:
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_metro.png", size=(82, 82))
+                    hover Transform("images/ui/icons/icon_metro.png", size=(92, 92))
+                    action Jump("take_metro")
+                text "Metro" xalign 0.5 size 15 color "#aaccff"
