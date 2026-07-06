@@ -51,6 +51,11 @@ define config.has_sound = True
 define config.has_music = True
 define config.has_voice = True
 
+## Never narrate menu captions in the say textbox (the gray box). Activity
+## menus filter the caption item out entirely; dialogue menus show it as a
+## non-clickable header above the choices instead.
+define config.narrator_menu = False
+
 
 ## Aby umożliwić użytkownikowi odtworzenie dźwięku testowego na kanale
 ## dźwiękowym lub głosowym, odkomentuj poniższą linię i użyj jej do ustawienia

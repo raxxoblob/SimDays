@@ -201,12 +201,34 @@ init python:
 
 
 # ── Relationship panel (right, under the topbar) ───────────────────────
+# _rb_prev_* are set to -1 by npc_interact on entry so the first render never
+# flashes; a gain flips the fill to a bright colour for FLASH_LEN seconds.
+define FLASH_LEN = 0.9
+default _rb_prev_aff = -1
+default _rb_prev_tr = -1
+default _rb_flash_aff = 0.0
+default _rb_flash_tr = 0.0
+
 screen npc_relbar(npc_id):
     zorder 25
     $ _aff = npc_aff(npc_id)
     $ _tr = npc_trust(npc_id)
     $ _tier = rel_tier(_aff)
     $ _nm = NPC_DATA[npc_id]["name"]
+
+    # arm a colour flash whenever a value climbs since the last render
+    if _rb_prev_aff >= 0 and _aff > _rb_prev_aff:
+        $ _rb_flash_aff = _time.time()
+    if _rb_prev_tr >= 0 and _tr > _rb_prev_tr:
+        $ _rb_flash_tr = _time.time()
+    $ _rb_prev_aff = _aff
+    $ _rb_prev_tr = _tr
+    $ _aff_hot = (_time.time() - _rb_flash_aff) < FLASH_LEN
+    $ _tr_hot = (_time.time() - _rb_flash_tr) < FLASH_LEN
+    # keep re-rendering so the flash window can close on its own
+    # ponytail: always-on 15fps tick; fine for the single relbar shown in-chat
+    timer 0.06 repeat True action NullAction()
+
     frame:
         xpos 1500
         ypos 150
@@ -224,20 +246,20 @@ screen npc_relbar(npc_id):
                 text "Affection" font PROFILE_FONT size 17 color "#cfe0f5" xpos 0 ypos 4
                 bar:
                     xpos 110 ypos 7
-                    value AnimatedValue(_aff, 100, delay=0.6)
+                    value AnimatedValue(_aff, 100, delay=FLASH_LEN)
                     xsize 150 ysize 16
-                    left_bar Frame("images/ui/bar_fill_chr.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-                text "[_aff]" font PROFILE_FONT size 17 color "#ffffff" xpos 270 ypos 4
+                    left_bar ("#ffd76a" if _aff_hot else Frame("images/ui/bar_fill_chr.png", 14, 0)) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
+                text "[_aff]" font PROFILE_FONT size 17 color ("#ffd76a" if _aff_hot else "#ffffff") xpos 270 ypos 4
             fixed:
                 xsize 356
                 ysize 30
                 text "Trust" font PROFILE_FONT size 17 color "#cfe0f5" xpos 0 ypos 4
                 bar:
                     xpos 110 ypos 7
-                    value AnimatedValue(_tr, 100, delay=0.6)
+                    value AnimatedValue(_tr, 100, delay=FLASH_LEN)
                     xsize 150 ysize 16
-                    left_bar Frame("images/ui/bar_fill_int.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-                text "[_tr]" font PROFILE_FONT size 17 color "#ffffff" xpos 270 ypos 4
+                    left_bar ("#7fe0ff" if _tr_hot else Frame("images/ui/bar_fill_int.png", 14, 0)) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
+                text "[_tr]" font PROFILE_FONT size 17 color ("#7fe0ff" if _tr_hot else "#ffffff") xpos 270 ypos 4
 
 
 # reusable glass action button
@@ -298,6 +320,8 @@ screen npc_topics(npc_id):
 label npc_interact(npc_id):
     $ renpy.hide_screen("npc_relbar")
     $ renpy.hide("npcsprite")
+    $ _rb_prev_aff = -1   # -1 = don't flash on the opening render
+    $ _rb_prev_tr = -1
     $ _spr = NPC_DATA[npc_id]["sprite"]
     show expression _spr as npcsprite at sprite_c
     show screen npc_relbar(npc_id)

@@ -148,6 +148,7 @@ screen centrum_hub():
                     idle  Transform("images/ui/icons/icon_metro.png", size=(108, 108))
                     hover Transform("images/ui/icons/icon_metro.png", size=(120, 120))
                     action Jump("map")
+                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
 
 # Inside the mall: pick a shop (each has its own interior).
 screen mall_hub():
@@ -179,3 +180,4 @@ screen mall_hub():
                     idle  Transform("images/ui/icons/icon_metro.png", size=(112, 112))
                     hover Transform("images/ui/icons/icon_metro.png", size=(124, 124))
                     action Jump("map")
+                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
