@@ -87,9 +87,7 @@ init python:
                              "intro_scene4", "intro_scene5", "intro_scene6", "intro_scene7"], 1):
         renpy.image("intro%d" % _i, Transform("images/scenes/intro_scene/%s.png" % _f, size=(1920, 1080)))
 
-    # Map: source is 5068x2764 (28MB). Forced to 1920x1080 like the rest.
-    # ponytail: ~3% horizontal squeeze (1.834 vs 1.778); imperceptible.
-    # Upgrade path: downscale the PNG to 1920x1080 to cut the VRAM load.
+    # Map: resized to 1920x1080 (was 5068x2764, ~56MB VRAM). 0.78MB on disk.
     _bg("map_city")
 
     # Map district zones: idle = dim icon, hover = bright icon + highlight + name
