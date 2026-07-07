@@ -170,7 +170,7 @@ init python:
         if not low:
             for kind, key, chance in CAREER_TRAIN.get(cid, []):
                 if renpy.random.random() < chance:
-                    if kind == "stat": gain_stat(key, 1)
+                    if kind == "stat": gain_stat(key, 8)
                     else: gain_skill(key, 3)
         _sync_job()
         return low

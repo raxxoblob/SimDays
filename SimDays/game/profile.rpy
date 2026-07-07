@@ -58,13 +58,13 @@ screen spec_row(key):
 
 screen profile():
     zorder 30
-    # right side, below the topbar (ypos 150); no `modal` -> left menu stays live.
+    # right side, below the topbar; no `modal` -> left menu stays live.
 
     frame:
         xpos 1490
-        ypos 150
+        ypos 200
         xsize 430
-        ysize 868
+        ysize 818
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (20, 16, 12, 16)
 

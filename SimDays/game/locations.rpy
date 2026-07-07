@@ -156,6 +156,8 @@ label cafe_actions:
     show screen hud
     if npc_talkable("nora"):
         show nora_cafe_normal as npcsprite at sprite_r
+        if npc_talkable("elle"):
+            show elle_sundress_normal as npcsprite2 at sprite_l
     elif npc_talkable("elle"):
         show elle_sundress_normal as npcsprite at sprite_r
 
@@ -214,37 +216,52 @@ label location_gym:
     show screen hud
     if npc_talkable("kai"):
         show kai_normal as npcsprite at sprite_r
+        if npc_talkable("sam"):
+            show sam_normal as npcsprite2 at sprite_l
     elif npc_talkable("sam"):
         show sam_normal as npcsprite at sprite_r
     menu (screen="activity"):
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
             jump location_gym
-        "Talk to Sam" if npc_talkable("sam") and not npc_talkable("kai"):
+        "Talk to Sam" if npc_talkable("sam"):
             call npc_interact("sam")
             jump location_gym
-        "Train - weights (1.5h)":
-            if too_tired():
-                "You're too wiped out to lift anything worth lifting. Sleep first."
-                jump location_gym
+        "Train - weights (1.5h, -15 energy)" (sensitive (not too_tired())):
+            $ _sup = "preworkout" if supplements.get("preworkout", 0) > 0 else ("protein" if supplements.get("protein", 0) > 0 else None)
+            if _sup:
+                $ supplements[_sup] -= 1
+                $ stat_boost_str = 2.0 if _sup == "preworkout" else 1.5
             scene pov_gym_weights
             show screen hud
             $ spend_time(1.5)
             $ need_energy = max(0, need_energy - 15)
-            $ gain_stat("str", 2)
-            $ gain_stat("app", 1)
-            "A solid session. You can feel it already."
+            $ gain_stat("str", 20)
+            $ gain_stat("app", 8)
+            if _sup == "preworkout":
+                "Pre-workout in the system. You push past the usual ceiling."
+            elif _sup == "protein":
+                "Protein shake in the tank. A clean, productive session."
+            else:
+                "A solid session. You can feel it already."
             jump location_gym
-        "Cardio run (1h)":
-            if too_tired():
-                "Too exhausted to run. Get some sleep first."
-                jump location_gym
+        "Cardio run (1h, -12 energy)" (sensitive (not too_tired())):
             scene gym_cardio
             show screen hud
             $ spend_time(1)
             $ need_energy = max(0, need_energy - 12)
-            $ gain_stat("str", 1)
+            $ gain_stat("str", 10)
             "You run until your lungs complain."
+            jump location_gym
+        "Buy Protein Shake ($12)" (sensitive (money >= 12)):
+            $ gain_money(-12)
+            $ supplements["protein"] += 1
+            "A vanilla protein powder. Mix with water after training. +50% STR EXP on the next weights session."
+            jump location_gym
+        "Buy Pre-workout ($20)" (sensitive (money >= 20)):
+            $ gain_money(-20)
+            $ supplements["preworkout"] += 1
+            "The label is mostly warnings. +100% STR EXP on the next weights session."
             jump location_gym
 
 # ── LIBRARY ───────────────────────────────────────────────────────────
@@ -265,7 +282,7 @@ label location_library:
                 "Too tired to focus. The words blur. Sleep first."
                 jump location_library
             $ spend_time(2)
-            $ gain_stat("int", 2)
+            $ gain_stat("int", 15)
             "Two hours of focused reading. Your brain hurts in a good way."
             jump location_library
         "Self-study a subject (2h, free)":
@@ -306,16 +323,11 @@ label location_bar:
     $ activity_exit_name = "Downtown"
     scene bar
     show screen hud
-    if npc_talkable("marcus"):
-        show marcus_casual_normal as npcsprite at sprite_r
-    elif npc_talkable("eli"):
-        show eli_normal as npcsprite at sprite_r
-    elif npc_here("lena"):
-        show drlena_normal as npcsprite at sprite_r
-    elif npc_talkable("natalie"):
-        show natalie_normal as npcsprite at sprite_r
-    elif npc_talkable("martha"):
-        show martha_neutral as npcsprite at sprite_r
+    $ _bvis = [(n, s) for n, s in [("marcus","marcus_casual_normal"),("eli","eli_normal"),("lena","drlena_normal"),("natalie","natalie_normal"),("martha","martha_neutral")] if npc_talkable(n)]
+    if len(_bvis) >= 1:
+        show expression _bvis[0][1] as npcsprite at sprite_r
+    if len(_bvis) >= 2:
+        show expression _bvis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
         "Have a drink ($8, 0.5h)":
             $ spend_time(0.5)
@@ -325,7 +337,7 @@ label location_bar:
         "Socialize (1h)":
             if stat_chr >= 25:
                 $ spend_time(1)
-                $ gain_stat("chr", 2)
+                $ gain_stat("chr", 15)
                 "You work the room. A few numbers exchanged."
             else:
                 "You hover near a few groups but can't quite break in. Maybe with a bit more charm."
@@ -363,7 +375,7 @@ label location_office:
         "Work a shift (8h)" (sensitive (stat_int >= 20 and hour + 8 <= DAY_END)) if stat_int >= 20:
             $ spend_time(8)
             $ gain_money(120)
-            $ gain_stat("int", 1)
+            $ gain_stat("int", 8)
             $ need_energy = max(0, need_energy - 35)
             if not caroline_met:
                 $ caroline_met = True
@@ -400,7 +412,7 @@ label location_shop_clothing:
                 "Not enough money."
             else:
                 $ gain_money(-80)
-                $ gain_stat("app", 2)
+                $ gain_stat("app", 15)
                 "New fit. You look sharper."
             jump location_shop_clothing
         "Upgrade your wardrobe ($200, +status)" if wardrobe_tier < 3:
@@ -423,7 +435,7 @@ label location_shop_electronics:
                 "Not enough money."
             else:
                 $ gain_money(-100)
-                $ gain_stat("int", 1)
+                $ gain_stat("int", 8)
                 "A new toy to tinker with. You learn a thing or two."
             jump location_shop_electronics
         "Buy a guitar ($150)" if not own_guitar:
@@ -586,13 +598,15 @@ label location_nightclub:
     show screen hud
     if npc_talkable("zoe"):
         show zoe_punk_smile as npcsprite at sprite_r
+        if npc_talkable("kai"):
+            show kai_normal as npcsprite2 at sprite_l
     elif npc_talkable("kai"):
         show kai_normal as npcsprite at sprite_r
     menu (screen="activity"):
         "Talk to Zoe" if npc_talkable("zoe"):
             call npc_interact("zoe")
             jump location_nightclub
-        "Talk to Kai" if npc_talkable("kai") and not npc_talkable("zoe"):
+        "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
             jump location_nightclub
         "Hit the dance floor (1h)":
@@ -602,7 +616,7 @@ label location_nightclub:
             jump location_nightclub
         "Work the crowd (1h) [[CHR 30]]" (sensitive (stat_chr >= 30)):
             $ spend_time(1)
-            $ gain_stat("chr", 2)
+            $ gain_stat("chr", 15)
             "You move room to room, easy and loud. A few new contacts."
             jump location_nightclub
         "Buy a round ($15)" (sensitive (money >= 15)):
@@ -612,14 +626,14 @@ label location_nightclub:
             jump location_nightclub
         "DJ night - dance floor (1h) [[Fri-Sun]]" (sensitive (day % 7 >= 4)):
             $ spend_time(1)
-            $ gain_stat("chr", 1)
+            $ gain_stat("chr", 8)
             $ need_energy = max(0, need_energy - 15)
             "The DJ pushes the crowd up. You lose yourself in it — when you surface you're grinning."
             jump location_nightclub
         "VIP section ($50, +CHR) [[Fri-Sun]]" (sensitive (day % 7 >= 4 and money >= 50)):
             $ spend_time(0.5)
             $ gain_money(-50)
-            $ gain_stat("chr", 2)
+            $ gain_stat("chr", 15)
             "The bouncer waves you past the red rope. Different league in here."
             jump location_nightclub
 
@@ -633,7 +647,7 @@ label location_flea_market:
     menu (screen="activity"):
         "Browse stalls (1h)":
             $ spend_time(1)
-            $ gain_stat("chr", 1)
+            $ gain_stat("chr", 8)
             if renpy.random.random() < 0.2:
                 "You end up in a long chat with a vendor who turns out to know everyone. Useful."
             else:
@@ -642,18 +656,18 @@ label location_flea_market:
         "Buy a vintage piece ($25, +APP)" (sensitive (money >= 25)):
             $ spend_time(0.5)
             $ gain_money(-25)
-            $ gain_stat("app", 2)
+            $ gain_stat("app", 15)
             "A score — your eye for style is sharpening."
             jump location_flea_market
         "Buy a book ($12, +INT)" (sensitive (money >= 12)):
             $ spend_time(0.5)
             $ gain_money(-12)
-            $ gain_stat("int", 1)
+            $ gain_stat("int", 8)
             "A dog-eared paperback from a half-collapsed box. You'll read it tonight."
             jump location_flea_market
         "Haggle with vendors (1h)":
             $ spend_time(1)
-            $ gain_stat("chr", 1)
+            $ gain_stat("chr", 8)
             "Back and forth over prices. Good practice in reading people."
             jump location_flea_market
 
@@ -664,34 +678,33 @@ label location_park:
     $ activity_exit_name = "City Map"
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    if npc_talkable("marcus"):
-        show marcus_casual_normal as npcsprite at sprite_r
-    elif npc_talkable("zoe"):
-        show zoe_punk_smile as npcsprite at sprite_r
-    elif npc_talkable("sam"):
-        show sam_normal as npcsprite at sprite_r
+    $ _pvis = [(n, s) for n, s in [("marcus","marcus_casual_normal"),("zoe","zoe_punk_smile"),("sam","sam_normal")] if npc_talkable(n)]
+    if len(_pvis) >= 1:
+        show expression _pvis[0][1] as npcsprite at sprite_r
+    if len(_pvis) >= 2:
+        show expression _pvis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
         "Morning jog (1h)":
             $ spend_time(1)
-            $ gain_stat("str", 1)
+            $ gain_stat("str", 8)
             "The air is crisp. Good start to the day."
             jump location_park
         "Read a book (1.5h)":
             $ spend_time(1.5)
-            $ gain_stat("int", 1)
+            $ gain_stat("int", 8)
             "A quiet hour on the bench."
             jump location_park
         "Play basketball (1.5h)":
             scene basketball_court_day
             show screen hud
             $ spend_time(1.5)
-            $ gain_stat("str", 2)
+            $ gain_stat("str", 12)
             "A pickup game on the court. Sweaty, competitive, good."
             jump location_park
         "Talk to Marcus" if npc_talkable("marcus"):
             call npc_interact("marcus")
             jump location_park
-        "Talk to Zoe" if npc_talkable("zoe") and not npc_talkable("marcus"):
+        "Talk to Zoe" if npc_talkable("zoe"):
             call npc_interact("zoe")
             jump location_park
         "Talk to Sam" if npc_talkable("sam"):
@@ -709,12 +722,11 @@ label location_beach:
         jump beach_meet_zoe
     if elle_affection >= 40 and not elle_pier_done and npc_talkable("elle"):
         jump elle_pier_scene
-    if npc_talkable("elle"):
-        show elle_sundress_normal as npcsprite at sprite_r
-    elif npc_talkable("zoe"):
-        show zoe_punk_smile as npcsprite at sprite_r
-    elif npc_talkable("kai"):
-        show kai_normal as npcsprite at sprite_r
+    $ _beachvis = [(n, s) for n, s in [("elle","elle_sundress_normal"),("zoe","zoe_punk_smile"),("kai","kai_normal")] if npc_talkable(n)]
+    if len(_beachvis) >= 1:
+        show expression _beachvis[0][1] as npcsprite at sprite_r
+    if len(_beachvis) >= 2:
+        show expression _beachvis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
         "Relax (1h)":
             $ spend_time(1)
@@ -909,7 +921,7 @@ label location_warehouse:
             $ _is_sun = (day % 7 == 6)
             $ spend_time(8)
             $ gain_money(220 if _is_sun else 110)
-            $ gain_stat("str", 2)
+            $ gain_stat("str", 12)
             $ need_energy = max(0, need_energy - (80 if _is_sun else 40))
             if _is_sun:
                 "Sunday overtime. Double pay, double grind - Natalie's words. Your back will remind you tomorrow."
@@ -944,7 +956,7 @@ label location_hospital:
             else:
                 $ spend_time(2)
                 $ gain_money(-200)
-                $ gain_stat("app", 2)
+                $ gain_stat("app", 15)
                 "A minor cosmetic procedure. A little sharper in the mirror on the way out."
             jump location_hospital
 
@@ -1069,16 +1081,16 @@ label location_college:
     $ _biz_cost  = 50 + skill_biz  * 20
     $ _art_cost  = 50 + skill_art  * 20
     menu (screen="activity"):
-        "Programming  $[_prog_cost]  /  3h  /  -22 energy" (sensitive (money >= _prog_cost and not too_tired() and skill_prog < 10)):
+        "Programming ($[_prog_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_prog * 20 and not too_tired() and skill_prog < 10)):
             call college_course("prog")
             jump location_college
-        "Medicine  $[_med_cost]  /  3h  /  -22 energy" (sensitive (money >= _med_cost and not too_tired() and skill_med < 10)):
+        "Medicine ($[_med_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_med * 20 and not too_tired() and skill_med < 10)):
             call college_course("med")
             jump location_college
-        "Business  $[_biz_cost]  /  3h  /  -22 energy" (sensitive (money >= _biz_cost and not too_tired() and skill_biz < 10)):
+        "Business ($[_biz_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_biz * 20 and not too_tired() and skill_biz < 10)):
             call college_course("biz")
             jump location_college
-        "Art  $[_art_cost]  /  3h  /  -22 energy" (sensitive (money >= _art_cost and not too_tired() and skill_art < 10)):
+        "Art ($[_art_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_art * 20 and not too_tired() and skill_art < 10)):
             call college_course("art")
             jump location_college
 
@@ -1373,7 +1385,7 @@ label it_trial_team_lead:
                 "Three commands. Patch, redeploy, monitor. 4:12 AM: green."
                 $ store.promotion_trials[("it", store.job_rank)] = True
                 $ promote()
-                $ gain_stat("int", 2)
+                $ gain_stat("int", 15)
                 "Monday morning the CEO sends a Slack. Your name is in it."
                 "Your lead calls. \"Team Lead. Effective today.\""
             else:
@@ -1403,7 +1415,7 @@ label hospital_trial_resident:
                 $ store.promotion_trials[("hospital", store.job_rank)] = True
                 $ setattr(store, "lena_trust", min(100, store.lena_trust + 12))
                 $ promote()
-                $ gain_stat("int", 1)
+                $ gain_stat("int", 8)
                 "Board approval comes that afternoon. Resident. Finally."
             else:
                 lena "We need someone who can commit to a diagnosis. Come back sharper."

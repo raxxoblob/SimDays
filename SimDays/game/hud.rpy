@@ -16,7 +16,7 @@ screen hud():
 
     # phone peek — hidden when phone is fully open to avoid overlap
     key "K_p" action Show("phone_home")
-    if not renpy.showing("phone_home"):
+    if renpy.get_screen("phone_home") is None:
         imagebutton:
             xpos 1460 ypos 986
             idle  Transform("images/ui/phone.png", crop=(0, 0, 1024, 215), size=(460, 94))

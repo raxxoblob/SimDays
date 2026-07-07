@@ -107,8 +107,8 @@ screen hallway_hub():
         hbox:
             spacing 40
             for icon, caption, target, need in [
-                ("apartment_ext",   "Your Place",   "location_home",  True),
-                ("apartment_block", "Marcus (14)",  "marcus_talk",    marcus_met and npc_here("marcus")),
+                ("door_12",  "Your Place",   "location_home",  True),
+                ("door_14",  "Marcus (14)",  "marcus_talk",    marcus_met and npc_here("marcus")),
                 ("metro",           "Metro → City", "map",            True),
             ]:
                 if need:

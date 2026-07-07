@@ -87,6 +87,13 @@ default warned_today    = False   # low-need heads-up fires at most once a day
 default gifts           = {"book": 0, "sweets": 0, "gadget": 0, "flowers": 0}  # gifts by category
 default apartment_tier = 1    # 1=cheap, 2=mid, 3=rich
 
+# Stat XP (mirror of skill_exp — higher level = more EXP to next)
+default stat_exp        = {}   # key -> EXP banked toward next level
+# Supplements consumed before training: protein=+50% EXP, preworkout=+100% EXP (STR)
+default supplements     = {"protein": 0, "preworkout": 0}
+# Passive STR boost on next gain_stat("str",...) call; auto-resets to 1.0
+default stat_boost_str  = 1.0
+
 # Social status assets (0-3 tiers). Status = how the city reads you; gates some
 # people and raises how far relationships can go.
 default car_tier      = 0
@@ -153,6 +160,14 @@ init python:
             gain_money(-RENT.get(store.apartment_tier, 100))
             if store.car_tier > 0:
                 gain_money(-(store.car_tier * 40))
+            # Ignore decay: -2 affection for each NPC not seen in the last 7 days
+            # (NPC_DATA defined in interact.rpy, accessible at runtime)
+            for _nid, _d in NPC_DATA.items():
+                _aff_var = _d["aff"]
+                _aff = getattr(store, _aff_var, 0)
+                _last = store.npc_last_seen.get(_nid, store.day)
+                if _aff > 0 and (store.day - _last) > 7:
+                    setattr(store, _aff_var, max(0, _aff - 2))
 
     def eff_app():
         """Effective Appearance: stat_app minus a temporary hygiene debuff."""
@@ -182,6 +197,11 @@ init python:
         if s >= 40: return "Established"
         if s >= 20: return "Getting by"
         return "Nobody (yet)"
+
+    def stat_exp_needed(level):
+        """EXP to go from level → level+1. Gentle curve: fast early, slow late.
+        Level 0→1: 15, L10→11: 25, L30→31: 45, L50→51: 65, L99→100: 114."""
+        return 15 + level
 
     def affection_cap():
         return 100   # no stat gate; story_gate flags on NPC_DATA control access instead

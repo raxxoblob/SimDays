@@ -28,15 +28,34 @@ init python:
             store._gains = kept
             renpy.restart_interaction()
 
-    def gain_stat(name, amt):
-        """Raise a skill and flash a filling-bar card."""
-        cur = getattr(store, "stat_" + name)
-        new = min(100, cur + amt)
-        setattr(store, "stat_" + name, new)
+    def gain_stat(name, exp_amt):
+        """Add EXP toward the next stat level (curve: stat_exp_needed(lvl) = 15+lvl)."""
+        lvl = getattr(store, "stat_" + name)
+        if lvl >= 100:
+            return
+        # STR supplement boost (protein=×1.5, preworkout=×2.0); resets after use
+        if name == "str" and store.stat_boost_str > 1.0:
+            exp_amt = int(exp_amt * store.stat_boost_str)
+            store.stat_boost_str = 1.0
+        exp = store.stat_exp.get(name, 0) + exp_amt
+        leveled = 0
+        while lvl < 100 and exp >= stat_exp_needed(lvl):
+            exp -= stat_exp_needed(lvl)
+            lvl += 1
+            leveled += 1
+        setattr(store, "stat_" + name, lvl)
+        store.stat_exp[name] = exp if lvl < 100 else 0
         label, colour, icon, fillkey = STAT_META[name]
-        _push_gain(kind="stat", text="+%d %s" % (amt, label), color=colour,
-                   icon=("images/ui/icons/%s.png" % icon) if icon else None,
-                   value=new, fill="images/ui/bar_fill_%s.png" % fillkey)
+        icon_path = ("images/ui/icons/%s.png" % icon) if icon else None
+        if leveled:
+            _push_gain(kind="stat", text="%s  %d!" % (label, lvl), color=colour,
+                       icon=icon_path, value=lvl,
+                       fill="images/ui/bar_fill_%s.png" % fillkey)
+        else:
+            need = stat_exp_needed(lvl)
+            _push_gain(kind="stat", text="+%d EXP  %s" % (exp_amt, label), color=colour,
+                       icon=icon_path, value=int(exp * 100 // max(need, 1)),
+                       fill="images/ui/bar_fill_%s.png" % fillkey)
 
     def gain_money(amt):
         """Change money and flash a green (+) or red (-) cash card."""

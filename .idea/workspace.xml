@@ -14,7 +14,7 @@
       <change beforePath="$PROJECT_DIR$/SimDays/game/interact.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/interact.rpy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/locations.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/map.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/map.rpy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/phone.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/phone.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/profile.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/profile.rpy" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +88,7 @@
       <option name="presentableId" value="Default" />
       <updated>1782980490933</updated>
       <workItem from="1782980492394" duration="25500000" />
-      <workItem from="1783416692553" duration="1275000" />
+      <workItem from="1783416692553" duration="4293000" />
     </task>
     <option name="localTasksCounter" value="2" />
     <servers />

@@ -5,6 +5,17 @@
 
 define ACT_FONT = "fonts/Quicksand-SemiBold.ttf"   # swap weight here globally
 
+init python:
+    import re as _re
+    def _split_caption(cap):
+        """Split 'Name ($X, +Y) [[Lock]]' into (name, cost_str).
+        Strips [[...]] requirement hints from both parts."""
+        plain = _re.sub(r'\s*\[\[.*?\]\]', '', cap)
+        idx = plain.find('(')
+        if idx > 0:
+            return plain[:idx].strip(), plain[idx:].strip()
+        return plain.strip(), ''
+
 default activity_exit_jump = "map"
 default activity_exit_name = "City"
 
@@ -29,24 +40,24 @@ screen activity(items):
             spacing 12
             for i in items:
                 if i.action is not None:
+                    $ _nm, _cs = _split_caption(i.caption)
                     button:
                         action i.action
                         sensitive getattr(i, 'sensitive', True)
-                        xysize (360, 72)
+                        xysize (360, 76)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
                         insensitive_background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         at act_item
-                        text i.caption:
-                            font ACT_FONT
-                            size 20
-                            color "#cfe0f5"
-                            hover_color "#ffffff"
-                            insensitive_color "#4e606e"
-                            xpos 30
-                            xsize 300
+                        fixed:
                             yalign 0.5
-                            line_leading 0
+                            xsize 340
+                            xpos 10
+                            text _nm:
+                                font ACT_FONT size 19 color "#cfe0f5" hover_color "#ffffff" insensitive_color "#4e606e" xpos 14 xsize 195 yalign 0.5 line_leading 0
+                            if _cs:
+                                text _cs:
+                                    font ACT_FONT size 12 color "#527090" hover_color "#8ab0d0" insensitive_color "#3a4a56" xpos 212 xsize 128 yalign 0.5 line_leading 0 xalign 1.0
 
     frame:
         xalign 0.5
@@ -57,9 +68,10 @@ screen activity(items):
         vbox:
             xsize 150
             spacing 4
+            $ _exit_icon = "apartment_ext" if activity_exit_name == "Hallway" else "metro"
             imagebutton:
                 xalign 0.5
-                idle  Transform("images/ui/icons/icon_metro.png", size=(120, 120))
-                hover Transform("images/ui/icons/icon_metro.png", size=(132, 132))
+                idle  Transform("images/ui/icons/icon_%s.png" % _exit_icon, size=(120, 120))
+                hover Transform("images/ui/icons/icon_%s.png" % _exit_icon, size=(132, 132))
                 action Jump(activity_exit_jump)
             text "[activity_exit_name]" xalign 0.5 size 16 color "#ffffff"

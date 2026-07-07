@@ -206,6 +206,19 @@ init python:
         av = NPC_DATA[npc_id]["aff"]
         setattr(store, av, max(0, min(getattr(store, av) + delta, 100)))
 
+    def check_jealousy(active_npc_id):
+        """Any NPC at the same location with aff >= 60 loses 5 aff when the player
+        approaches someone else. Returns list of names that reacted."""
+        jealous_names = []
+        for nid, d in NPC_DATA.items():
+            if nid == active_npc_id:
+                continue
+            aff = getattr(store, d["aff"], 0)
+            if aff >= 60 and npc_here(nid):
+                _apply_aff(nid, -5)
+                jealous_names.append(d["name"])
+        return jealous_names
+
     def do_talk(npc_id, topic):
         d = NPC_DATA[npc_id]
         spend_time(0.5)
@@ -309,6 +322,7 @@ default _rb_prev_aff = -1
 default _topics_seen    = {}   # {npc_id: {topic: "like"|"dislike"|"neutral"}}
 default _topics_today   = {}   # {npc_id: [topics]} — cleared in new_day()
 default _topic_streak   = {}   # {npc_id: {topic: consecutive_days}}
+default npc_last_seen   = {}   # {npc_id: day} — updated on every npc_interact entry
 default _rb_prev_tr = -1
 default _rb_flash_aff = 0.0
 default _rb_flash_tr = 0.0
@@ -384,7 +398,8 @@ screen npc_actions(npc_id):
     $ _date_ok  = npc_aff(npc_id) >= 30
     frame:
         xalign 0.5
-        yalign 0.5
+        yalign 1.0
+        yoffset -26
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (18, 14, 18, 14)
         hbox:
@@ -435,7 +450,8 @@ screen npc_topics(npc_id):
     $ _dislikes = NPC_DATA[npc_id].get("dislikes", [])
     frame:
         xalign 0.5
-        yalign 0.5
+        yalign 1.0
+        yoffset -26
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (22, 18, 22, 18)
         vbox:
@@ -476,8 +492,16 @@ screen npc_topics(npc_id):
 label npc_interact(npc_id):
     $ renpy.hide_screen("npc_relbar")
     $ renpy.hide("npcsprite")
+    $ renpy.hide("npcsprite2")
     $ _rb_prev_aff = -1   # -1 = don't flash on the opening render
     $ _rb_prev_tr = -1
+    # update last-seen day for this NPC (feeds ignore-decay in new_day)
+    $ store.npc_last_seen[npc_id] = day
+    # jealousy check: NPCs with aff >= 60 at the same location react
+    $ _jealous = check_jealousy(npc_id)
+    if _jealous:
+        $ _jn = " and ".join(_jealous)
+        "[_jn] catches your attention drifting. Something shifts in their expression."
     $ _spr = NPC_DATA[npc_id]["sprite"]
     show expression _spr as npcsprite at sprite_c
     show screen npc_relbar(npc_id)
@@ -488,6 +512,7 @@ label npc_interact(npc_id):
         "[_rb]"
         hide screen npc_relbar
         hide npcsprite
+        hide npcsprite2
         return
     if need_hygiene < 25:
         "[_nm] leans back a little, trying to be polite about it. You could really use a shower."
@@ -508,6 +533,7 @@ label npc_interact(npc_id):
             $ _act = "leave"   # a date is the whole evening
     hide screen npc_relbar
     hide npcsprite
+    hide npcsprite2
     return
 
 
@@ -533,6 +559,7 @@ label npc_date(npc_id):
     $ setattr(store, NPC_DATA[npc_id]["trust"], npc_trust(npc_id) + 3)
     $ renpy.say(_c, "This was... really nice. Let's do it again sometime.")
     hide npcsprite
+    hide npcsprite2
     return
 
 
