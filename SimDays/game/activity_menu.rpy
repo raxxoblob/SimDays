@@ -31,7 +31,7 @@ screen activity(items):
                 if i.action is not None:
                     button:
                         action i.action
-                        sensitive i.sensitive
+                        sensitive getattr(i, 'sensitive', True)
                         xysize (360, 72)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
