@@ -45,32 +45,47 @@ label location_home_cook:
     scene expression home_bg()
     show screen hud
     menu (screen="activity"):
-        "Toast ($2, +15 hunger)" (sensitive (money >= 2)):
+        "Toast ($2, +15 hunger)":
+            if money < 2:
+                "Not enough cash."
+                jump location_home_actions
             $ spend_time(0.25)
             $ gain_money(-2)
             $ need_hunger = min(100, need_hunger + 15)
             "Two slices of toast. Better than nothing."
             jump location_home_actions
-        "Instant noodles ($3, +22 hunger)" (sensitive (money >= 3)):
+        "Instant noodles ($3, +22 hunger)":
+            if money < 3:
+                "Not enough cash."
+                jump location_home_actions
             $ spend_time(0.25)
             $ gain_money(-3)
             $ need_hunger = min(100, need_hunger + 22)
             "Straight out of the packet, four minutes. Fine."
             jump location_home_actions
-        "Scrambled eggs ($5, +32 hunger)" (sensitive (money >= 5)):
+        "Scrambled eggs ($5, +32 hunger)":
+            if money < 5:
+                "Not enough cash."
+                jump location_home_actions
             $ spend_time(0.5)
             $ gain_money(-5)
             $ need_hunger = min(100, need_hunger + 32)
             "Oil, heat, three eggs. You feel a bit more human."
             jump location_home_actions
-        "Pasta bolognese ($8, +55 hunger) [[Cooking Lv 2]]" (sensitive (skill_cook >= 2 and money >= 8)):
+        "Pasta bolognese ($8, +55 hunger) [[Cooking Lv 2]]" if skill_cook >= 2:
+            if money < 8:
+                "Not enough cash."
+                jump location_home_actions
             $ spend_time(0.5)
             $ gain_money(-8)
             $ need_hunger = min(100, need_hunger + 55)
             $ gain_skill("cook", 2)
             "Proper sauce, actual garlic. Getting the hang of this."
             jump location_home_actions
-        "Chicken stir-fry ($10, +65 hunger, +8 energy) [[Cooking Lv 4]]" (sensitive (skill_cook >= 4 and money >= 10)):
+        "Chicken stir-fry ($10, +65 hunger, +8 energy) [[Cooking Lv 4]]" if skill_cook >= 4:
+            if money < 10:
+                "Not enough cash."
+                jump location_home_actions
             $ spend_time(0.75)
             $ gain_money(-10)
             $ need_hunger = min(100, need_hunger + 65)
@@ -78,7 +93,10 @@ label location_home_cook:
             $ gain_skill("cook", 2)
             "Fast, hot, loud. A proper meal - you feel it in the energy too."
             jump location_home_actions
-        "Sunday roast ($18, +80 hunger, +15 energy) [[Cooking Lv 7]]" (sensitive (skill_cook >= 7 and money >= 18)):
+        "Sunday roast ($18, +80 hunger, +15 energy) [[Cooking Lv 7]]" if skill_cook >= 7:
+            if money < 18:
+                "Not enough cash."
+                jump location_home_actions
             $ spend_time(1.0)
             $ gain_money(-18)
             $ need_hunger = min(100, need_hunger + 80)
@@ -233,7 +251,10 @@ label location_gym:
         "Talk to Sam" if npc_talkable("sam"):
             call npc_interact("sam")
             jump location_gym
-        "Train - weights (1.5h, -15 energy)" (sensitive (not too_tired())):
+        "Train - weights (1.5h, -15 energy)":
+            if too_tired():
+                "You're too exhausted to lift. Get some rest first."
+                jump location_gym
             $ _sup = "preworkout" if supplements.get("preworkout", 0) > 0 else ("protein" if supplements.get("protein", 0) > 0 else None)
             if _sup:
                 $ supplements[_sup] -= 1
@@ -254,7 +275,10 @@ label location_gym:
             else:
                 "A solid session. You can feel it already."
             jump location_gym
-        "Cardio run (1h, -12 energy)" (sensitive (not too_tired())):
+        "Cardio run (1h, -12 energy)":
+            if too_tired():
+                "You're too exhausted to run. Rest up first."
+                jump location_gym
             scene gym_cardio
             show screen hud
             $ spend_time(1)
@@ -262,12 +286,18 @@ label location_gym:
             $ gain_stat("str", 10)
             "You run until your lungs complain."
             jump location_gym
-        "Buy Protein Shake ($12)" (sensitive (money >= 12)):
+        "Buy Protein Shake ($12)":
+            if money < 12:
+                "Not enough cash."
+                jump location_gym
             $ gain_money(-12)
             $ supplements["protein"] += 1
             "A vanilla protein powder. Mix with water after training. +50% STR EXP on the next weights session."
             jump location_gym
-        "Buy Pre-workout ($20)" (sensitive (money >= 20)):
+        "Buy Pre-workout ($20)":
+            if money < 20:
+                "Not enough cash."
+                jump location_gym
             $ gain_money(-20)
             $ supplements["preworkout"] += 1
             "The label is mostly warnings. +100% STR EXP on the next weights session."
@@ -664,7 +694,10 @@ label location_nightclub:
             $ need_energy = max(0, need_energy - 10)
             "You lose an hour to the beat. Worth it."
             jump location_nightclub
-        "Work the crowd (1h) [[CHR 30]]" (sensitive (stat_chr >= 30)):
+        "Work the crowd (1h) [[CHR 30]]":
+            if stat_chr < 30:
+                "You need CHR 30 to hold this room."
+                jump location_nightclub
             $ spend_time(1)
             $ gain_stat("chr", 30 if has_event("club_night") else 15)
             if has_event("club_night"):
@@ -672,18 +705,27 @@ label location_nightclub:
             else:
                 "You move room to room, easy and loud. A few new contacts."
             jump location_nightclub
-        "Buy a round ($15)" (sensitive (money >= 15)):
+        "Buy a round ($15)":
+            if money < 15:
+                "Not enough cash."
+                jump location_nightclub
             $ spend_time(0.5)
             $ gain_money(-15)
             "Drinks all around. Cheap way to be popular for ten minutes."
             jump location_nightclub
-        "DJ night - dance floor (1h) [[Fri-Sun]]" (sensitive (day % 7 >= 4)):
+        "DJ night - dance floor (1h) [[Fri-Sun]]":
+            if day % 7 < 4:
+                "DJ nights are Fri–Sun only."
+                jump location_nightclub
             $ spend_time(1)
             $ gain_stat("chr", 8)
             $ need_energy = max(0, need_energy - 15)
             "The DJ pushes the crowd up. You lose yourself in it — when you surface you're grinning."
             jump location_nightclub
-        "VIP section ($50, +CHR) [[Fri-Sun]]" (sensitive (day % 7 >= 4 and money >= 50)):
+        "VIP section ($50, +CHR) [[Fri-Sun]]":
+            if day % 7 < 4 or money < 50:
+                "VIP is Fri–Sun only, $50 entry."
+                jump location_nightclub
             $ spend_time(0.5)
             $ gain_money(-50)
             $ gain_stat("chr", 15)
@@ -706,13 +748,19 @@ label location_flea_market:
             else:
                 "A lap around the stalls. Easy crowd, easy conversation."
             jump location_flea_market
-        "Buy a vintage piece ($25, +APP)" (sensitive (money >= 25)):
+        "Buy a vintage piece ($25, +APP)":
+            if money < 25:
+                "Not enough cash."
+                jump location_flea_market
             $ spend_time(0.5)
             $ gain_money(-25)
             $ gain_stat("app", 15)
             "A score — your eye for style is sharpening."
             jump location_flea_market
-        "Buy a book ($12, +INT)" (sensitive (money >= 12)):
+        "Buy a book ($12, +INT)":
+            if money < 12:
+                "Not enough cash."
+                jump location_flea_market
             $ spend_time(0.5)
             $ gain_money(-12)
             $ gain_stat("int", 8)
@@ -1151,16 +1199,16 @@ label location_college:
     $ _biz_cost  = course_cost("biz")
     $ _art_cost  = course_cost("art")
     menu (screen="activity"):
-        "Programming ($[_prog_cost], 3h, -22 energy)" (sensitive (money >= course_cost("prog") and not too_tired() and skill_prog < 10)):
+        "Programming ($[_prog_cost], 3h, -22 energy)":
             call college_course("prog")
             jump location_college
-        "Medicine ($[_med_cost], 3h, -22 energy)" (sensitive (money >= course_cost("med") and not too_tired() and skill_med < 10)):
+        "Medicine ($[_med_cost], 3h, -22 energy)":
             call college_course("med")
             jump location_college
-        "Business ($[_biz_cost], 3h, -22 energy)" (sensitive (money >= course_cost("biz") and not too_tired() and skill_biz < 10)):
+        "Business ($[_biz_cost], 3h, -22 energy)":
             call college_course("biz")
             jump location_college
-        "Art ($[_art_cost], 3h, -22 energy)" (sensitive (money >= course_cost("art") and not too_tired() and skill_art < 10)):
+        "Art ($[_art_cost], 3h, -22 energy)":
             call college_course("art")
             jump location_college
         "Degree examinations →" if skill_med >= 3 or skill_prog >= 3 or skill_biz >= 3:
@@ -1179,27 +1227,45 @@ label location_college_exams:
     $ _bb_cost  = DEGREE_EXAMS["biz_bach"]["cost"]
     $ _bm_cost  = DEGREE_EXAMS["biz_mast"]["cost"]
     menu (screen="activity"):
-        "Medicine Bachelor's ($[_mb_cost], 8h) [[Req: Med Lv3]" (sensitive (can_sit_exam("med_bach") and not too_tired())):
+        "Medicine Bachelor's ($[_mb_cost], 8h) [[Req: Med Lv3]":
+            if not can_sit_exam("med_bach") or too_tired():
+                "Requirements not met or too tired."
+                jump location_college_exams
             $ sit_exam("med_bach")
             "Eight hours of exams across three halls. You pass. Medicine — Bachelor's earned."
             jump location_college_exams
-        "Medicine Master's ($[_mm_cost], 8h) [[Req: Med Lv5]" (sensitive (can_sit_exam("med_mast") and not too_tired())):
+        "Medicine Master's ($[_mm_cost], 8h) [[Req: Med Lv5]":
+            if not can_sit_exam("med_mast") or too_tired():
+                "Requirements not met or too tired."
+                jump location_college_exams
             $ sit_exam("med_mast")
             "The hardest day you've had at a desk. Medicine — Master's earned."
             jump location_college_exams
-        "CS Bachelor's ($[_pb_cost], 8h) [[Req: Prog Lv3]" (sensitive (can_sit_exam("prog_bach") and not too_tired())):
+        "CS Bachelor's ($[_pb_cost], 8h) [[Req: Prog Lv3]":
+            if not can_sit_exam("prog_bach") or too_tired():
+                "Requirements not met or too tired."
+                jump location_college_exams
             $ sit_exam("prog_bach")
             "Theory, algorithms, a written section. Computer Science — Bachelor's earned."
             jump location_college_exams
-        "CS Master's ($[_pm_cost], 8h) [[Req: Prog Lv5]" (sensitive (can_sit_exam("prog_mast") and not too_tired())):
+        "CS Master's ($[_pm_cost], 8h) [[Req: Prog Lv5]":
+            if not can_sit_exam("prog_mast") or too_tired():
+                "Requirements not met or too tired."
+                jump location_college_exams
             $ sit_exam("prog_mast")
             "Eight hours of advanced systems theory. Computer Science — Master's earned."
             jump location_college_exams
-        "Business Bachelor's ($[_bb_cost], 8h) [[Req: Biz Lv3]" (sensitive (can_sit_exam("biz_bach") and not too_tired())):
+        "Business Bachelor's ($[_bb_cost], 8h) [[Req: Biz Lv3]":
+            if not can_sit_exam("biz_bach") or too_tired():
+                "Requirements not met or too tired."
+                jump location_college_exams
             $ sit_exam("biz_bach")
             "Case studies, finance, a group presentation. Business — Bachelor's earned."
             jump location_college_exams
-        "Business Master's ($[_bm_cost], 8h) [[Req: Biz Lv5]" (sensitive (can_sit_exam("biz_mast") and not too_tired())):
+        "Business Master's ($[_bm_cost], 8h) [[Req: Biz Lv5]":
+            if not can_sit_exam("biz_mast") or too_tired():
+                "Requirements not met or too tired."
+                jump location_college_exams
             $ sit_exam("biz_mast")
             "Strategy, leadership, one brutal oral exam. Business — Master's earned."
             jump location_college_exams
