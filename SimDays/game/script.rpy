@@ -101,7 +101,60 @@ label zone_locked_suburbs:
 # The stairwell - pick a door (clickable), or take the metro back to the city.
 label location_hallway:
     scene hallway
+    if not marcus_met:
+        jump marcus_intro_hallway
     call screen hallway_hub
+
+
+label marcus_intro_hallway:
+    show screen hud
+    "As you climb the stairwell, a door on the landing swings open."
+
+    m "Hey. New tenant? I'm Marcus — fourteen."
+    mc "Hey. [mc_name]. Just moved into twelve."
+    m "Figured. Heard someone moving boxes at six in the morning."
+    mc "Sorry about that."
+    m "Don't be. It's a good floor. Where'd you move from?"
+
+    menu:
+        "I was in the gym most days back home. Needed a change of scenery.":
+            $ store.stat_str = min(100, store.stat_str + 15)
+            m "Ha. Iron Gate's two blocks west. You'll fit right in."
+        "I was finishing a degree. More theory than I wanted.":
+            $ store.stat_int = min(100, store.stat_int + 15)
+            m "City College is decent. Or just jump straight in — depends what you studied."
+        "Sales job. Lots of talking, not enough living.":
+            $ store.stat_chr = min(100, store.stat_chr + 15)
+            m "Sales. So you can read a room. That goes a long way here."
+        "Honestly? Not much. Fresh start.":
+            $ store.stat_str = min(100, store.stat_str + 5)
+            $ store.stat_int = min(100, store.stat_int + 5)
+            $ store.stat_chr = min(100, store.stat_chr + 5)
+            $ store.stat_app = min(100, store.stat_app + 5)
+            m "Fair enough. Clean slate."
+
+    m "And what's the actual plan? Something lined up, or still figuring it out?"
+
+    menu:
+        "Get in shape first. Clear my head. Build something concrete.":
+            $ store.stat_str = min(100, store.stat_str + 15)
+            m "Gym and early nights, then. Solid."
+        "Career first. Stable income, see what opens up.":
+            $ store.stat_int = min(100, store.stat_int + 15)
+            m "Nexus Tower's hiring. So is The Hub if you're technical. Both walkable."
+        "Meet people. New city, new chapter.":
+            $ store.stat_chr = min(100, store.stat_chr + 15)
+            m "Grounds café on the corner's good for that. Bar on weekends."
+        "I don't know yet. That's kind of the point.":
+            $ store.stat_app = min(100, store.stat_app + 15)
+            m "Underrated answer. Pressure kills good decisions."
+
+    m "Well. Twelve's got better morning light, by the way. Lucky you."
+    m "I'm around most evenings if you need anything. Knock on fourteen."
+
+    $ store.marcus_met = True
+    $ store.marcus_affection += 5
+    jump location_hallway
 
 
 # Marcus's place (14). Knock -> unified interaction hub (see interact.rpy).

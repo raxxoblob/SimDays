@@ -6,15 +6,17 @@
 define ACT_FONT = "fonts/Quicksand-SemiBold.ttf"   # swap weight here globally
 
 init python:
-    import re as _re
+    from functools import lru_cache as _lru_cache
+
+    @_lru_cache(maxsize=128)
     def _split_caption(cap):
-        """Split 'Name ($X, +Y) [[Lock]]' into (name, cost_str).
-        Strips [[...]] requirement hints from both parts."""
-        plain = _re.sub(r'\s*\[\[.*?\]\]', '', cap)
-        idx = plain.find('(')
+        # strip trailing [[...]] lock annotation, then split at first (
+        if "[[" in cap:
+            cap = cap[:cap.index("[[")].rstrip()
+        idx = cap.find("(")
         if idx > 0:
-            return plain[:idx].strip(), plain[idx:].strip()
-        return plain.strip(), ''
+            return cap[:idx].rstrip(), cap[idx:]
+        return cap, ""
 
 default activity_exit_jump = "map"
 default activity_exit_name = "City"
@@ -38,12 +40,13 @@ screen activity(items):
         scrollbars ("vertical" if len(items) > 7 else None)
         vbox:
             spacing 12
+            $ _in_debt = in_debt()
             for i in items:
                 if i.action is not None:
                     $ _nm, _cs = _split_caption(i.caption)
                     button:
                         action i.action
-                        sensitive getattr(i, 'sensitive', True)
+                        sensitive (getattr(i, 'sensitive', True) and not (_in_debt and _cs != ""))
                         xysize (360, 76)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)

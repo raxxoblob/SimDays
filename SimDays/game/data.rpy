@@ -106,6 +106,18 @@ default own_guitar   = False  # music practice
 default own_bed      = False  # better bed: full rest + a quick Nap option
 # stock market state lives in stocks.rpy
 
+# Finance
+default loan    = 0     # outstanding debt; blocks all spending until repaid
+default savings = 0     # savings account; earns 2%/week interest
+
+# World events (refreshed each new_day)
+default daily_events = []   # list of event dicts from DAILY_EVENT_POOL
+
+# Contacts (NPC phone numbers; only added when the player asks)
+default npc_contacts = []
+default degrees    = []        # earned degree ids: "med_bach", "med_mast", "prog_bach", etc.
+default npc_anger        = {}   # npc_id -> anger level; decays 1/day
+
 # Job / career. job_id = career key in CAREERS (None = unemployed); the rest is
 # derived from CAREERS[job_id]["ranks"][job_rank] via _sync_job() in careers.rpy.
 default job_id          = None
@@ -118,6 +130,28 @@ default job_schedule    = ""     # e.g. "Mon-Fri 09-17"
 
 # Time helpers called from script
 init python:
+    DAILY_EVENT_POOL = [
+        {"key": "gym_trainer",  "from": "Iron Gate",    "body": "Free trainer today — weight sessions give +50% STR EXP."},
+        {"key": "bar_happy",    "from": "The Barrel",   "body": "Happy Hour all day. Drinks $4, Socialize earns 2x CHR EXP."},
+        {"key": "cafe_energy",  "from": "Grounds",      "body": "Double Caffeine Day. Coffee gives +20 energy instead of +10."},
+        {"key": "college_sale", "from": "City College", "body": "Spring deal — all courses 30% off today."},
+        {"key": "club_night",   "from": "Neon",         "body": "Industry night. Work the Crowd earns 2x CHR EXP."},
+        {"key": "park_weather", "from": "City Park",    "body": "Perfect running weather. Morning jog gives 2x STR EXP."},
+    ]
+
+    def has_event(key):
+        return any(e["key"] == key for e in store.daily_events)
+
+    def roll_daily_events():
+        import renpy.random as _r
+        pool = list(DAILY_EVENT_POOL)
+        _r.shuffle(pool)
+        n = _r.choice([0, 0, 1, 1, 2])
+        store.daily_events = pool[:n]
+
+    def in_debt():
+        return store.loan > 0
+
     # Gentle per-hour decay so a normal day needs ~1-2 meals, sleep, and a shower
     # every day or two - present but not nagging.
     DECAY = {"need_energy": 2.5, "need_hunger": 2.5, "need_hygiene": 1.5}
@@ -153,13 +187,26 @@ init python:
                     streak[t] -= 1
             store._topic_streak[npc_id] = streak
         store._topics_today = {}
+        # anger decays 1 per day (jealousy or bad interactions)
+        store.npc_anger = {k: v - 1 for k, v in store.npc_anger.items() if v > 1}
         stocks_step()
-        # Monday auto-deduction: rent + car maintenance
+        roll_daily_events()
+        # Monday: rent + car (direct debit, bypasses debt block) + interest
         if store.day % 7 == 0:
             RENT = {1: 100, 2: 250, 3: 600}
-            gain_money(-RENT.get(store.apartment_tier, 100))
+            store.money -= RENT.get(store.apartment_tier, 100)
             if store.car_tier > 0:
-                gain_money(-(store.car_tier * 40))
+                store.money -= store.car_tier * 40
+            # auto-loan if balance went negative
+            if store.money < 0:
+                store.loan += -store.money
+                store.money = 0
+            # 10%/week interest on outstanding loan
+            if store.loan > 0:
+                store.loan += max(1, int(store.loan * 0.10))
+            # 2%/week interest on savings
+            if store.savings > 0:
+                store.savings += max(1, int(store.savings * 0.02))
             # Ignore decay: -2 affection for each NPC not seen in the last 7 days
             # (NPC_DATA defined in interact.rpy, accessible at runtime)
             for _nid, _d in NPC_DATA.items():

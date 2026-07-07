@@ -98,6 +98,7 @@ init python:
                 ({1, 3}, (9,  13), "location_cafe"),
                 ({2},    (16, 19), "location_beach"),
                 (WKD,    (13, 18), "location_beach"),
+                (WKD,    (21, 25), "location_nightclub"),
             ],
             "likes": ["travel", "music", "art"], "dislikes": ["work"],
         },
@@ -134,6 +135,7 @@ init python:
             "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_normal", "say": "kai",
             "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
             "world": True, "sched": [
+                ({1, 3}, (10, 14), "location_cafe"),
                 (WKD,    (10, 14), "location_gym"),
                 (WKD,    (14, 18), "location_beach"),
                 (WKD,    (18, 22), "location_bar"),
@@ -206,9 +208,13 @@ init python:
         av = NPC_DATA[npc_id]["aff"]
         setattr(store, av, max(0, min(getattr(store, av) + delta, 100)))
 
+    def npc_is_angry(npc_id):
+        """True when NPC won't engage with intimate actions: hygiene too low or accumulated anger."""
+        return store.need_hygiene < 30 or store.npc_anger.get(npc_id, 0) > 0
+
     def check_jealousy(active_npc_id):
-        """Any NPC at the same location with aff >= 60 loses 5 aff when the player
-        approaches someone else. Returns list of names that reacted."""
+        """NPCs with aff >= 60 at the same location react when player gets intimate.
+        Only called on date/hug/invite actions, not on greeting."""
         jealous_names = []
         for nid, d in NPC_DATA.items():
             if nid == active_npc_id:
@@ -216,8 +222,66 @@ init python:
             aff = getattr(store, d["aff"], 0)
             if aff >= 60 and npc_here(nid):
                 _apply_aff(nid, -5)
+                _a = dict(store.npc_anger)
+                _a[nid] = min(10, _a.get(nid, 0) + 3)
+                store.npc_anger = _a
                 jealous_names.append(d["name"])
         return jealous_names
+
+    def location_sprites():
+        """All talkable NPCs at the current location, as (npc_id, sprite) pairs.
+        Uses sprite_angry key if angry and available, else normal sprite."""
+        result = []
+        for nid, d in NPC_DATA.items():
+            if npc_talkable(nid):
+                if npc_is_angry(nid) and d.get("sprite_angry"):
+                    result.append((nid, d["sprite_angry"]))
+                else:
+                    result.append((nid, d["sprite"]))
+        return result
+
+    # Pre-existing NPC-to-NPC relationships.
+    NPC_RELATIONS = {
+        ("marcus", "sam"):  {"type": "gym_friends"},
+        ("nora",   "kai"):  {"type": "regulars"},
+        ("zoe",    "elle"): {"type": "friends"},
+    }
+
+    def group_scene_check():
+        """Returns (npc_a, npc_b) whenever two related NPCs are both talkable here."""
+        for (a, b) in NPC_RELATIONS:
+            if npc_talkable(a) and npc_talkable(b):
+                return (a, b)
+        return None
+
+    def group_scene_label(gs):
+        """'Name & Name' string for menu display."""
+        return NPC_DATA[gs[0]]["name"] + " & " + NPC_DATA[gs[1]]["name"]
+
+    # ── Group conversation helper ────────────────────────────────────────
+    # Like do_talk but no time spend (caller handles it) and smaller gains
+    # (split attention in a group).
+    GROUP_REACT_TEXT = {
+        "like":    "{name} lights up.",
+        "dislike": "{name} doesn't bite.",
+        "neutral": "{name} listens, nods.",
+    }
+
+    def _do_talk_group(npc_id, topic):
+        import renpy.random as _r
+        d = NPC_DATA[npc_id]
+        if topic in d.get("likes", []):
+            delta, rtype = _r.randint(5, 10), "like"
+        elif topic in d.get("dislikes", []):
+            delta, rtype = _r.randint(-4, -1), "dislike"
+        else:
+            delta, rtype = _r.randint(2, 5), "neutral"
+        _apply_aff(npc_id, delta)
+        _td = dict(store._topics_today)
+        _td.setdefault(npc_id, [])
+        _td[npc_id] = _td[npc_id] + [topic]
+        store._topics_today = _td
+        return rtype
 
     def do_talk(npc_id, topic):
         d = NPC_DATA[npc_id]
@@ -394,30 +458,40 @@ screen npc_relbar(npc_id):
 # ── Main action bar (bottom) — icon tiles ──────────────────────────────
 screen npc_actions(npc_id):
     zorder 22
-    $ _gift_ok  = sum(gifts.values()) > 0
-    $ _date_ok  = npc_aff(npc_id) >= 30
+    $ _gift_ok   = sum(gifts.values()) > 0
+    $ _date_ok   = npc_aff(npc_id) >= 30
+    $ _hug_ok    = npc_aff(npc_id) >= 15
+    $ _num_ok    = npc_aff(npc_id) >= 25 and npc_id not in npc_contacts
+    $ _angry     = npc_is_angry(npc_id)
     frame:
         xalign 0.5
         yalign 1.0
         yoffset -26
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (18, 14, 18, 14)
-        hbox:
-            spacing 16
-            for _icon, _lbl, _ret, _ok in [
-                    ("act_talk",   "Talk",                    "talk",  True),
-                    ("act_gift",   "Gift (%d)" % sum(gifts.values()),  "gift",  _gift_ok),
-                    ("act_invite", "Invite",                  "date",  _date_ok),
-                    ("act_leave",  "Leave",                   "leave", True)]:
-                button:
-                    sensitive _ok
-                    action Return(_ret)
-                    background None
-                    hover_background None
-                    vbox:
-                        spacing 4
-                        add Transform("images/ui/icons/%s.png" % _icon, size=(72, 72), alpha=(1.0 if _ok else 0.35)) xalign 0.5
-                        text _lbl font ACT_FONT size 15 xalign 0.5 color ("#cfe0f5" if _ok else "#4a6080") hover_color "#ffffff"
+        vbox:
+            spacing 4
+            if _angry:
+                $ _angry_hint = "You need a shower first." if need_hygiene < 30 else (NPC_DATA[npc_id]["name"] + " is upset with you.")
+                text "[_angry_hint]" font ACT_FONT size 13 color "#e86a55" xalign 0.5
+            hbox:
+                spacing 16
+                for _icon, _lbl, _ret, _ok in [
+                        ("act_talk",   "Talk",                    "talk",   True),
+                        ("act_gift",   "Gift (%d)" % sum(gifts.values()),  "gift",   _gift_ok),
+                        ("act_hug",    "Hug",                     "hug",    _hug_ok and not _angry),
+                        ("act_invite", "Invite",                  "date",   _date_ok and not _angry),
+                        ("act_phone",  "Get #",                   "number", _num_ok and not _angry),
+                        ("act_leave",  "Leave",                   "leave",  True)]:
+                    button:
+                        sensitive _ok
+                        action Return(_ret)
+                        background None
+                        hover_background None
+                        vbox:
+                            spacing 4
+                            add Transform("images/ui/icons/%s.png" % _icon, size=(72, 72), alpha=(1.0 if _ok else 0.35)) xalign 0.5
+                            text _lbl font ACT_FONT size 15 xalign 0.5 color ("#cfe0f5" if _ok else "#4a6080") hover_color "#ffffff"
 
 
 # ── Gift type picker ──────────────────────────────────────────────────
@@ -497,11 +571,6 @@ label npc_interact(npc_id):
     $ _rb_prev_tr = -1
     # update last-seen day for this NPC (feeds ignore-decay in new_day)
     $ store.npc_last_seen[npc_id] = day
-    # jealousy check: NPCs with aff >= 60 at the same location react
-    $ _jealous = check_jealousy(npc_id)
-    if _jealous:
-        $ _jn = " and ".join(_jealous)
-        "[_jn] catches your attention drifting. Something shifts in their expression."
     $ _spr = NPC_DATA[npc_id]["sprite"]
     show expression _spr as npcsprite at sprite_c
     show screen npc_relbar(npc_id)
@@ -528,7 +597,23 @@ label npc_interact(npc_id):
             $ _g = renpy.call_screen("npc_gift_select")
             if _g != "back":
                 $ do_gift(npc_id, _g)
+        elif _act == "hug":
+            $ _jealous = check_jealousy(npc_id)
+            if _jealous:
+                $ _jn = " and ".join(_jealous)
+                "[_jn] clocks the embrace. Their expression flickers."
+            $ _apply_aff(npc_id, 3)
+            $ spend_time(0.1)
+            "[_nm] smiles and leans in. A brief, warm hug."
+        elif _act == "number":
+            $ store.npc_contacts = store.npc_contacts + [npc_id]
+            $ _apply_aff(npc_id, 2)
+            "[_nm] smiles. \"Sure, here you go.\" Number saved."
         elif _act == "date":
+            $ _jealous = check_jealousy(npc_id)
+            if _jealous:
+                $ _jn = " and ".join(_jealous)
+                "[_jn] catches your attention drift toward [_nm]. Something shifts in their expression."
             call npc_date(npc_id)
             $ _act = "leave"   # a date is the whole evening
     hide screen npc_relbar

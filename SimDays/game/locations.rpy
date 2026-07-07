@@ -154,19 +154,26 @@ label cafe_actions:
     $ activity_exit_name = "Downtown"
     scene expression cafe_bg()
     show screen hud
-    if npc_talkable("nora"):
-        show nora_cafe_normal as npcsprite at sprite_r
-        if npc_talkable("elle"):
-            show elle_sundress_normal as npcsprite2 at sprite_l
-    elif npc_talkable("elle"):
-        show elle_sundress_normal as npcsprite at sprite_r
-
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
+    $ _group = group_scene_check()
+    $ _group_lbl = group_scene_label(_group) if _group else ""
     menu (screen="activity"):
+        "Join [_group_lbl] →" if _group:
+            call group_interact(_group[0], _group[1])
+            jump cafe_actions
         "Buy a coffee ($3, 0.5h)":
             $ spend_time(0.5)
             $ gain_money(-3)
-            $ need_hunger = min(100, need_hunger + 10)
-            "You sip a good coffee. Worth it."
+            $ _coffee_e = 20 if has_event("cafe_energy") else 10
+            $ need_energy = min(100, need_energy + _coffee_e)
+            if has_event("cafe_energy"):
+                "Double-strength today. You feel the buzz hit immediately."
+            else:
+                "You sip a good coffee. Worth it."
             jump cafe_actions
 
         "Talk to Nora" if npc_talkable("nora"):
@@ -214,12 +221,11 @@ label location_gym:
     $ activity_exit_name = "Downtown"
     scene gymdaypeople
     show screen hud
-    if npc_talkable("kai"):
-        show kai_normal as npcsprite at sprite_r
-        if npc_talkable("sam"):
-            show sam_normal as npcsprite2 at sprite_l
-    elif npc_talkable("sam"):
-        show sam_normal as npcsprite at sprite_r
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
@@ -236,9 +242,12 @@ label location_gym:
             show screen hud
             $ spend_time(1.5)
             $ need_energy = max(0, need_energy - 15)
-            $ gain_stat("str", 20)
+            $ _str_exp = 30 if has_event("gym_trainer") else 20
+            $ gain_stat("str", _str_exp)
             $ gain_stat("app", 8)
-            if _sup == "preworkout":
+            if has_event("gym_trainer"):
+                "The free trainer spots your form and pushes you hard. Exceptional session."
+            elif _sup == "preworkout":
                 "Pre-workout in the system. You push past the usual ceiling."
             elif _sup == "protein":
                 "Protein shake in the tank. A clean, productive session."
@@ -323,22 +332,27 @@ label location_bar:
     $ activity_exit_name = "Downtown"
     scene bar
     show screen hud
-    $ _bvis = [(n, s) for n, s in [("marcus","marcus_casual_normal"),("eli","eli_normal"),("lena","drlena_normal"),("natalie","natalie_normal"),("martha","martha_neutral")] if npc_talkable(n)]
-    if len(_bvis) >= 1:
-        show expression _bvis[0][1] as npcsprite at sprite_r
-    if len(_bvis) >= 2:
-        show expression _bvis[1][1] as npcsprite2 at sprite_l
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
+    $ _drink_cost = 4 if has_event("bar_happy") else 8
+    $ _chr_bonus  = 30 if has_event("bar_happy") else 15
     menu (screen="activity"):
-        "Have a drink ($8, 0.5h)":
+        "Have a drink ($[_drink_cost], 0.5h)":
             $ spend_time(0.5)
-            $ gain_money(-8)
+            $ gain_money(-_drink_cost)
             "The noise and the drinks do their job."
             jump location_bar
         "Socialize (1h)":
             if stat_chr >= 25:
                 $ spend_time(1)
-                $ gain_stat("chr", 15)
-                "You work the room. A few numbers exchanged."
+                $ gain_stat("chr", _chr_bonus)
+                if has_event("bar_happy"):
+                    "Happy hour energy in the air — you're electric tonight."
+                else:
+                    "You work the room. A few numbers exchanged."
             else:
                 "You hover near a few groups but can't quite break in. Maybe with a bit more charm."
             jump location_bar
@@ -358,7 +372,7 @@ label location_bar:
             call npc_interact("martha")
             jump location_bar
 
-# ── OFFICE ────────────────────────────────────────────────────────────
+# ── OFFICE (corporate career) ─────────────────────────────────────────
 label location_office:
     $ current_loc = "location_office"
     if not venue_open("office_exec"):
@@ -371,24 +385,53 @@ label location_office:
     $ activity_exit_name = "Downtown"
     scene goodoffice1
     show screen hud
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
-        "Work a shift (8h)" (sensitive (stat_int >= 20 and hour + 8 <= DAY_END)) if stat_int >= 20:
-            $ spend_time(8)
-            $ gain_money(120)
-            $ gain_stat("int", 8)
-            $ need_energy = max(0, need_energy - 35)
+        "Work a shift (8h)" (sensitive (hour + 8 <= DAY_END and not too_tired())) if job_id == "corporate":
+            $ _tired = do_shift("corporate", 8)
             if not caroline_met:
                 $ caroline_met = True
                 $ martha_met = True
                 "A long first day. HR's Caroline clocks you on the way out - \"I keep tabs on everyone.\" A sharp woman by the windows barely looks up: Martha, apparently, and unimpressed."
+            elif _tired:
+                "Running on empty, you limp to end of day. Your manager notices the slippage."
             else:
                 "A long day of meetings and spreadsheets. The pay is solid."
             jump location_office
-        "Apply for work" if stat_int < 20:
-            show caroline_normal at sprite_r
-            caro "HR. Let me save us both time - these roles need a sharper head than that. INT 20, minimum. The college helps."
-            hide caroline_normal
+
+        "Ask about a promotion" if job_id == "corporate" and can_promote():
+            $ _trial = cur_rank().get("trial")
+            if _trial and not store.promotion_trials.get(("corporate", job_rank), False):
+                call expression _trial
+            else:
+                if promote():
+                    "New title. Caroline hands you the updated contract with a tight smile."
+                else:
+                    "\"Strong quarter - but you need the skills for the next rung first.\""
             jump location_office
+
+        "Apply for the graduate scheme" if job_id is None:
+            if can_apply("corporate"):
+                $ apply_job("corporate")
+                $ caroline_met = True
+                show caroline_normal as npcsprite at sprite_c
+                caro "Good credentials. You start Monday. Keep your metrics up."
+                hide npcsprite
+            else:
+                show caroline_normal as npcsprite at sprite_c
+                caro "HR. Let me save us both time - these roles need a sharper head. INT 20, minimum. The college helps."
+                hide npcsprite
+            jump location_office
+
+        "Quit this job" if job_id == "corporate":
+            $ quit_job()
+            "You hand in your notice. Caroline nods. \"Best of luck.\""
+            jump location_office
+
         "Talk to Caroline" if npc_talkable("caroline"):
             call npc_interact("caroline")
             jump location_office
@@ -596,13 +639,17 @@ label location_nightclub:
     $ activity_exit_name = "Downtown"
     scene nightclub
     show screen hud
-    if npc_talkable("zoe"):
-        show zoe_punk_smile as npcsprite at sprite_r
-        if npc_talkable("kai"):
-            show kai_normal as npcsprite2 at sprite_l
-    elif npc_talkable("kai"):
-        show kai_normal as npcsprite at sprite_r
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
+    $ _group = group_scene_check()
+    $ _group_lbl = group_scene_label(_group) if _group else ""
     menu (screen="activity"):
+        "Join [_group_lbl] →" if _group:
+            call group_interact(_group[0], _group[1])
+            jump location_nightclub
         "Talk to Zoe" if npc_talkable("zoe"):
             call npc_interact("zoe")
             jump location_nightclub
@@ -616,8 +663,11 @@ label location_nightclub:
             jump location_nightclub
         "Work the crowd (1h) [[CHR 30]]" (sensitive (stat_chr >= 30)):
             $ spend_time(1)
-            $ gain_stat("chr", 15)
-            "You move room to room, easy and loud. A few new contacts."
+            $ gain_stat("chr", 30 if has_event("club_night") else 15)
+            if has_event("club_night"):
+                "Industry night — the room is full of people who matter. You're on fire."
+            else:
+                "You move room to room, easy and loud. A few new contacts."
             jump location_nightclub
         "Buy a round ($15)" (sensitive (money >= 15)):
             $ spend_time(0.5)
@@ -678,16 +728,24 @@ label location_park:
     $ activity_exit_name = "City Map"
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    $ _pvis = [(n, s) for n, s in [("marcus","marcus_casual_normal"),("zoe","zoe_punk_smile"),("sam","sam_normal")] if npc_talkable(n)]
-    if len(_pvis) >= 1:
-        show expression _pvis[0][1] as npcsprite at sprite_r
-    if len(_pvis) >= 2:
-        show expression _pvis[1][1] as npcsprite2 at sprite_l
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
+    $ _group = group_scene_check()
+    $ _group_lbl = group_scene_label(_group) if _group else ""
     menu (screen="activity"):
+        "Join [_group_lbl] →" if _group:
+            call group_interact(_group[0], _group[1])
+            jump location_park
         "Morning jog (1h)":
             $ spend_time(1)
-            $ gain_stat("str", 8)
-            "The air is crisp. Good start to the day."
+            $ gain_stat("str", 16 if has_event("park_weather") else 8)
+            if has_event("park_weather"):
+                "Perfect conditions. You hit your stride and don't stop. Best run in weeks."
+            else:
+                "The air is crisp. Good start to the day."
             jump location_park
         "Read a book (1.5h)":
             $ spend_time(1.5)
@@ -722,11 +780,11 @@ label location_beach:
         jump beach_meet_zoe
     if elle_affection >= 40 and not elle_pier_done and npc_talkable("elle"):
         jump elle_pier_scene
-    $ _beachvis = [(n, s) for n, s in [("elle","elle_sundress_normal"),("zoe","zoe_punk_smile"),("kai","kai_normal")] if npc_talkable(n)]
-    if len(_beachvis) >= 1:
-        show expression _beachvis[0][1] as npcsprite at sprite_r
-    if len(_beachvis) >= 2:
-        show expression _beachvis[1][1] as npcsprite2 at sprite_l
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
         "Relax (1h)":
             $ spend_time(1)
@@ -947,8 +1005,11 @@ label location_hospital:
     $ activity_exit_name = "City Map"
     scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
     show screen hud
-    if npc_talkable("lena"):
-        show drlena_normal as npcsprite at sprite_r
+    $ _vis = location_sprites()
+    if len(_vis) >= 1:
+        show expression _vis[0][1] as npcsprite at sprite_r
+    if len(_vis) >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
         "Cosmetic touch-up ($200, 2h)":
             if money < 200:
@@ -1076,23 +1137,63 @@ label location_college:
     $ activity_exit_name = "Downtown"
     scene college_day
     show screen hud
-    $ _prog_cost = 50 + skill_prog * 20
-    $ _med_cost  = 50 + skill_med  * 20
-    $ _biz_cost  = 50 + skill_biz  * 20
-    $ _art_cost  = 50 + skill_art  * 20
+    $ _prog_cost = course_cost("prog")
+    $ _med_cost  = course_cost("med")
+    $ _biz_cost  = course_cost("biz")
+    $ _art_cost  = course_cost("art")
     menu (screen="activity"):
-        "Programming ($[_prog_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_prog * 20 and not too_tired() and skill_prog < 10)):
+        "Programming ($[_prog_cost], 3h, -22 energy)" (sensitive (money >= course_cost("prog") and not too_tired() and skill_prog < 10)):
             call college_course("prog")
             jump location_college
-        "Medicine ($[_med_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_med * 20 and not too_tired() and skill_med < 10)):
+        "Medicine ($[_med_cost], 3h, -22 energy)" (sensitive (money >= course_cost("med") and not too_tired() and skill_med < 10)):
             call college_course("med")
             jump location_college
-        "Business ($[_biz_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_biz * 20 and not too_tired() and skill_biz < 10)):
+        "Business ($[_biz_cost], 3h, -22 energy)" (sensitive (money >= course_cost("biz") and not too_tired() and skill_biz < 10)):
             call college_course("biz")
             jump location_college
-        "Art ($[_art_cost], 3h, -22 energy)" (sensitive (money >= 50 + skill_art * 20 and not too_tired() and skill_art < 10)):
+        "Art ($[_art_cost], 3h, -22 energy)" (sensitive (money >= course_cost("art") and not too_tired() and skill_art < 10)):
             call college_course("art")
             jump location_college
+        "Degree examinations →" if skill_med >= 3 or skill_prog >= 3 or skill_biz >= 3:
+            jump location_college_exams
+
+
+label location_college_exams:
+    $ activity_exit_jump = "location_college"
+    $ activity_exit_name = "Back"
+    scene college_day
+    show screen hud
+    $ _mb_cost  = DEGREE_EXAMS["med_bach"]["cost"]
+    $ _mm_cost  = DEGREE_EXAMS["med_mast"]["cost"]
+    $ _pb_cost  = DEGREE_EXAMS["prog_bach"]["cost"]
+    $ _pm_cost  = DEGREE_EXAMS["prog_mast"]["cost"]
+    $ _bb_cost  = DEGREE_EXAMS["biz_bach"]["cost"]
+    $ _bm_cost  = DEGREE_EXAMS["biz_mast"]["cost"]
+    menu (screen="activity"):
+        "Medicine Bachelor's ($[_mb_cost], 8h) [[Req: Med Lv3]" (sensitive (can_sit_exam("med_bach") and not too_tired())):
+            $ sit_exam("med_bach")
+            "Eight hours of exams across three halls. You pass. Medicine — Bachelor's earned."
+            jump location_college_exams
+        "Medicine Master's ($[_mm_cost], 8h) [[Req: Med Lv5]" (sensitive (can_sit_exam("med_mast") and not too_tired())):
+            $ sit_exam("med_mast")
+            "The hardest day you've had at a desk. Medicine — Master's earned."
+            jump location_college_exams
+        "CS Bachelor's ($[_pb_cost], 8h) [[Req: Prog Lv3]" (sensitive (can_sit_exam("prog_bach") and not too_tired())):
+            $ sit_exam("prog_bach")
+            "Theory, algorithms, a written section. Computer Science — Bachelor's earned."
+            jump location_college_exams
+        "CS Master's ($[_pm_cost], 8h) [[Req: Prog Lv5]" (sensitive (can_sit_exam("prog_mast") and not too_tired())):
+            $ sit_exam("prog_mast")
+            "Eight hours of advanced systems theory. Computer Science — Master's earned."
+            jump location_college_exams
+        "Business Bachelor's ($[_bb_cost], 8h) [[Req: Biz Lv3]" (sensitive (can_sit_exam("biz_bach") and not too_tired())):
+            $ sit_exam("biz_bach")
+            "Case studies, finance, a group presentation. Business — Bachelor's earned."
+            jump location_college_exams
+        "Business Master's ($[_bm_cost], 8h) [[Req: Biz Lv5]" (sensitive (can_sit_exam("biz_mast") and not too_tired())):
+            $ sit_exam("biz_mast")
+            "Strategy, leadership, one brutal oral exam. Business — Master's earned."
+            jump location_college_exams
 
 
 label college_course(key):

@@ -47,18 +47,23 @@ init python:
         store.stat_exp[name] = exp if lvl < 100 else 0
         label, colour, icon, fillkey = STAT_META[name]
         icon_path = ("images/ui/icons/%s.png" % icon) if icon else None
+        need = stat_exp_needed(lvl)
+        pct  = int(exp * 100 // max(need, 1))
         if leveled:
             _push_gain(kind="stat", text="%s  %d!" % (label, lvl), color=colour,
-                       icon=icon_path, value=lvl,
+                       icon=icon_path, value=pct,
                        fill="images/ui/bar_fill_%s.png" % fillkey)
         else:
-            need = stat_exp_needed(lvl)
             _push_gain(kind="stat", text="+%d EXP  %s" % (exp_amt, label), color=colour,
-                       icon=icon_path, value=int(exp * 100 // max(need, 1)),
+                       icon=icon_path, value=pct,
                        fill="images/ui/bar_fill_%s.png" % fillkey)
 
     def gain_money(amt):
-        """Change money and flash a green (+) or red (-) cash card."""
+        """Change money. Spending (negative) is blocked while in debt — card declined."""
+        if amt < 0 and store.loan > 0:
+            _push_gain(kind="money", text="Card declined", color="#e86a55",
+                       icon="images/ui/icons/stat_money.png")
+            return
         store.money += amt
         if amt >= 0:
             _push_gain(kind="money", text="+$%d" % amt, color="#39c07a",

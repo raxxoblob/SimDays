@@ -60,8 +60,8 @@ init python:
         "hospital": {
             "name": "Medicine - City Hospital", "location": "location_hospital",
             "ranks": [
-                {"title": "Med Student",       "req": {"skill_med": 3, "stat_int": 30},                        "pay": 45,  "hours": "Mon-Fri 08-16", "flex": False, "trial": "hospital_trial_resident"},
-                {"title": "Resident",          "req": {"skill_med": 5, "stat_int": 45},                        "pay": 100, "hours": "long shifts",   "flex": False},
+                {"title": "Med Student",       "req": {"skill_med": 3, "stat_int": 30, "stat_app": 20, "degree": "med_bach"}, "pay": 45,  "hours": "Mon-Fri 08-16", "flex": False, "trial": "hospital_trial_resident"},
+                {"title": "Resident",          "req": {"skill_med": 5, "stat_int": 45, "degree": "med_mast"},  "pay": 100, "hours": "long shifts",   "flex": False},
                 {"title": "Doctor",            "req": {"skill_med": 7, "stat_int": 58},                        "pay": 175, "hours": "shifts",        "flex": False},
                 {"title": "Attending",         "req": {"skill_med": 8, "stat_int": 68, "stat_chr": 45},        "pay": 260, "hours": "mostly set",    "flex": False},
                 {"title": "Chief of Medicine", "req": {"skill_med": 9, "stat_int": 78, "stat_chr": 60},        "pay": 360, "hours": "flexible",      "flex": True},
@@ -70,9 +70,9 @@ init python:
         "it": {
             "name": "IT - The Hub", "location": "location_hub",
             "ranks": [
-                {"title": "Junior Dev",   "req": {"skill_prog": 2, "stat_int": 35},               "pay": 70,  "hours": "Mon-Fri 09-17", "flex": False},
+                {"title": "Junior Dev",   "req": {"skill_prog": 2, "stat_int": 35, "stat_app": 15, "degree": "prog_bach"}, "pay": 70,  "hours": "Mon-Fri 09-17", "flex": False},
                 {"title": "Mid Dev",      "req": {"skill_prog": 3, "stat_int": 40},               "pay": 120, "hours": "Mon-Fri 09-17", "flex": False},
-                {"title": "Senior Dev",   "req": {"skill_prog": 5, "stat_int": 55, "stat_chr": 25}, "pay": 190, "hours": "some leeway",  "flex": False, "trial": "it_trial_team_lead"},
+                {"title": "Senior Dev",   "req": {"skill_prog": 5, "stat_int": 55, "stat_chr": 25, "degree": "prog_mast"}, "pay": 190, "hours": "some leeway",  "flex": False, "trial": "it_trial_team_lead"},
                 {"title": "Team Lead",    "req": {"skill_prog": 7, "stat_int": 65, "stat_chr": 40}, "pay": 260, "hours": "mostly flex",  "flex": True},
                 {"title": "Eng. Manager", "req": {"skill_prog": 8, "stat_int": 75, "stat_chr": 55}, "pay": 340, "hours": "flexible",     "flex": True},
             ],
@@ -80,10 +80,10 @@ init python:
         "corporate": {
             "name": "Corporate - Nexus Tower", "location": "location_office",
             "ranks": [
-                {"title": "Intern",    "req": {"skill_biz": 1, "stat_int": 20, "stat_chr": 20},  "pay": 50,  "hours": "Mon-Fri 09-18", "flex": False},
+                {"title": "Intern",    "req": {"skill_biz": 1, "stat_int": 20, "stat_chr": 20, "stat_app": 20, "degree": "biz_bach"}, "pay": 50,  "hours": "Mon-Fri 09-18", "flex": False},
                 {"title": "Associate", "req": {"skill_biz": 3, "stat_int": 35, "stat_chr": 35},  "pay": 110, "hours": "Mon-Fri 09-18", "flex": False},
                 {"title": "Analyst",   "req": {"skill_biz": 5, "stat_int": 50, "stat_chr": 45},  "pay": 180, "hours": "long",          "flex": False},
-                {"title": "Manager",   "req": {"skill_biz": 7, "stat_int": 55, "stat_chr": 60},  "pay": 260, "hours": "mostly flex",   "flex": True},
+                {"title": "Manager",   "req": {"skill_biz": 7, "stat_int": 55, "stat_chr": 60, "degree": "biz_mast"}, "pay": 260, "hours": "mostly flex",   "flex": True},
                 {"title": "Director",  "req": {"skill_biz": 9, "stat_int": 60, "stat_chr": 75},  "pay": 380, "hours": "flexible",      "flex": True},
             ],
         },
@@ -116,9 +116,13 @@ init python:
 
     def meets_req(req):
         for k, v in req.items():
-            val = eff_app() if k == "stat_app" else getattr(store, k, 0)
-            if val < v:
-                return False
+            if k == "degree":
+                if v not in store.degrees:
+                    return False
+            else:
+                val = eff_app() if k == "stat_app" else getattr(store, k, 0)
+                if val < v:
+                    return False
         return True
 
     # ── Job engine ─────────────────────────────────────────────────────
@@ -160,6 +164,7 @@ init python:
         _sync_job()
 
     def do_shift(cid, hours):
+        store.stat_boost_str = 1.0  # supplements are gym-only
         r = CAREERS[cid]["ranks"][store.job_rank]
         spend_time(hours)
         gain_money(r["pay"])
@@ -188,10 +193,38 @@ init python:
         _sync_job()
         return True
 
+    DEGREE_EXAMS = {
+        "med_bach":  {"skill": "med",  "min_lvl": 3, "cost": 800,  "hours": 8, "label": "Medicine — Bachelor's"},
+        "med_mast":  {"skill": "med",  "min_lvl": 5, "cost": 1500, "hours": 8, "label": "Medicine — Master's"},
+        "prog_bach": {"skill": "prog", "min_lvl": 3, "cost": 700,  "hours": 8, "label": "CS — Bachelor's"},
+        "prog_mast": {"skill": "prog", "min_lvl": 5, "cost": 1400, "hours": 8, "label": "CS — Master's"},
+        "biz_bach":  {"skill": "biz",  "min_lvl": 3, "cost": 750,  "hours": 8, "label": "Business — Bachelor's"},
+        "biz_mast":  {"skill": "biz",  "min_lvl": 5, "cost": 1400, "hours": 8, "label": "Business — Master's"},
+    }
+
+    def can_sit_exam(deg_id):
+        e = DEGREE_EXAMS[deg_id]
+        return (deg_id not in store.degrees
+                and skill_val(e["skill"]) >= e["min_lvl"]
+                and store.money >= e["cost"]
+                and not in_debt())
+
+    def sit_exam(deg_id):
+        e = DEGREE_EXAMS[deg_id]
+        spend_time(e["hours"])
+        gain_money(-e["cost"])
+        store.degrees = store.degrees + [deg_id]
+
+    def course_cost(key):
+        """Current discounted cost of a course (accessible in menu sensitive exprs)."""
+        lvl = skill_val(key)
+        base = 50 + lvl * 20
+        return int(base * (0.7 if has_event("college_sale") else 1.0))
+
     def take_course(key):
         lvl = skill_val(key)
         if lvl >= 10: return "max"
-        cost = 50 + lvl * 20   # $50 at lv0, $70 at lv1, $150 at lv5 ...
+        cost = course_cost(key)
         if store.money < cost: return "money"
         spend_time(3)
         gain_money(-cost)
@@ -203,6 +236,9 @@ init python:
         """Human-readable shortfall for the profile 'Next:' line."""
         parts = []
         for k, v in req.items():
-            nice = k.replace("stat_", "").replace("skill_", "").upper()
-            parts.append("%s %d" % (nice, v))
+            if k == "degree":
+                parts.append(v.replace("_", " ").title())
+            else:
+                nice = k.replace("stat_", "").replace("skill_", "").upper()
+                parts.append("%s %d" % (nice, v))
         return ", ".join(parts)
