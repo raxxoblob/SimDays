@@ -233,7 +233,7 @@ screen npc_relbar(npc_id):
     $ _has_portrait  = bool(NPC_DATA[npc_id].get("portrait")) and renpy.loadable(_portrait_path)
 
     frame:
-        xpos 1500
+        xpos 1260
         ypos 150
         xsize 400
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)

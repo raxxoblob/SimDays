@@ -14,13 +14,13 @@ screen hud():
         action ToggleScreen("profile")
         text "Me" font "fonts/Quicksand-SemiBold.ttf" size 24 color "#cfe0f5" align (0.5, 0.5)
 
+    # phone peek — top of phone sticks up from bottom-right corner
     key "K_p" action Show("phone_home")
-    button:
-        xpos 1792 ypos 980
-        xysize (104, 52)
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+    imagebutton:
+        xpos 1460 ypos 986
+        idle  Transform("images/ui/phone.png", crop=(0, 0, 1024, 215), size=(460, 94))
+        hover Transform("images/ui/phone.png", crop=(0, 0, 1024, 215), size=(470, 97))
         action Show("phone_home")
-        text "Phone" font "fonts/Quicksand-SemiBold.ttf" size 22 color "#cfe0f5" align (0.5, 0.5)
 
     fixed:
         xalign 0.5

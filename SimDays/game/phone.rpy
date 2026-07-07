@@ -20,30 +20,31 @@ screen phone_home():
     $ _clock = time_label(hour)
     $ _day   = day_name(day)
 
-    # centred phone panel; frame PNG sits on top as overlay (transparent hole)
+    # phone.png (1024x1536) displayed at 460x690, bottom-right corner
+    # screen area inside bezel: ~x=96-364, y=88-640 at display scale
     fixed:
-        xalign 0.5
-        yalign 0.5
-        xysize (480, 900)
+        xpos 1460
+        ypos 390
+        xysize (460, 690)
 
-        # app content — inside the screen hole (~400×640, shifted up from centre)
+        # phone image with wallpaper baked in
+        add Transform("images/ui/phone.png", size=(460, 690))
+
+        # content overlaid on the screen area
         fixed:
-            xalign 0.5
-            yalign 0.5
-            xsize 400
-            ysize 680
-            yoffset -20
+            xpos 96
+            ypos 30
+            xsize 268
+            ysize 610
 
             vbox:
                 spacing 0
                 xalign 0.5
 
-                # status bar
+                null height 8
+                text "[_clock]   [_day]" font PROFILE_FONT size 16 color "#cfe0f5" xalign 0.5
                 null height 18
-                text "[_clock]   [_day]" font PROFILE_FONT size 20 color "#9fb6d6" xalign 0.5
-                null height 28
 
-                # app grid (3 cols × 3 rows)
                 $ _apps = [
                     ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_messages_scr")]),
                     ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_messages_scr")]),
@@ -57,24 +58,21 @@ screen phone_home():
                 ]
                 vpgrid:
                     cols 3
-                    spacing 18
+                    spacing 10
                     xalign 0.5
                     for _icon, _lbl, _act in _apps:
                         button:
-                            xysize (108, 130)
+                            xysize (78, 96)
                             background None
                             hover_background None
                             action _act
                             vbox:
-                                spacing 6
-                                add Transform("images/ui/icons/%s.png" % _icon, size=(88, 88)) xalign 0.5
-                                text _lbl font ACT_FONT size 14 color "#ffffff" xalign 0.5
+                                spacing 4
+                                add Transform("images/ui/icons/%s.png" % _icon, size=(66, 66)) xalign 0.5
+                                text _lbl font ACT_FONT size 11 color "#ffffff" xalign 0.5
 
-                null height 20
-                textbutton "Close" action Hide("phone_home") xalign 0.5 text_font ACT_FONT text_size 18 text_color "#9fb6d6" text_hover_color "#ffffff"
-
-        # phone frame on top — transparent hole lets content show through
-        add "images/ui/phone_frame.png" xalign 0.5 yalign 0.5
+                null height 14
+                textbutton "Close" action Hide("phone_home") xalign 0.5 text_font ACT_FONT text_size 15 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 # text-row helper used by sub-screens (messages list, groceries)
