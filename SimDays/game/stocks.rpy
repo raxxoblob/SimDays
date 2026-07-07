@@ -143,4 +143,4 @@ screen stock_market():
                         textbutton "Sell 1"  action Function(stock_sell, sel, 1)   text_font PROFILE_FONT text_size 20
                         textbutton "Sell all" action Function(stock_sell, sel, 999) text_font PROFILE_FONT text_size 20
 
-            textbutton "Close" action Return() text_font PROFILE_FONT text_size 22 text_color "#cfe0f5" text_hover_color "#ffffff"
+            textbutton "Close" action [Hide("stock_market"), Show("phone_home")] text_font PROFILE_FONT text_size 22 text_color "#cfe0f5" text_hover_color "#ffffff"

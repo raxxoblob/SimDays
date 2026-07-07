@@ -535,31 +535,30 @@ screen npc_topics(npc_id):
                 xfill True
                 text "Talk about..." font ACT_FONT size 20 color "#9fb6d6" xalign 0.0 yalign 0.5
                 textbutton "Back" action Return("back") xalign 1.0 text_font ACT_FONT text_size 17 text_color "#9fb6d6" text_hover_color "#ffffff"
-            vpgrid:
-                cols 3
-                spacing 10
+            hbox:
+                spacing 8
                 for key, label in TOPICS:
                     $ _tint  = ("#ffd76a" if key in _likes else ("#6b82a6" if key in _dislikes else "#cfe0f5"))
                     $ _used  = topic_used_today(npc_id, key)
                     $ _badge = _topics_seen.get(npc_id, {}).get(key)
                     button:
-                        xysize (148, 120)
+                        xysize (136, 96)
                         sensitive not _used
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
                         action Return(key)
                         vbox:
-                            spacing 6
+                            spacing 4
                             xalign 0.5 yalign 0.5
                             fixed:
-                                xysize (60, 60)
+                                xysize (52, 52)
                                 xalign 0.5
-                                add Transform("images/ui/icons/topic_%s.png" % key, size=(60, 60), alpha=(0.35 if _used else 1.0))
+                                add Transform("images/ui/icons/topic_%s.png" % key, size=(52, 52), alpha=(0.35 if _used else 1.0))
                                 if _badge == "like":
-                                    text "+" xpos 42 ypos 0 size 18 color "#39c07a" font ACT_FONT
+                                    text "+" xpos 36 ypos 0 size 16 color "#39c07a" font ACT_FONT
                                 elif _badge == "dislike":
-                                    text "−" xpos 42 ypos 0 size 18 color "#e86a55" font ACT_FONT
-                            text label font ACT_FONT size 15 color ("#445060" if _used else _tint) hover_color "#ffffff" xalign 0.5
+                                    text "−" xpos 36 ypos 0 size 16 color "#e86a55" font ACT_FONT
+                            text label font ACT_FONT size 13 color ("#445060" if _used else _tint) hover_color "#ffffff" xalign 0.5
 
 
 # ── Driver ─────────────────────────────────────────────────────────────
