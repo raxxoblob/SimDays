@@ -391,7 +391,10 @@ label location_office:
     if len(_vis) >= 2:
         show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
-        "Work a shift (8h)" if job_id == "corporate" (sensitive (hour + 8 <= DAY_END and not too_tired())):
+        "Work a shift (8h)" if job_id == "corporate":
+            if too_tired() or hour + 8 > DAY_END:
+                "You're too tired or it's too late to start a shift."
+                jump location_nexus
             $ _tired = do_shift("corporate", 8)
             if not caroline_met:
                 $ caroline_met = True
@@ -973,7 +976,7 @@ label location_warehouse:
     if npc_talkable("natalie"):
         show natalie_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "Work a shift (8h)" if stat_str >= 25 (sensitive (hour + 8 <= DAY_END and not too_tired())):
+        "Work a shift (8h)" (sensitive (stat_str >= 25 and hour + 8 <= DAY_END and not too_tired())):
             scene pov_warehouse
             show screen hud
             $ _is_sun = (day % 7 == 6)
@@ -1022,7 +1025,10 @@ label location_hospital:
             jump location_hospital
 
         # Medicine career (shares the engine + CAREERS["hospital"]).
-        "Work a shift (8h)" if job_id == "hospital" (sensitive (hour + 8 <= DAY_END and not too_tired())):
+        "Work a shift (8h)" if job_id == "hospital":
+            if too_tired() or hour + 8 > DAY_END:
+                "You're too tired or it's too late to start a shift."
+                jump location_hospital
             scene pov_doctor
             show screen hud
             $ _tired = do_shift("hospital", 8)
