@@ -34,78 +34,111 @@ init python:
     # likes/dislikes = which of the 9 topics land well / badly
     MON_FRI = {0, 1, 2, 3, 4}
     MON_SAT = {0, 1, 2, 3, 4, 5}
+    WKD     = {5, 6}
+    FRISUN  = {4, 5, 6}
     NPC_DATA = {
         "nora": {
             "name": "Nora", "portrait": "portrait_nora", "sprite": "nora_cafe_normal", "say": "n",
             "aff": "nora_affection", "trust": "nora_trust", "greet": "nora_greet",
             "world": True,
             "sched": [
-                ({0}, (9,  14)),
-                ({1}, (14, 20)),
-                ({2}, (10, 16)),
-                ({3}, (14, 20)),
-                ({4}, (9,  15)),
+                (MON_FRI, (7,  16), "location_cafe"),
+                ({1, 4},  (17, 22), "location_bar"),
+                (WKD,     (10, 14), "location_cafe"),
             ],
             "likes": ["food", "ambition", "movies"], "dislikes": ["nightlife"],
         },
         "marcus": {
             "name": "Marcus", "portrait": "portrait_marcus", "sprite": "marcus_casual_normal", "say": "m",
             "aff": "marcus_affection", "trust": "marcus_trust", "greet": "marcus_greet",
-            "world": True, "sched": [(None, (6, 11)), (None, (17, 27))],
+            "world": True, "sched": [
+                (None, (6,  10), "location_park"),
+                (None, (17, 24), "location_bar"),
+                (WKD,  (23, 27), "location_nightclub"),
+            ],
             "likes": ["sports", "food", "nightlife"], "dislikes": ["art"],
         },
         "caroline": {
             "name": "Caroline", "portrait": "portrait_caroline", "sprite": "caroline_normal", "say": "caro",
             "aff": "caroline_affection", "trust": "caroline_trust", "greet": "caroline_greet",
-            "met": "caroline_met", "sched": [(MON_FRI, (9, 18))],
+            "met": "caroline_met", "sched": [(MON_FRI, (9, 18), "location_office")],
             "likes": ["work", "ambition", "nightlife"], "dislikes": ["sports"],
         },
         "lena": {
             "name": "Dr. Lena", "portrait": "portrait_lena", "sprite": "drlena_normal", "say": "lena",
             "aff": "lena_affection", "trust": "lena_trust", "greet": "lena_greet",
-            "met": "lena_met", "sched": [(None, (8, 20))],
+            "met": "lena_met", "sched": [
+                (MON_FRI, (8,  16), "location_hospital"),
+                ({2, 4},  (18, 22), "location_bar"),
+            ],
             "likes": ["work", "travel", "food"], "dislikes": ["nightlife"],
         },
         "natalie": {
             "name": "Natalie", "portrait": "portrait_natalie", "sprite": "natalie_normal", "say": "nat",
             "aff": "natalie_affection", "trust": "natalie_trust", "greet": "natalie_greet",
-            "met": "natalie_met", "sched": [(MON_SAT, (7, 15))],
+            "met": "natalie_met", "sched": [
+                (MON_SAT, (7,  15), "location_warehouse"),
+                (WKD,     (17, 21), "location_bar"),
+            ],
             "likes": ["sports", "work", "ambition"], "dislikes": ["art"],
         },
         "martha": {
             "name": "Martha", "portrait": "portrait_martha", "sprite": "martha_neutral", "say": "ma",
             "aff": "martha_affection", "trust": "martha_trust", "greet": "martha_greet",
-            "met": "martha_met", "min_status": 35, "sched": [(MON_FRI, (9, 18))],
+            "met": "martha_met", "story_gate": "caroline_met", "sched": [
+                (MON_FRI, (9,  18), "location_office"),
+                ({3},     (19, 23), "location_bar"),
+            ],
             "likes": ["ambition", "work", "travel"], "dislikes": ["sports"],
         },
         "elle": {
             "name": "Elle", "portrait": "portrait_elle", "sprite": "elle_sundress_normal", "say": "el",
             "aff": "elle_affection", "trust": "elle_trust", "greet": "elle_greet",
-            "world": True, "sched": [({2}, (16, 19))],
+            "world": True, "sched": [
+                ({1, 3}, (9,  13), "location_cafe"),
+                ({2},    (16, 19), "location_beach"),
+                (WKD,    (13, 18), "location_beach"),
+            ],
             "likes": ["travel", "music", "art"], "dislikes": ["work"],
         },
         "zoe": {
             "name": "Zoe", "portrait": "portrait_zoe", "sprite": "zoe_punk_smile", "say": "z",
             "aff": "zoe_affection", "trust": "zoe_trust", "greet": "zoe_greet",
-            "world": True, "sched": [({5, 6}, (12, 18))],
+            "world": True, "sched": [
+                (WKD,    (12, 18), "location_beach"),
+                ({3, 4}, (14, 18), "location_park"),
+                (FRISUN, (21, 27), "location_nightclub"),
+            ],
             "likes": ["art", "music", "nightlife"], "dislikes": ["ambition"],
         },
         "sam": {
             "name": "Sam", "portrait": "portrait_sam", "sprite": "sam_normal", "say": "sam",
             "aff": "sam_affection", "trust": "sam_trust", "greet": "sam_greet",
-            "world": True, "sched": [(MON_FRI, (7, 10))],
+            "world": True, "sched": [
+                (MON_FRI, (6,  10), "location_park"),
+                (MON_FRI, (10, 14), "location_gym"),
+                (WKD,     (9,  13), "location_gym"),
+            ],
             "likes": ["sports", "work", "food"], "dislikes": ["nightlife"],
         },
         "eli": {
             "name": "Eli", "portrait": "portrait_eli", "sprite": "eli_normal", "say": "eli",
             "aff": "eli_affection", "trust": "eli_trust", "greet": "eli_greet",
-            "world": True, "sched": [(None, (17, 22))],
+            "world": True, "sched": [
+                (None,      (12, 20), "location_library"),
+                ({1, 2, 3}, (20, 23), "location_bar"),
+            ],
             "likes": ["work", "movies", "music"], "dislikes": ["sports"],
         },
         "kai": {
             "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_normal", "say": "kai",
             "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
-            "world": True, "sched": [({5, 6}, (11, 19))],
+            "world": True, "sched": [
+                (WKD,    (10, 14), "location_gym"),
+                (WKD,    (14, 18), "location_beach"),
+                (WKD,    (18, 22), "location_bar"),
+                (FRISUN, (22, 27), "location_nightclub"),
+            ],
             "likes": ["sports", "music", "nightlife"], "dislikes": ["work"],
         },
     }
@@ -118,14 +151,22 @@ init python:
         if not sched:
             return True
         wd = store.day % 7
-        for days, (h0, h1) in sched:
-            if (days is None or wd in days) and h0 <= store.hour < h1:
+        for entry in sched:
+            days = entry[0]
+            h0, h1 = entry[1]
+            loc = entry[2] if len(entry) > 2 else None
+            if not (days is None or wd in days):
+                continue
+            if not (h0 <= store.hour < h1):
+                continue
+            if loc is None or store.current_loc == loc:
                 return True
         return False
 
     def npc_known(npc_id):
         d = NPC_DATA[npc_id]
-        if status_score() < d.get("min_status", 0):
+        gate = d.get("story_gate")
+        if gate and not getattr(store, gate, False):
             return False
         if d.get("world"):
             return True
@@ -151,20 +192,43 @@ init python:
         "Ugh, %s. Really not my thing.",
         "Let's talk about literally anything but %s.",
     ]
+    # fired when the same topic has been used 3+ days in a row
+    BURNOUT_LINES = [
+        "Alex, how much can we talk about %s? Can we please change the subject?",
+        "...%s again. I need you to surprise me here.",
+        "We've covered %s like ten times now. Let's try something else.",
+    ]
+
+    def topic_used_today(npc_id, topic):
+        return topic in store._topics_today.get(npc_id, [])
 
     def _apply_aff(npc_id, delta):
         av = NPC_DATA[npc_id]["aff"]
-        setattr(store, av, max(0, min(getattr(store, av) + delta, affection_cap())))
+        setattr(store, av, max(0, min(getattr(store, av) + delta, 100)))
 
     def do_talk(npc_id, topic):
         d = NPC_DATA[npc_id]
         spend_time(0.5)
+        # resolve reaction
         if topic in d.get("likes", []):
-            delta, pool = 2, LIKE_LINES
+            result, delta, pool = "like", 2, LIKE_LINES
         elif topic in d.get("dislikes", []):
-            delta, pool = -1, DISLIKE_LINES
+            result, delta, pool = "dislike", -1, DISLIKE_LINES
         else:
-            delta, pool = 0, NEUTRAL_LINES
+            result, delta, pool = "neutral", 0, NEUTRAL_LINES
+        # record discovery (permanent knowledge about this NPC)
+        seen = dict(store._topics_seen.get(npc_id, {}))
+        seen[topic] = result
+        store._topics_seen[npc_id] = seen
+        # social battery: 3+ days in a row on same topic → burnout, no gain
+        streak = store._topic_streak.get(npc_id, {}).get(topic, 0)
+        if streak >= 3:
+            delta, pool = 0, BURNOUT_LINES
+        # mark topic as used today
+        today = list(store._topics_today.get(npc_id, []))
+        if topic not in today:
+            today.append(topic)
+        store._topics_today[npc_id] = today
         _apply_aff(npc_id, delta)
         gain_aff(d["name"], delta)
         line = renpy.random.choice(pool) % TOPIC_LABEL[topic]
@@ -190,14 +254,51 @@ init python:
             return True
         return False
 
-    def do_gift(npc_id):
-        if store.gift_count <= 0:
+    GIFT_TYPES = {
+        "book":    ("Book",    20, ["movies", "work", "ambition", "art"]),
+        "sweets":  ("Sweets",  15, ["food", "nightlife"]),
+        "gadget":  ("Gadget",  35, ["music", "movies", "work"]),
+        "flowers": ("Flowers", 25, ["travel", "art", "nightlife"]),
+    }
+    GIFT_LIKE_LINES = {
+        "book":    ["A book? Let me guess - you actually paid attention.", "Oh, this one's been on my list. How did you know?"],
+        "sweets":  ["Don't tell me you remembered what I said about these.", "Okay, now I feel bad I didn't bring anything for you."],
+        "gadget":  ["Okay, this is genuinely useful. Thank you.", "You didn't have to, but I'm very glad you did."],
+        "flowers": ["These are beautiful. Seriously.", "You know exactly what you're doing, don't you?"],
+    }
+    GIFT_DISLIKE_LINES = {
+        "book":    ["Oh, a book. That's... thoughtful.", "I'll find a shelf for it. Thanks."],
+        "sweets":  ["Sweets? I'm not really a sugar person, but... thanks.", "I'll pass them on. Thank you though."],
+        "gadget":  ["I don't really use these, but thanks for thinking of me.", "It's very... technical. I appreciate it."],
+        "flowers": ["Flowers. That's sweet of you.", "They're lovely, really. Thank you."],
+    }
+    GIFT_NEUTRAL_LINES = {
+        "book":    ["Oh, nice - thank you.", "That's a thoughtful thing to bring."],
+        "sweets":  ["You didn't have to. These are great, thanks.", "Oh, a treat. Perfect timing."],
+        "gadget":  ["This is cool, actually. Thanks.", "I wasn't expecting this. Thank you."],
+        "flowers": ["These are lovely, thank you.", "That's really kind of you."],
+    }
+
+    def do_gift(npc_id, gift_type):
+        if store.gifts.get(gift_type, 0) <= 0:
             return
-        store.gift_count -= 1
-        _apply_aff(npc_id, 3)
-        gain_aff(NPC_DATA[npc_id]["name"], 3)
-        renpy.say(getattr(store, NPC_DATA[npc_id]["say"]),
-                  "For me? ...That's genuinely thoughtful. Thank you.")
+        store.gifts[gift_type] -= 1
+        d = NPC_DATA[npc_id]
+        interests = GIFT_TYPES[gift_type][2]
+        likes     = d.get("likes", [])
+        dislikes  = d.get("dislikes", [])
+        if any(i in likes for i in interests):
+            delta = 5
+            line = renpy.random.choice(GIFT_LIKE_LINES[gift_type])
+        elif any(i in dislikes for i in interests):
+            delta = 1
+            line = renpy.random.choice(GIFT_DISLIKE_LINES[gift_type])
+        else:
+            delta = 3
+            line = renpy.random.choice(GIFT_NEUTRAL_LINES[gift_type])
+        _apply_aff(npc_id, delta)
+        gain_aff(d["name"], delta)
+        renpy.say(getattr(store, d["say"]), line)
 
 
 # ── Relationship panel (right, under the topbar) ───────────────────────
@@ -205,6 +306,9 @@ init python:
 # flashes; a gain flips the fill to a bright colour for FLASH_LEN seconds.
 define FLASH_LEN = 0.9
 default _rb_prev_aff = -1
+default _topics_seen    = {}   # {npc_id: {topic: "like"|"dislike"|"neutral"}}
+default _topics_today   = {}   # {npc_id: [topics]} — cleared in new_day()
+default _topic_streak   = {}   # {npc_id: {topic: consecutive_days}}
 default _rb_prev_tr = -1
 default _rb_flash_aff = 0.0
 default _rb_flash_tr = 0.0
@@ -249,7 +353,7 @@ screen npc_relbar(npc_id):
                     spacing 4
                     yalign 0.5
                     text "[_nm]" font PROFILE_FONT size 28 color "#ffffff"
-                    text "[_tier]  (cap [affection_cap()])" font PROFILE_FONT size 15 color "#9fb6d6"
+                    text "[_tier]" font PROFILE_FONT size 15 color "#9fb6d6"
             null height 4
             fixed:
                 xsize 356
@@ -276,19 +380,18 @@ screen npc_relbar(npc_id):
 # ── Main action bar (bottom) — icon tiles ──────────────────────────────
 screen npc_actions(npc_id):
     zorder 22
-    $ _gift_ok  = gift_count > 0
+    $ _gift_ok  = sum(gifts.values()) > 0
     $ _date_ok  = npc_aff(npc_id) >= 30
     frame:
         xalign 0.5
-        yalign 1.0
-        yoffset -26
+        yalign 0.5
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (18, 14, 18, 14)
         hbox:
             spacing 16
             for _icon, _lbl, _ret, _ok in [
                     ("act_talk",   "Talk",                    "talk",  True),
-                    ("act_gift",   "Gift (%d)" % gift_count,  "gift",  _gift_ok),
+                    ("act_gift",   "Gift (%d)" % sum(gifts.values()),  "gift",  _gift_ok),
                     ("act_invite", "Invite",                  "date",  _date_ok),
                     ("act_leave",  "Leave",                   "leave", True)]:
                 button:
@@ -302,6 +405,29 @@ screen npc_actions(npc_id):
                         text _lbl font ACT_FONT size 15 xalign 0.5 color ("#cfe0f5" if _ok else "#4a6080") hover_color "#ffffff"
 
 
+# ── Gift type picker ──────────────────────────────────────────────────
+screen npc_gift_select():
+    zorder 22
+    frame:
+        xalign 0.5
+        yalign 0.5
+        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+        padding (22, 18, 22, 18)
+        vbox:
+            spacing 12
+            text "Choose a gift:" font ACT_FONT size 20 color "#9fb6d6" xalign 0.5
+            for _gkey, (_gname, _gcost, _gints) in GIFT_TYPES.items():
+                $ _ghave = gifts.get(_gkey, 0)
+                button:
+                    xsize 280
+                    sensitive _ghave > 0
+                    background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                    hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                    action Return(_gkey)
+                    text "[_gname]  (x[_ghave])" font ACT_FONT size 17 color ("#cfe0f5" if _ghave > 0 else "#4a6080") hover_color "#ffffff" xalign 0.5
+            textbutton "Cancel" action Return("back") xalign 0.5 text_font ACT_FONT text_size 15 text_color "#9fb6d6" text_hover_color "#ffffff"
+
+
 # ── Topic picker — 3×3 icon grid ───────────────────────────────────────
 screen npc_topics(npc_id):
     zorder 22
@@ -309,8 +435,7 @@ screen npc_topics(npc_id):
     $ _dislikes = NPC_DATA[npc_id].get("dislikes", [])
     frame:
         xalign 0.5
-        yalign 1.0
-        yoffset -26
+        yalign 0.5
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (22, 18, 22, 18)
         vbox:
@@ -324,17 +449,27 @@ screen npc_topics(npc_id):
                 cols 3
                 spacing 10
                 for key, label in TOPICS:
-                    $ _tint = ("#ffd76a" if key in _likes else ("#6b82a6" if key in _dislikes else "#cfe0f5"))
+                    $ _tint  = ("#ffd76a" if key in _likes else ("#6b82a6" if key in _dislikes else "#cfe0f5"))
+                    $ _used  = topic_used_today(npc_id, key)
+                    $ _badge = _topics_seen.get(npc_id, {}).get(key)
                     button:
                         xysize (148, 120)
+                        sensitive not _used
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
                         action Return(key)
                         vbox:
                             spacing 6
                             xalign 0.5 yalign 0.5
-                            add Transform("images/ui/icons/topic_%s.png" % key, size=(60, 60)) xalign 0.5
-                            text label font ACT_FONT size 15 color _tint hover_color "#ffffff" xalign 0.5
+                            fixed:
+                                xysize (60, 60)
+                                xalign 0.5
+                                add Transform("images/ui/icons/topic_%s.png" % key, size=(60, 60), alpha=(0.35 if _used else 1.0))
+                                if _badge == "like":
+                                    text "+" xpos 42 ypos 0 size 18 color "#39c07a" font ACT_FONT
+                                elif _badge == "dislike":
+                                    text "−" xpos 42 ypos 0 size 18 color "#e86a55" font ACT_FONT
+                            text label font ACT_FONT size 15 color ("#445060" if _used else _tint) hover_color "#ffffff" xalign 0.5
 
 
 # ── Driver ─────────────────────────────────────────────────────────────
@@ -365,7 +500,9 @@ label npc_interact(npc_id):
             if _t != "back":
                 $ do_talk(npc_id, _t)
         elif _act == "gift":
-            $ do_gift(npc_id)
+            $ _g = renpy.call_screen("npc_gift_select")
+            if _g != "back":
+                $ do_gift(npc_id, _g)
         elif _act == "date":
             call npc_date(npc_id)
             $ _act = "leave"   # a date is the whole evening

@@ -43,6 +43,7 @@ default skill_music = 0  # Music      -> guitar practice, busking / gigs later
 default skill_exp = {}   # key -> exp banked toward the NEXT level (see gain_skill)
 
 default mc_name = "Alex"   # player's name; set during the intro, personalizable
+default current_loc = ""  # which location label the player is currently in
 
 # Relationship (affection 0-100, trust 0-100)
 default zoe_affection = 0
@@ -83,7 +84,7 @@ default nora_closing_done = False
 default elle_pier_done = False
 default lena_rooftop_done = False
 default warned_today    = False   # low-need heads-up fires at most once a day
-default gift_count      = 0       # generic gifts on hand (give to NPCs for affection)
+default gifts           = {"book": 0, "sweets": 0, "gadget": 0, "flowers": 0}  # gifts by category
 default apartment_tier = 1    # 1=cheap, 2=mid, 3=rich
 
 # Social status assets (0-3 tiers). Status = how the city reads you; gates some
@@ -103,6 +104,7 @@ default own_bed      = False  # better bed: full rest + a quick Nap option
 default job_id          = None
 default job_rank        = 0
 default job_performance = 0      # 0-100 Performance bar for the current rank
+default promotion_trials = {}    # {(job_id, from_rank): True} — trial completed
 default job_title       = None   # display, e.g. "Junior Dev - The Hub"
 default job_next        = ""     # promotion requirement hint
 default job_schedule    = ""     # e.g. "Mon-Fri 09-17"
@@ -116,23 +118,50 @@ init python:
     def spend_time(hours):
         store.hour += hours
         for need, rate in DECAY.items():
+            if need == "need_hunger" and store.skill_cook >= 3:
+                rate *= 0.8   # Meal Prep perk: hunger drains 20% slower
             old = getattr(store, need)
             new = max(0, old - int(round(hours * rate)))
             setattr(store, need, new)
             _push_drain(need, new - old)
-        if store.need_hygiene < 40:
-            drop = hours * (4 if store.need_hygiene < 20 else 2)
-            store.stat_app = max(5, store.stat_app - int(round(drop)))
+        # hygiene debuff is temporary — see eff_app(); no permanent stat damage
 
     def new_day():
         store.day  += 1
         store.hour  = DAY_START + 1.0   # wake up 8 AM
-        # sleeping refills energy; you wake a little hungry / rumpled
-        store.need_energy  = 100 if store.own_bed else 95   # better bed = fuller rest
+        base_energy = 100 if store.own_bed else 95
+        if store.skill_fit >= 4:   # Metabolic Engine perk: sleep recovery +15%
+            base_energy = min(100, int(base_energy * 1.15))
+        store.need_energy  = base_energy
         store.need_hunger  = max(0, store.need_hunger  - 15)
         store.need_hygiene = max(0, store.need_hygiene - 10)
         store.warned_today = False
-        stocks_step()   # each stock moves independently overnight (see stocks.rpy)
+        # topic streak: increment for topics used today, decay unused ones
+        for npc_id, used in store._topics_today.items():
+            streak = dict(store._topic_streak.get(npc_id, {}))
+            for t in used:
+                streak[t] = streak.get(t, 0) + 1
+            for t in list(streak):
+                if t not in used and streak[t] > 0:
+                    streak[t] -= 1
+            store._topic_streak[npc_id] = streak
+        store._topics_today = {}
+        stocks_step()
+        # Monday auto-deduction: rent + car maintenance
+        if store.day % 7 == 0:
+            RENT = {1: 100, 2: 250, 3: 600}
+            gain_money(-RENT.get(store.apartment_tier, 100))
+            if store.car_tier > 0:
+                gain_money(-(store.car_tier * 40))
+
+    def eff_app():
+        """Effective Appearance: stat_app minus a temporary hygiene debuff."""
+        h = store.need_hygiene
+        if h >= 60: debuff = 0
+        elif h >= 40: debuff = 5
+        elif h >= 20: debuff = 12
+        else: debuff = 22
+        return max(0, store.stat_app - debuff)
 
     def worn_out():
         # performance penalty zone: shift quality suffers but work still possible
@@ -155,13 +184,7 @@ init python:
         return "Nobody (yet)"
 
     def affection_cap():
-        # how far ANY relationship can climb, gated by your status. Raise status
-        # to lift the ceiling, then keep courting.
-        s = status_score()
-        if s >= 60: return 100
-        if s >= 40: return 75
-        if s >= 20: return 50
-        return 25
+        return 100   # no stat gate; story_gate flags on NPC_DATA control access instead
 
     def home_bg():
         tier = store.apartment_tier

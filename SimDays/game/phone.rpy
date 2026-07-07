@@ -14,6 +14,10 @@ init python:
             store.need_hunger = min(100, store.need_hunger + 40)
 
 
+transform _phone_in():
+    yoffset 700 alpha 0.0
+    easein 0.28 yoffset 0 alpha 1.0
+
 screen phone_home():
     modal True
     add "#000000aa"
@@ -23,6 +27,7 @@ screen phone_home():
     # phone.png (1024x1536) displayed at 460x690, bottom-right corner
     # screen area inside bezel: ~x=96-364, y=88-640 at display scale
     fixed:
+        at _phone_in
         xpos 1460
         ypos 390
         xysize (460, 690)

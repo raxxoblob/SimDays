@@ -13,6 +13,8 @@ transform act_item:
         linear 0.12 zoom 1.0 xoffset 0
     on hover:
         linear 0.12 zoom 1.03 xoffset 8   # nudges right on hover for a subtle lift
+    on insensitive:
+        zoom 1.0 xoffset 0
 
 screen activity(items):
     # left column, ~19% of a 1920 screen; height grows with item count.
@@ -29,15 +31,18 @@ screen activity(items):
                 if i.action is not None:
                     button:
                         action i.action
+                        sensitive i.sensitive
                         xysize (360, 72)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        insensitive_background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         at act_item
                         text i.caption:
                             font ACT_FONT
                             size 20
                             color "#cfe0f5"
                             hover_color "#ffffff"
+                            insensitive_color "#4e606e"
                             xpos 30
                             xsize 300
                             yalign 0.5

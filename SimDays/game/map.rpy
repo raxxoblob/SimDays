@@ -76,9 +76,18 @@ init python:
         "nightclub":   (21, 27),
         "garage":      (9, 19),
         "restaurant_eleven": (16, 27),   # kitchen runs evenings
+        "flea_market": (9, 18),           # Sat-Sun only
     }
 
+    _WEEKDAY_ONLY = {"office_exec", "university"}  # closed Sat-Sun (day%7 >= 5)
+    _WEEKEND_ONLY = {"flea_market"}                # closed Mon-Fri (day%7 < 5)
+
     def venue_open(key):
+        wd = store.day % 7   # 0=Mon…4=Fri, 5=Sat, 6=Sun
+        if key in _WEEKDAY_ONLY and wd >= 5:
+            return False
+        if key in _WEEKEND_ONLY and wd < 5:
+            return False
         o, c = VENUE_HOURS.get(key, (0, 27))
         return o <= store.hour < c
 
@@ -98,9 +107,9 @@ screen hallway_hub():
         hbox:
             spacing 40
             for icon, caption, target, need in [
-                ("door_12", "Your Place", "location_home",  True),
-                ("door_14", "Marcus (14)", "marcus_talk",    marcus_met and npc_here("marcus")),
-                ("metro",   "Metro → City", "map",      True),
+                ("apartment_ext",   "Your Place",   "location_home",  True),
+                ("apartment_block", "Marcus (14)",  "marcus_talk",    marcus_met and npc_here("marcus")),
+                ("metro",           "Metro → City", "map",            True),
             ]:
                 if need:
                     vbox:
@@ -140,6 +149,23 @@ screen centrum_hub():
                     else:
                         text label xalign 0.5 size 15 color "#7a8aa0"
                         text venue_hours_str(icon) xalign 0.5 size 12 color "#7a8aa0"
+            # Weekend bonus venue: flea market (Sat-Sun only, appears in the bar)
+            if (day % 7) >= 5:
+                $ _fmopen = (9 <= hour < 18)
+                vbox:
+                    xsize 132
+                    spacing 4
+                    imagebutton:
+                        xalign 0.5
+                        sensitive _fmopen
+                        idle  Transform("images/ui/icons/icon_mall.png", size=(108, 108), alpha=(1.0 if _fmopen else 0.32))
+                        hover Transform("images/ui/icons/icon_mall.png", size=(120, 120))
+                        action Jump("location_flea_market")
+                    if _fmopen:
+                        text "Flea Market" xalign 0.5 size 16 color "#ffffff"
+                    else:
+                        text "Flea Market" xalign 0.5 size 15 color "#7a8aa0"
+                        text "09:00-18:00" xalign 0.5 size 12 color "#7a8aa0"
             vbox:
                 xsize 132
                 spacing 4

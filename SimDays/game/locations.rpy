@@ -45,53 +45,32 @@ label location_home_cook:
     scene expression home_bg()
     show screen hud
     menu (screen="activity"):
-        "Toast ($2, +15 hunger)":
-            if money < 2:
-                "Not enough for even this. Pick up groceries on your phone."
-                jump location_home_cook
+        "Toast ($2, +15 hunger)" (sensitive (money >= 2)):
             $ spend_time(0.25)
             $ gain_money(-2)
             $ need_hunger = min(100, need_hunger + 15)
             "Two slices of toast. Better than nothing."
             jump location_home_actions
-        "Instant noodles ($3, +22 hunger)":
-            if money < 3:
-                "No noodles in the cupboard."
-                jump location_home_cook
+        "Instant noodles ($3, +22 hunger)" (sensitive (money >= 3)):
             $ spend_time(0.25)
             $ gain_money(-3)
             $ need_hunger = min(100, need_hunger + 22)
             "Straight out of the packet, four minutes. Fine."
             jump location_home_actions
-        "Scrambled eggs ($5, +32 hunger)":
-            if money < 5:
-                "Out of eggs. Get groceries."
-                jump location_home_cook
+        "Scrambled eggs ($5, +32 hunger)" (sensitive (money >= 5)):
             $ spend_time(0.5)
             $ gain_money(-5)
             $ need_hunger = min(100, need_hunger + 32)
             "Oil, heat, three eggs. You feel a bit more human."
             jump location_home_actions
-        "Pasta bolognese ($8, +55 hunger) [[Cooking Lv 2]]":
-            if skill_cook < 2:
-                "Not there yet - the sauce would be embarrassing. Raise your Cooking skill first."
-                jump location_home_cook
-            if money < 8:
-                "You'd need $8 of groceries for this one."
-                jump location_home_cook
+        "Pasta bolognese ($8, +55 hunger) [[Cooking Lv 2]]" (sensitive (skill_cook >= 2 and money >= 8)):
             $ spend_time(0.5)
             $ gain_money(-8)
             $ need_hunger = min(100, need_hunger + 55)
             $ gain_skill("cook", 2)
             "Proper sauce, actual garlic. Getting the hang of this."
             jump location_home_actions
-        "Chicken stir-fry ($10, +65 hunger, +8 energy) [[Cooking Lv 4]]":
-            if skill_cook < 4:
-                "High heat, precise timing - you'd ruin it. Cooking Lv 4 needed."
-                jump location_home_cook
-            if money < 10:
-                "Not enough for the ingredients right now."
-                jump location_home_cook
+        "Chicken stir-fry ($10, +65 hunger, +8 energy) [[Cooking Lv 4]]" (sensitive (skill_cook >= 4 and money >= 10)):
             $ spend_time(0.75)
             $ gain_money(-10)
             $ need_hunger = min(100, need_hunger + 65)
@@ -99,13 +78,7 @@ label location_home_cook:
             $ gain_skill("cook", 2)
             "Fast, hot, loud. A proper meal - you feel it in the energy too."
             jump location_home_actions
-        "Sunday roast ($18, +80 hunger, +15 energy) [[Cooking Lv 7]]":
-            if skill_cook < 7:
-                "This takes real skill and a whole afternoon. Cooking Lv 7 needed."
-                jump location_home_cook
-            if money < 18:
-                "You'd need $18 for a proper roast's worth of ingredients."
-                jump location_home_cook
+        "Sunday roast ($18, +80 hunger, +15 energy) [[Cooking Lv 7]]" (sensitive (skill_cook >= 7 and money >= 18)):
             $ spend_time(1.0)
             $ gain_money(-18)
             $ need_hunger = min(100, need_hunger + 80)
@@ -124,6 +97,7 @@ label use_computer:
         "Practice coding (3h)":
             $ spend_time(3)
             $ gain_skill("prog", 3)
+            $ need_energy = max(0, need_energy - 15)
             "Three hours deep in a side project. The docs finally click."
             jump use_computer
         "Trade stocks":
@@ -138,6 +112,7 @@ label use_computer:
 
 # ── CAFE ──────────────────────────────────────────────────────────────
 label location_cafe:
+    $ current_loc = "location_cafe"
     if not venue_open("coffee_shop"):
         "The café is closed. Come back between 07:00–19:00."
         jump take_metro
@@ -181,6 +156,8 @@ label cafe_actions:
     show screen hud
     if npc_talkable("nora"):
         show nora_cafe_normal as npcsprite at sprite_r
+    elif npc_talkable("elle"):
+        show elle_sundress_normal as npcsprite at sprite_r
 
     menu (screen="activity"):
         "Buy a coffee ($3, 0.5h)":
@@ -192,6 +169,10 @@ label cafe_actions:
 
         "Talk to Nora" if npc_talkable("nora"):
             call npc_interact("nora")
+            jump cafe_actions
+
+        "Talk to Elle" if npc_talkable("elle"):
+            call npc_interact("elle")
             jump cafe_actions
 
         "Work a shift - Barista (4h)":
@@ -209,6 +190,7 @@ label cafe_work_shift:
     show screen hud
     $ spend_time(4)
     $ gain_money(60)
+    $ need_energy = max(0, need_energy - 20)
     "Four hours of steaming milk and small talk. You pocket $60."
     if npc_here("nora"):
         show nora_cafe_normal at sprite_r
@@ -222,6 +204,7 @@ label cafe_work_shift:
 
 # ── GYM ───────────────────────────────────────────────────────────────
 label location_gym:
+    $ current_loc = "location_gym"
     if not venue_open("gym"):
         "The gym is closed for the night."
         jump take_metro
@@ -229,7 +212,17 @@ label location_gym:
     $ activity_exit_name = "Downtown"
     scene gymdaypeople
     show screen hud
+    if npc_talkable("kai"):
+        show kai_normal as npcsprite at sprite_r
+    elif npc_talkable("sam"):
+        show sam_normal as npcsprite at sprite_r
     menu (screen="activity"):
+        "Talk to Kai" if npc_talkable("kai"):
+            call npc_interact("kai")
+            jump location_gym
+        "Talk to Sam" if npc_talkable("sam") and not npc_talkable("kai"):
+            call npc_interact("sam")
+            jump location_gym
         "Train - weights (1.5h)":
             if too_tired():
                 "You're too wiped out to lift anything worth lifting. Sleep first."
@@ -256,6 +249,7 @@ label location_gym:
 
 # ── LIBRARY ───────────────────────────────────────────────────────────
 label location_library:
+    $ current_loc = "location_library"
     if not venue_open("library"):
         "The library is closing. Time to head out."
         jump take_metro
@@ -282,22 +276,22 @@ label location_library:
                 "What are you working through?"
                 "Medicine":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 10)
+                    $ need_energy = max(0, need_energy - 18)
                     $ gain_skill("med", 1)
                     "Dense textbooks, clinical notes. Slower than a real course, but it sticks."
                 "Programming":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 10)
+                    $ need_energy = max(0, need_energy - 18)
                     $ gain_skill("prog", 1)
                     "Tutorials, docs, Stack Overflow rabbit holes. You get somewhere."
                 "Business":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 10)
+                    $ need_energy = max(0, need_energy - 18)
                     $ gain_skill("biz", 1)
                     "Case studies and frameworks. Dry but useful."
                 "Art":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 10)
+                    $ need_energy = max(0, need_energy - 18)
                     $ gain_skill("art", 1)
                     "Theory, references, sketching. You can feel the improvement in small ways."
             jump location_library
@@ -307,10 +301,21 @@ label location_library:
 
 # ── BAR ───────────────────────────────────────────────────────────────
 label location_bar:
+    $ current_loc = "location_bar"
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene bar
     show screen hud
+    if npc_talkable("marcus"):
+        show marcus_casual_normal as npcsprite at sprite_r
+    elif npc_talkable("eli"):
+        show eli_normal as npcsprite at sprite_r
+    elif npc_here("lena"):
+        show drlena_normal as npcsprite at sprite_r
+    elif npc_talkable("natalie"):
+        show natalie_normal as npcsprite at sprite_r
+    elif npc_talkable("martha"):
+        show martha_neutral as npcsprite at sprite_r
     menu (screen="activity"):
         "Have a drink ($8, 0.5h)":
             $ spend_time(0.5)
@@ -325,24 +330,41 @@ label location_bar:
             else:
                 "You hover near a few groups but can't quite break in. Maybe with a bit more charm."
             jump location_bar
+        "Talk to Marcus" if npc_talkable("marcus"):
+            call npc_interact("marcus")
+            jump location_bar
+        "Talk to Eli" if npc_talkable("eli"):
+            call npc_interact("eli")
+            jump location_bar
+        "Talk to Dr. Lena" if npc_talkable("lena"):
+            call npc_interact("lena")
+            jump location_bar
+        "Talk to Natalie" if npc_talkable("natalie"):
+            call npc_interact("natalie")
+            jump location_bar
+        "Talk to Martha" if npc_talkable("martha"):
+            call npc_interact("martha")
+            jump location_bar
 
 # ── OFFICE ────────────────────────────────────────────────────────────
 label location_office:
+    $ current_loc = "location_office"
     if not venue_open("office_exec"):
-        "Nexus Tower is locked up for the night."
+        if day % 7 >= 5:
+            "Nexus Tower is dark on weekends. The corporate world takes Saturdays off."
+        else:
+            "Nexus Tower is locked up for the night."
         jump take_metro
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene goodoffice1
     show screen hud
     menu (screen="activity"):
-        "Work a shift (8h)" if stat_int >= 20:
-            if hour + 8 > DAY_END:
-                "Too late to start a full shift today."
-                jump location_office
+        "Work a shift (8h)" (sensitive (stat_int >= 20 and hour + 8 <= DAY_END)) if stat_int >= 20:
             $ spend_time(8)
             $ gain_money(120)
             $ gain_stat("int", 1)
+            $ need_energy = max(0, need_energy - 35)
             if not caroline_met:
                 $ caroline_met = True
                 $ martha_met = True
@@ -443,13 +465,37 @@ label location_shop_gifts:
                 $ jewelry_tier += 1
                 "A tasteful piece that quietly says you've arrived."
             jump location_shop_gifts
-        "Buy a gift ($40)":
-            if money < 40:
+        "Buy a book ($20)":
+            if money < 20:
                 "Not enough money."
             else:
-                $ gain_money(-40)
-                $ gift_count += 1
-                "A nicely wrapped little something. Give it to someone you're getting to know."
+                $ gain_money(-20)
+                $ gifts["book"] += 1
+                "A well-chosen paperback. Thoughtful and personal."
+            jump location_shop_gifts
+        "Buy sweets ($15)":
+            if money < 15:
+                "Not enough money."
+            else:
+                $ gain_money(-15)
+                $ gifts["sweets"] += 1
+                "A box of good chocolates. Hard to go wrong."
+            jump location_shop_gifts
+        "Buy a gadget ($35)":
+            if money < 35:
+                "Not enough money."
+            else:
+                $ gain_money(-35)
+                $ gifts["gadget"] += 1
+                "A small tech gift. Practical and a little flashy."
+            jump location_shop_gifts
+        "Buy flowers ($25)":
+            if money < 25:
+                "Not enough money."
+            else:
+                $ gain_money(-25)
+                $ gifts["flowers"] += 1
+                "A fresh bouquet. Classic for a reason."
             jump location_shop_gifts
 
 # ── CAR DEALER (status via car_tier) ──────────────────────────────────
@@ -533,37 +579,94 @@ label location_kitchen:
 
 # ── NIGHTCLUB ─────────────────────────────────────────────────────────
 label location_nightclub:
+    $ current_loc = "location_nightclub"
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene nightclub
     show screen hud
+    if npc_talkable("zoe"):
+        show zoe_punk_smile as npcsprite at sprite_r
+    elif npc_talkable("kai"):
+        show kai_normal as npcsprite at sprite_r
     menu (screen="activity"):
+        "Talk to Zoe" if npc_talkable("zoe"):
+            call npc_interact("zoe")
+            jump location_nightclub
+        "Talk to Kai" if npc_talkable("kai") and not npc_talkable("zoe"):
+            call npc_interact("kai")
+            jump location_nightclub
         "Hit the dance floor (1h)":
             $ spend_time(1)
             $ need_energy = max(0, need_energy - 10)
             "You lose an hour to the beat. Worth it."
             jump location_nightclub
-        "Work the crowd (1h)":
-            if stat_chr >= 30:
-                $ spend_time(1)
-                $ gain_stat("chr", 2)
-                "You move room to room, easy and loud. A few new contacts."
-            else:
-                "The in-crowd closes ranks. You can't quite break in yet - not smooth enough."
+        "Work the crowd (1h) [[CHR 30]]" (sensitive (stat_chr >= 30)):
+            $ spend_time(1)
+            $ gain_stat("chr", 2)
+            "You move room to room, easy and loud. A few new contacts."
             jump location_nightclub
-        "Buy a round ($15)":
+        "Buy a round ($15)" (sensitive (money >= 15)):
             $ spend_time(0.5)
             $ gain_money(-15)
             "Drinks all around. Cheap way to be popular for ten minutes."
             jump location_nightclub
+        "DJ night - dance floor (1h) [[Fri-Sun]]" (sensitive (day % 7 >= 4)):
+            $ spend_time(1)
+            $ gain_stat("chr", 1)
+            $ need_energy = max(0, need_energy - 15)
+            "The DJ pushes the crowd up. You lose yourself in it — when you surface you're grinning."
+            jump location_nightclub
+        "VIP section ($50, +CHR) [[Fri-Sun]]" (sensitive (day % 7 >= 4 and money >= 50)):
+            $ spend_time(0.5)
+            $ gain_money(-50)
+            $ gain_stat("chr", 2)
+            "The bouncer waves you past the red rope. Different league in here."
+            jump location_nightclub
+
+# ── FLEA MARKET (weekend Sat-Sun 09-18) ──────────────────────────────
+label location_flea_market:
+    $ current_loc = "location_flea_market"
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
+    scene mallday  # ponytail: placeholder bg — wants flea_market_day (see to_generate/locations.md)
+    show screen hud
+    menu (screen="activity"):
+        "Browse stalls (1h)":
+            $ spend_time(1)
+            $ gain_stat("chr", 1)
+            if renpy.random.random() < 0.2:
+                "You end up in a long chat with a vendor who turns out to know everyone. Useful."
+            else:
+                "A lap around the stalls. Easy crowd, easy conversation."
+            jump location_flea_market
+        "Buy a vintage piece ($25, +APP)" (sensitive (money >= 25)):
+            $ spend_time(0.5)
+            $ gain_money(-25)
+            $ gain_stat("app", 2)
+            "A score — your eye for style is sharpening."
+            jump location_flea_market
+        "Buy a book ($12, +INT)" (sensitive (money >= 12)):
+            $ spend_time(0.5)
+            $ gain_money(-12)
+            $ gain_stat("int", 1)
+            "A dog-eared paperback from a half-collapsed box. You'll read it tonight."
+            jump location_flea_market
+        "Haggle with vendors (1h)":
+            $ spend_time(1)
+            $ gain_stat("chr", 1)
+            "Back and forth over prices. Good practice in reading people."
+            jump location_flea_market
 
 # ── PARK ──────────────────────────────────────────────────────────────
 label location_park:
+    $ current_loc = "location_park"
     $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    if npc_talkable("zoe"):
+    if npc_talkable("marcus"):
+        show marcus_casual_normal as npcsprite at sprite_r
+    elif npc_talkable("zoe"):
         show zoe_punk_smile as npcsprite at sprite_r
     elif npc_talkable("sam"):
         show sam_normal as npcsprite at sprite_r
@@ -585,7 +688,10 @@ label location_park:
             $ gain_stat("str", 2)
             "A pickup game on the court. Sweaty, competitive, good."
             jump location_park
-        "Talk to Zoe" if npc_talkable("zoe"):
+        "Talk to Marcus" if npc_talkable("marcus"):
+            call npc_interact("marcus")
+            jump location_park
+        "Talk to Zoe" if npc_talkable("zoe") and not npc_talkable("marcus"):
             call npc_interact("zoe")
             jump location_park
         "Talk to Sam" if npc_talkable("sam"):
@@ -594,6 +700,7 @@ label location_park:
 
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
+    $ current_loc = "location_beach"
     $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
     scene expression ("beachnight" if hour >= 19 else "beachday")
@@ -604,6 +711,8 @@ label location_beach:
         jump elle_pier_scene
     if npc_talkable("elle"):
         show elle_sundress_normal as npcsprite at sprite_r
+    elif npc_talkable("zoe"):
+        show zoe_punk_smile as npcsprite at sprite_r
     elif npc_talkable("kai"):
         show kai_normal as npcsprite at sprite_r
     menu (screen="activity"):
@@ -614,6 +723,9 @@ label location_beach:
             jump location_beach
         "Talk to Elle" if npc_talkable("elle"):
             call npc_interact("elle")
+            jump location_beach
+        "Talk to Zoe" if npc_talkable("zoe"):
+            call npc_interact("zoe")
             jump location_beach
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
@@ -783,6 +895,7 @@ label location_centrum:
 
 # ── WAREHOUSE ─────────────────────────────────────────────────────────
 label location_warehouse:
+    $ current_loc = "location_warehouse"
     $ activity_exit_jump = "take_metro"
     $ activity_exit_name = "City Map"
     scene warehouse
@@ -790,19 +903,17 @@ label location_warehouse:
     if npc_talkable("natalie"):
         show natalie_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "Work a shift (8h)" if stat_str >= 25:
-            if hour + 8 > DAY_END:
-                "Too late to start a full shift today."
-                jump location_warehouse
-            if too_tired():
-                "Too exhausted to haul anything safely. Natalie would send you home. Sleep first."
-                jump location_warehouse
+        "Work a shift (8h)" (sensitive (stat_str >= 25 and hour + 8 <= DAY_END and not too_tired())) if stat_str >= 25:
             scene pov_warehouse
             show screen hud
+            $ _is_sun = (day % 7 == 6)
             $ spend_time(8)
-            $ gain_money(110)
+            $ gain_money(220 if _is_sun else 110)
             $ gain_stat("str", 2)
-            if not natalie_met:
+            $ need_energy = max(0, need_energy - (80 if _is_sun else 40))
+            if _is_sun:
+                "Sunday overtime. Double pay, double grind - Natalie's words. Your back will remind you tomorrow."
+            elif not natalie_met:
                 $ natalie_met = True
                 "Eight hours of hauling. At clock-out the floor manager, Natalie, sizes you up: \"Not useless. I'm Natalie. Don't make me remember your name for the wrong reasons.\""
             else:
@@ -819,6 +930,7 @@ label location_warehouse:
 
 # ── HOSPITAL ──────────────────────────────────────────────────────────
 label location_hospital:
+    $ current_loc = "location_hospital"
     $ activity_exit_jump = "take_metro"
     $ activity_exit_name = "City Map"
     scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
@@ -837,13 +949,7 @@ label location_hospital:
             jump location_hospital
 
         # Medicine career (shares the engine + CAREERS["hospital"]).
-        "Work a shift (8h)" if job_id == "hospital":
-            if hour + 8 > DAY_END:
-                "Too late to start a full shift today."
-                jump location_hospital
-            if too_tired():
-                "You can't work a medical shift this drained - patient safety. Sleep first."
-                jump location_hospital
+        "Work a shift (8h)" (sensitive (hour + 8 <= DAY_END and not too_tired())) if job_id == "hospital":
             scene pov_doctor
             show screen hud
             $ _tired = do_shift("hospital", 8)
@@ -855,14 +961,19 @@ label location_hospital:
                 jump lena_rooftop_scene
             jump location_hospital
 
-        "Ask about a promotion" if job_id == "hospital" and job_performance >= 100:
-            if promote():
-                "Dr. Grant signs off with a rare nod. \"Don't make me regret it.\" Promoted."
-                if job_rank >= 1 and not lena_met:
-                    $ lena_met = True
-                    "A doctor mid-coffee catches you in the hall. \"Fresh resident? I'm Lena. You'll live. Probably.\" You've got a colleague now."
+        "Ask about a promotion" if job_id == "hospital" and can_promote():
+            $ _trial = cur_rank().get("trial")
+            $ _trial_done = store.promotion_trials.get(("hospital", job_rank), False)
+            if _trial and not _trial_done:
+                call hospital_trial_resident
             else:
-                "\"Not yet. Get the skills and the hours in first.\""
+                if promote():
+                    "You're handed a new badge. The attending smiles. \"Welcome to residency.\""
+                    if job_rank >= 1 and not lena_met:
+                        $ lena_met = True
+                        "A doctor mid-coffee catches you in the hall. \"Fresh resident? I'm Lena. You'll live. Probably.\" You've got a colleague now."
+                else:
+                    "\"Not quite there. Keep at it.\""
             jump location_hospital
 
         "Drop off your CV" if job_id is None:
@@ -888,6 +999,7 @@ label location_hospital:
 
 # ── THE HUB (IT career) ───────────────────────────────────────────────
 label location_hub:
+    $ current_loc = "location_hub"
     if not venue_open("hub"):
         "The Hub is shut. Back at 08:00."
         jump take_metro
@@ -897,7 +1009,8 @@ label location_hub:
     show screen hud
     menu (screen="activity"):
         "Work a shift (8h)" if job_id == "it":
-            if hour + 8 > DAY_END:
+            $ _it_h = 6 if skill_prog >= 5 else 8
+            if hour + _it_h > DAY_END:
                 "Too late to start a full shift today."
                 jump location_hub
             if too_tired():
@@ -905,18 +1018,23 @@ label location_hub:
                 jump location_hub
             scene hub_pov
             show screen hud
-            $ _tired = do_shift("it", 8)
+            $ _tired = do_shift("it", _it_h)
             if _tired:
-                "Running on fumes, you ship bugs and miss the standup. Your lead notices. Performance took a hit."
+                "Running on fumes, you ship bugs and miss the standup. At least the commit went through."
             else:
                 "Headphones on, heads down. A good day's work shipped."
             jump location_hub
 
-        "Ask about a promotion" if job_id == "it" and job_performance >= 100:
-            if promote():
-                "Your lead grins. \"Earned it.\" New title, better pay, higher bar."
+        "Ask about a promotion" if job_id == "it" and can_promote():
+            $ _trial = cur_rank().get("trial")
+            $ _trial_done = store.promotion_trials.get(("it", job_rank), False)
+            if _trial and not _trial_done:
+                call it_trial_team_lead
             else:
-                "\"Strong quarter - but you need the skills for the next rung first.\""
+                if promote():
+                    "Your lead grins. \"Earned it.\" New title, better pay, higher bar."
+                else:
+                    "\"Strong quarter - but you need the skills for the next rung first.\""
             jump location_hub
 
         "Apply for a dev role" if job_id is None:
@@ -935,24 +1053,32 @@ label location_hub:
 
 # ── CITY COLLEGE (learn professional skills) ──────────────────────────
 label location_college:
+    $ current_loc = "location_college"
     if not venue_open("university"):
-        "The college is closed for the day. Back at 08:00."
+        if day % 7 >= 5:
+            "The college is closed on weekends. Back Monday at 08:00."
+        else:
+            "The college is closed for the day. Back at 08:00."
         jump take_metro
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene college_day
     show screen hud
+    $ _prog_cost = 50 + skill_prog * 20
+    $ _med_cost  = 50 + skill_med  * 20
+    $ _biz_cost  = 50 + skill_biz  * 20
+    $ _art_cost  = 50 + skill_art  * 20
     menu (screen="activity"):
-        "Programming course":
+        "Programming  $[_prog_cost]  /  3h  /  -22 energy" (sensitive (money >= _prog_cost and not too_tired() and skill_prog < 10)):
             call college_course("prog")
             jump location_college
-        "Medicine course":
+        "Medicine  $[_med_cost]  /  3h  /  -22 energy" (sensitive (money >= _med_cost and not too_tired() and skill_med < 10)):
             call college_course("med")
             jump location_college
-        "Business course":
+        "Business  $[_biz_cost]  /  3h  /  -22 energy" (sensitive (money >= _biz_cost and not too_tired() and skill_biz < 10)):
             call college_course("biz")
             jump location_college
-        "Art course":
+        "Art  $[_art_cost]  /  3h  /  -22 energy" (sensitive (money >= _art_cost and not too_tired() and skill_art < 10)):
             call college_course("art")
             jump location_college
 
@@ -1026,8 +1152,10 @@ label check_collapse:
     return
 
 label take_metro:
-    $ spend_time(0.5)
-    "You take the metro. Thirty minutes of city views."
+    if car_tier > 0:
+        jump map
+    $ spend_time(0.25)
+    "You take the metro. Fifteen minutes."
     jump map
 
 # ── MAP ────────────────────────────────────────────────────────────────
@@ -1229,3 +1357,61 @@ label lena_rooftop_scene:
     lena "It helps. Having someone up here who gets it."
     "You take the stairs down and head for the metro."
     jump take_metro
+
+
+# ── IT TRIAL: Server crisis at 2am ────────────────────────────────────
+label it_trial_team_lead:
+    scene hub_night
+    show screen hud
+    "2:47 AM. Your phone won't stop."
+    "Slack: @channel — prod is down. Revenue dropping $800/minute."
+    "Your lead is overseas. You're the most senior person awake."
+    menu:
+        "Dig into the logs carefully":
+            if stat_int >= 55 or skill_prog >= 4:
+                "You comb through stack traces. There — a botched migration."
+                "Three commands. Patch, redeploy, monitor. 4:12 AM: green."
+                $ store.promotion_trials[("it", store.job_rank)] = True
+                $ promote()
+                $ gain_stat("int", 2)
+                "Monday morning the CEO sends a Slack. Your name is in it."
+                "Your lead calls. \"Team Lead. Effective today.\""
+            else:
+                "Too much to parse. You guess wrong. The rollback takes down two other services."
+                $ store.job_performance = 80
+                "\"You almost had it. Come back sharper.\""
+        "Roll back the last deploy immediately":
+            "Wrong call — the rollback cascades and takes down two other services."
+            $ store.job_performance = 80
+            "Morning comes with a very quiet Slack. \"You almost had it. A few more days.\""
+    return
+
+
+# ── HOSPITAL TRIAL: Difficult case with Dr. Lena ──────────────────────
+label hospital_trial_resident:
+    scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
+    show screen hud
+    show drlena_normal at sprite_r
+    lena "Complicated presentation. No one agrees on the diagnosis. I need a second pair of eyes."
+    lena "What does the blood panel tell you — first instinct?"
+    menu:
+        "Read the inflammation markers carefully":
+            if stat_int >= 45 or skill_med >= 3:
+                lena "...That's the right thread. Most residents miss it."
+                "You work through the night. The patient stabilizes before dawn."
+                lena "I put your name on the case report."
+                $ store.promotion_trials[("hospital", store.job_rank)] = True
+                $ setattr(store, "lena_trust", min(100, store.lena_trust + 12))
+                $ promote()
+                $ gain_stat("int", 1)
+                "Board approval comes that afternoon. Resident. Finally."
+            else:
+                lena "We need someone who can commit to a diagnosis. Come back sharper."
+                $ store.job_performance = 80
+                "A week later: \"When you're ready.\""
+        "Admit you'd need more tests first":
+            lena "That's honest. But in a crisis I need decisiveness. Go home. Rest."
+            $ store.job_performance = 80
+            "You leave before sunrise."
+    hide drlena_normal
+    return

@@ -60,7 +60,7 @@ init python:
         "hospital": {
             "name": "Medicine - City Hospital", "location": "location_hospital",
             "ranks": [
-                {"title": "Med Student",       "req": {"skill_med": 3, "stat_int": 30},                        "pay": 45,  "hours": "Mon-Fri 08-16", "flex": False},
+                {"title": "Med Student",       "req": {"skill_med": 3, "stat_int": 30},                        "pay": 45,  "hours": "Mon-Fri 08-16", "flex": False, "trial": "hospital_trial_resident"},
                 {"title": "Resident",          "req": {"skill_med": 5, "stat_int": 45},                        "pay": 100, "hours": "long shifts",   "flex": False},
                 {"title": "Doctor",            "req": {"skill_med": 7, "stat_int": 58},                        "pay": 175, "hours": "shifts",        "flex": False},
                 {"title": "Attending",         "req": {"skill_med": 8, "stat_int": 68, "stat_chr": 45},        "pay": 260, "hours": "mostly set",    "flex": False},
@@ -72,7 +72,7 @@ init python:
             "ranks": [
                 {"title": "Junior Dev",   "req": {"skill_prog": 2, "stat_int": 35},               "pay": 70,  "hours": "Mon-Fri 09-17", "flex": False},
                 {"title": "Mid Dev",      "req": {"skill_prog": 3, "stat_int": 40},               "pay": 120, "hours": "Mon-Fri 09-17", "flex": False},
-                {"title": "Senior Dev",   "req": {"skill_prog": 5, "stat_int": 55, "stat_chr": 25}, "pay": 190, "hours": "some leeway",  "flex": False},
+                {"title": "Senior Dev",   "req": {"skill_prog": 5, "stat_int": 55, "stat_chr": 25}, "pay": 190, "hours": "some leeway",  "flex": False, "trial": "it_trial_team_lead"},
                 {"title": "Team Lead",    "req": {"skill_prog": 7, "stat_int": 65, "stat_chr": 40}, "pay": 260, "hours": "mostly flex",  "flex": True},
                 {"title": "Eng. Manager", "req": {"skill_prog": 8, "stat_int": 75, "stat_chr": 55}, "pay": 340, "hours": "flexible",     "flex": True},
             ],
@@ -115,7 +115,11 @@ init python:
     }
 
     def meets_req(req):
-        return all(getattr(store, k, 0) >= v for k, v in req.items())
+        for k, v in req.items():
+            val = eff_app() if k == "stat_app" else getattr(store, k, 0)
+            if val < v:
+                return False
+        return True
 
     # ── Job engine ─────────────────────────────────────────────────────
     # Which stats/skills a shift slowly trains: (kind, key, chance).
@@ -159,12 +163,11 @@ init python:
         r = CAREERS[cid]["ranks"][store.job_rank]
         spend_time(hours)
         gain_money(r["pay"])
-        # Show up wrecked and you actually LOSE ground; rested, you climb.
+        store.need_energy = max(0, store.need_energy - int(hours * 5))
         low = worn_out()
-        if low:
-            store.job_performance = max(0, store.job_performance - 6)
-        else:
-            store.job_performance = min(100, store.job_performance + 13)
+        # worn_out blocks critical successes only — base progress still earned
+        store.job_performance = min(100, store.job_performance + 13)
+        if not low:
             for kind, key, chance in CAREER_TRAIN.get(cid, []):
                 if renpy.random.random() < chance:
                     if kind == "stat": gain_stat(key, 1)
@@ -193,6 +196,7 @@ init python:
         spend_time(3)
         gain_money(-cost)
         gain_skill(key, 6)
+        store.need_energy = max(0, store.need_energy - 22)
         return "ok"
 
     def next_rank_hint(req):

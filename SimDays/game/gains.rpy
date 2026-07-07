@@ -16,6 +16,8 @@ init python:
     def _push_gain(**g):
         g["t"] = _time.time()
         g.setdefault("life", 2.6)
+        g["id"] = store._gain_next_id
+        store._gain_next_id += 1
         store._gains.append(g)
         renpy.restart_interaction()
 
@@ -62,7 +64,8 @@ init python:
         _push_gain(kind="drain", text="%d  %s" % (delta, label), color="#e86a55",
                    icon=(icon if (icon and renpy.loadable(icon)) else None), life=1.8)
 
-default _gains = []   # underscore -> excluded from rollback (transient UI)
+default _gains = []
+default _gain_next_id = 0
 
 
 # Slide in from the left, hold, fade out. `life` matches the prune lifetime.
@@ -105,7 +108,7 @@ screen gains_overlay():
         ypos 150
         spacing 10
         for g in _gains:
-            use gain_card(g)
+            use gain_card(g) id g["id"]
 
 init python:
     config.overlay_screens.append("gains_overlay")
