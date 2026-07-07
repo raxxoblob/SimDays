@@ -523,7 +523,8 @@ screen npc_topics(npc_id):
     $ _likes    = NPC_DATA[npc_id].get("likes", [])
     $ _dislikes = NPC_DATA[npc_id].get("dislikes", [])
     frame:
-        xalign 0.5
+        xpos 960
+        xanchor 0.5
         yalign 1.0
         yoffset -26
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
@@ -531,8 +532,7 @@ screen npc_topics(npc_id):
         vbox:
             spacing 14
             hbox:
-                spacing 0
-                xfill True
+                xsize 464
                 text "Talk about..." font ACT_FONT size 20 color "#9fb6d6" xalign 0.0 yalign 0.5
                 textbutton "Back" action Return("back") xalign 1.0 text_font ACT_FONT text_size 17 text_color "#9fb6d6" text_hover_color "#ffffff"
             vpgrid:

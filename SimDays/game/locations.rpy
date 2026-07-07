@@ -976,7 +976,10 @@ label location_warehouse:
     if npc_talkable("natalie"):
         show natalie_normal as npcsprite at sprite_r
     menu (screen="activity"):
-        "Work a shift (8h)" (sensitive (stat_str >= 25 and hour + 8 <= DAY_END and not too_tired())):
+        "Work a shift (8h)" if stat_str >= 25:
+            if too_tired() or hour + 8 > DAY_END:
+                "Too tired or too late to start a shift."
+                jump location_warehouse
             scene pov_warehouse
             show screen hud
             $ _is_sun = (day % 7 == 6)
