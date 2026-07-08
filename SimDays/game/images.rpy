@@ -47,9 +47,17 @@ init python:
     renpy.image("pov_gym_weights",  Transform("images/locations/pov_gym_weights.png",          size=(1920, 1080)))
     renpy.image("gym_cardio",       Transform("images/locations/gym_cardio.png",               size=(1920, 1080)))
 
-    # Nadbrzeze zone + new venues
-    for _pn2 in ["casino_night", "lombard_day", "sandbeach_night", "nadbrzeze_day", "nadbrzeze_night"]:
+    # Nadbrzeze zone + new venues + activity CG backgrounds
+    for _pn2 in ["casino_night", "lombard_day", "sandbeach_night",
+                 "sandbeach_swim_day", "sandbeach_sunbath_day",
+                 "gym_reception",
+                 "college_study",
+                 "park_readbook_day", "park_readbook_night",
+                 "park_jog_day", "park_jog_night",
+                 "library_study_day", "library_study_night"]:
         renpy.image(_pn2, Transform("images/locations/%s.png" % _pn2, size=(1920, 1080)))
+    renpy.image("nadbrzeze_day",   Transform("images/locations/quayside_day.png",   size=(1920, 1080)))
+    renpy.image("nadbrzeze_night", Transform("images/locations/quayside_night.png", size=(1920, 1080)))
 
     # hospital rooftop (Lena scene bg)
     renpy.image("hospital_rooftop_night", Transform("images/locations/hospital_rooftop_night.png", size=(1920, 1080)))

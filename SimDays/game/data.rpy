@@ -101,9 +101,13 @@ default wardrobe_tier = 0
 default jewelry_tier  = 0
 
 # Owned items (Sims-like). Computer comes with the apartment; the rest are bought.
-default own_computer = True   # coding practice, stock trading
-default own_guitar   = False  # music practice
-default own_bed      = False  # better bed: full rest + a quick Nap option
+default own_computer       = True   # coding practice, stock trading
+default own_guitar         = False  # music practice
+default own_bed            = False  # better bed: full rest + a quick Nap option
+default own_book           = False  # readable at home for +INT
+default own_sketchbook     = False  # sketch at home for +art skill
+default own_metal_detector = False  # beach searching mechanic
+default gym_pass_expires   = -1     # game day when gym pass runs out (-1 = no pass)
 # stock market state lives in stocks.rpy
 
 # Finance

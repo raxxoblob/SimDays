@@ -239,6 +239,49 @@ label location_gym:
     $ activity_exit_name = "Downtown"
     scene gymdaypeople
     show screen hud
+    if day >= gym_pass_expires:
+        jump gym_reception
+    jump gym_floor
+
+label gym_reception:
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
+    scene gym_reception
+    show screen hud
+    "The receptionist looks up. \"Pass or day rate?\""
+    menu (screen="activity"):
+        "Week pass ($40)":
+            if money < 40:
+                "Not enough cash."
+                jump gym_reception
+            $ gain_money(-40)
+            $ gym_pass_expires = day + 7
+            "She hands over a card. Seven days, unlimited access."
+            jump gym_floor
+        "Month pass ($120)":
+            if money < 120:
+                "Not enough cash."
+                jump gym_reception
+            $ gain_money(-120)
+            $ gym_pass_expires = day + 30
+            "Better value if you actually show up. She seems mildly sceptical."
+            jump gym_floor
+        "Day rate ($8)":
+            if money < 8:
+                "Not enough cash."
+                jump gym_reception
+            $ gain_money(-8)
+            $ gym_pass_expires = day + 1
+            "One day. Fair enough."
+            jump gym_floor
+        "Not today.":
+            jump location_centrum
+
+label gym_floor:
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "Downtown"
+    scene gymdaypeople
+    show screen hud
     $ _vis = location_sprites()
     if len(_vis) >= 1:
         show expression _vis[0][1] as npcsprite at sprite_r
@@ -247,23 +290,26 @@ label location_gym:
     menu (screen="activity"):
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
-            jump location_gym
+            jump gym_floor
         "Talk to Sam" if npc_talkable("sam"):
             call npc_interact("sam")
-            jump location_gym
+            jump gym_floor
         "Train - weights (1.5h, -15 energy)":
             if too_tired():
                 "You're too exhausted to lift. Get some rest first."
-                jump location_gym
+                jump gym_floor
             $ _sup = "preworkout" if supplements.get("preworkout", 0) > 0 else ("protein" if supplements.get("protein", 0) > 0 else None)
             if _sup:
                 $ supplements[_sup] -= 1
-                $ stat_boost_str = 2.0 if _sup == "preworkout" else 1.5
             scene pov_gym_weights
             show screen hud
             $ spend_time(1.5)
             $ need_energy = max(0, need_energy - 15)
             $ _str_exp = 30 if has_event("gym_trainer") else 20
+            if _sup == "preworkout":
+                $ _str_exp = int(_str_exp * 2.0)
+            elif _sup == "protein":
+                $ _str_exp = int(_str_exp * 1.5)
             $ gain_stat("str", _str_exp)
             $ gain_stat("app", 8)
             if has_event("gym_trainer"):
@@ -274,34 +320,35 @@ label location_gym:
                 "Protein shake in the tank. A clean, productive session."
             else:
                 "A solid session. You can feel it already."
-            jump location_gym
-        "Cardio run (1h, -12 energy)":
+            jump gym_floor
+        "Cardio (1h, -12 energy)":
             if too_tired():
                 "You're too exhausted to run. Rest up first."
-                jump location_gym
+                jump gym_floor
             scene gym_cardio
             show screen hud
             $ spend_time(1)
             $ need_energy = max(0, need_energy - 12)
             $ gain_stat("str", 10)
+            $ gain_stat("app", 4)
             "You run until your lungs complain."
-            jump location_gym
+            jump gym_floor
         "Buy Protein Shake ($12)":
             if money < 12:
                 "Not enough cash."
-                jump location_gym
+                jump gym_floor
             $ gain_money(-12)
             $ supplements["protein"] += 1
             "A vanilla protein powder. Mix with water after training. +50%% STR EXP on the next weights session."
-            jump location_gym
+            jump gym_floor
         "Buy Pre-workout ($20)":
             if money < 20:
                 "Not enough cash."
-                jump location_gym
+                jump gym_floor
             $ gain_money(-20)
             $ supplements["preworkout"] += 1
             "The label is mostly warnings. +100%% STR EXP on the next weights session."
-            jump location_gym
+            jump gym_floor
 
 # ── LIBRARY ───────────────────────────────────────────────────────────
 label location_library:
@@ -320,8 +367,10 @@ label location_library:
             if too_tired():
                 "Too tired to focus. The words blur. Sleep first."
                 jump location_library
+            scene expression ("library_study_night" if hour >= 20 else "library_study_day")
+            show screen hud
             $ spend_time(2)
-            $ gain_stat("int", 15)
+            $ gain_stat("int", 10)
             "Two hours of focused reading. Your brain hurts in a good way."
             jump location_library
         "Self-study a subject (2h, free)":
@@ -790,24 +839,28 @@ label location_park:
         "Join [_group_lbl] →" if _group:
             call group_interact(_group[0], _group[1])
             jump location_park
-        "Morning jog (1h)":
+        "Jog (1h)":
+            scene expression ("park_jog_night" if hour >= 20 else "park_jog_day")
+            show screen hud
             $ spend_time(1)
-            $ gain_stat("str", 16 if has_event("park_weather") else 8)
+            $ gain_stat("str", 8 if has_event("park_weather") else 4)
             if has_event("park_weather"):
                 "Perfect conditions. You hit your stride and don't stop. Best run in weeks."
             else:
                 "The air is crisp. Good start to the day."
             jump location_park
         "Read a book (1.5h)":
+            scene expression ("park_readbook_night" if hour >= 20 else "park_readbook_day")
+            show screen hud
             $ spend_time(1.5)
-            $ gain_stat("int", 8)
+            $ gain_stat("int", 3)
             "A quiet hour on the bench."
             jump location_park
         "Play basketball (1.5h)":
             scene basketball_court_day
             show screen hud
             $ spend_time(1.5)
-            $ gain_stat("str", 12)
+            $ gain_stat("str", 8)
             "A pickup game on the court. Sweaty, competitive, good."
             jump location_park
         "Talk to Marcus" if npc_talkable("marcus"):
@@ -836,21 +889,49 @@ label location_beach:
         show expression _vis[0][1] as npcsprite at sprite_r
     if len(_vis) >= 2:
         show expression _vis[1][1] as npcsprite2 at sprite_l
+    call screen beach_hub
+
+# ── SANDBEACH (waterfront - swimming & sunbathing) ────────────────────
+label location_sandbeach:
+    $ current_loc = "location_sandbeach"
+    $ activity_exit_jump = "location_beach"
+    $ activity_exit_name = "Beach"
+    scene expression ("sandbeach_night" if hour >= 19 else "sandbeach_swim_day")
+    show screen hud
     menu (screen="activity"):
         "Relax (1h)":
             $ spend_time(1)
-            $ need_energy = min(100, need_energy + 10)
-            "The waves and sun do wonders."
-            jump location_beach
+            $ need_energy = min(100, need_energy + 12)
+            "The sound of the waves. The city could be anywhere."
+            jump location_sandbeach
+        "Swim (1h)" if hour < 19:
+            if too_tired():
+                "You're too worn out to swim. Rest first."
+                jump location_sandbeach
+            scene sandbeach_swim_day
+            show screen hud
+            $ spend_time(1)
+            $ need_energy = max(0, need_energy - 8)
+            $ gain_stat("str", 3)
+            "Cold, clear, and exactly what you needed. Your arms are properly tired."
+            jump location_sandbeach
+        "Sunbathe (1.5h)" if hour < 19:
+            scene sandbeach_sunbath_day
+            show screen hud
+            $ spend_time(1.5)
+            $ need_energy = min(100, need_energy + 15)
+            $ gain_stat("app", 1)
+            "Salt air and sun."
+            jump location_sandbeach
         "Talk to Elle" if npc_talkable("elle"):
             call npc_interact("elle")
-            jump location_beach
+            jump location_sandbeach
         "Talk to Zoe" if npc_talkable("zoe"):
             call npc_interact("zoe")
-            jump location_beach
+            jump location_sandbeach
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
-            jump location_beach
+            jump location_sandbeach
 
 # ── Zoe first meet - beach (daytime only, fires once) ─────────────────
 label beach_meet_zoe:
@@ -1608,7 +1689,7 @@ label hospital_trial_resident:
 # ── QUAYSIDE (Nadbrzeże) ───────────────────────────────────────────────
 label location_nadbrzeze:
     $ current_loc = "location_nadbrzeze"
-    scene expression ("restaurantnight" if (hour >= 19 or hour < 6) else "restaurantday")
+    scene expression ("nadbrzeze_night" if (hour >= 19 or hour < 6) else "nadbrzeze_day")
     show screen hud
     call screen nadbrzeze_hub
 

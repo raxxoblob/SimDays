@@ -13,7 +13,7 @@ define MAP_ZONES = [
     ("szpital",      "location_hospital",  "szpital",        289, 599),
     ("mall",         "location_mall",      "mall",           964, 552),
     ("plaza",        "location_beach",     "beach",         1061, 929),
-    ("nadbrzeze",   "location_nadbrzeze", "bar",            870, 820),  # ponytail: adjust cx/cy to match your zone PNG centre
+    ("nadbrzeze",   "location_nadbrzeze", "nadbrzeze",     1139, 707),
 ]
 
 screen city_map():
@@ -164,9 +164,10 @@ screen centrum_hub():
                 text "Metro → City" xalign 0.5 size 16 color "#ffffff"
 
 define NADBRZEZE_VENUES = [
-    ("bar",         "The Anchor",  "location_anchor"),
+    ("anchor",      "The Anchor",  "location_anchor"),
     ("terrace",     "Terrace",     "location_terrace"),
     ("casino",      "Casino",      "location_casino"),
+    ("lombard",     "Lombard",     "location_lombard"),
 ]
 
 screen nadbrzeze_hub():
@@ -221,6 +222,35 @@ screen nadbrzeze_hub():
                     action Jump("map")
                 text "Metro → City" xalign 0.5 size 16 color "#ffffff"
 
+
+screen beach_hub():
+    use hud
+    frame:
+        xalign 0.5
+        yalign 1.0
+        yoffset -16
+        background "#000000aa"
+        padding (24, 14, 24, 14)
+        hbox:
+            spacing 40
+            vbox:
+                xsize 150
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_sandbeach.png", size=(120, 120))
+                    hover Transform("images/ui/icons/icon_sandbeach.png", size=(132, 132))
+                    action Jump("location_sandbeach")
+                text "Sandbeach" xalign 0.5 size 16 color "#ffffff"
+            vbox:
+                xsize 150
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_metro.png", size=(120, 120))
+                    hover Transform("images/ui/icons/icon_metro.png", size=(132, 132))
+                    action Jump("map")
+                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
 
 # Inside the mall: pick a shop (each has its own interior).
 screen mall_hub():
