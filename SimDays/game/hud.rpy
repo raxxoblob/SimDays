@@ -42,26 +42,26 @@ screen hud():
         bar value StaticValue(need_hunger, 100) xpos 740 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_chr.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
         text "[need_hunger]" xpos 900 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
 
-        add "images/ui/icons/stat_hygiene.png" xpos 930 ypos 44 xysize (50, 50)
-        text "HYGIENE" xpos 990 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_hygiene, 100) xpos 990 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_hygiene]" xpos 1150 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_hygiene.png" xpos 970 ypos 44 xysize (50, 50)
+        text "HYGIENE" xpos 1030 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
+        bar value StaticValue(need_hygiene, 100) xpos 1030 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_hygiene]" xpos 1190 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
 
-        add "images/ui/icons/stat_energy.png" xpos 1220 ypos 44 xysize (50, 50)
-        text "ENERGY" xpos 1280 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_energy, 100) xpos 1280 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_energy]" xpos 1440 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
+        add "images/ui/icons/stat_energy.png" xpos 1260 ypos 44 xysize (50, 50)
+        text "ENERGY" xpos 1320 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
+        bar value StaticValue(need_energy, 100) xpos 1320 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
+        text "[need_energy]" xpos 1480 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
 
         button:
             xpos 676 ypos 28 xysize (264, 72)
             action NullAction()
             tooltip "Hunger - eat at home or order from your phone."
         button:
-            xpos 926 ypos 28 xysize (264, 72)
+            xpos 966 ypos 28 xysize (264, 72)
             action NullAction()
             tooltip "Hygiene - shower at home. Low: Appearance drops."
         button:
-            xpos 1216 ypos 28 xysize (270, 72)
+            xpos 1256 ypos 28 xysize (270, 72)
             action NullAction()
             tooltip "Energy - sleep to refill. Below 20 you can't do demanding activities."
 

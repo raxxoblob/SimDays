@@ -47,6 +47,10 @@ init python:
     renpy.image("pov_gym_weights",  Transform("images/locations/pov_gym_weights.png",          size=(1920, 1080)))
     renpy.image("gym_cardio",       Transform("images/locations/gym_cardio.png",               size=(1920, 1080)))
 
+    # Nadbrzeze zone + new venues
+    for _pn2 in ["casino_night", "lombard_day", "sandbeach_night", "nadbrzeze_day", "nadbrzeze_night"]:
+        renpy.image(_pn2, Transform("images/locations/%s.png" % _pn2, size=(1920, 1080)))
+
     # hospital rooftop (Lena scene bg)
     renpy.image("hospital_rooftop_night", Transform("images/locations/hospital_rooftop_night.png", size=(1920, 1080)))
 
@@ -91,7 +95,7 @@ init python:
     _bg("map_city")
 
     # Map district zones: idle = dim icon, hover = bright icon + highlight + name
-    for _z in ["bogate_domki", "warehouse", "park", "domki", "bloki", "centrum", "szpital", "mall", "plaza"]:
+    for _z in ["bogate_domki", "warehouse", "park", "domki", "bloki", "centrum", "szpital", "mall", "plaza", "nadbrzeze"]:
         renpy.image("z_%s_idle" % _z, "images/ui/z_%s_idle.png" % _z)
         renpy.image("z_%s_hi" % _z, "images/ui/z_%s_hi.png" % _z)
 
@@ -202,4 +206,4 @@ image martha_worried = "images/characters/martha/martha_worried.png"
 image kai_normal = "images/characters/kai/kai_normal.png"
 image kai_talk   = "images/characters/kai/kai_talk.png"
 image kai_laugh  = "images/characters/kai/kai_laugh.png"
-image kai_angry  = "images/characters/kai/kai_angrh.png"
+image kai_angry  = "images/characters/kai/kai_angry.png"

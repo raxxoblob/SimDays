@@ -1603,3 +1603,77 @@ label hospital_trial_resident:
             "You leave before sunrise."
     hide drlena_normal
     return
+
+
+# ── QUAYSIDE (Nadbrzeże) ───────────────────────────────────────────────
+label location_nadbrzeze:
+    $ current_loc = "location_nadbrzeze"
+    scene expression ("restaurantnight" if (hour >= 19 or hour < 6) else "restaurantday")
+    show screen hud
+    call screen nadbrzeze_hub
+
+# ── THE ANCHOR (waterfront bar) ───────────────────────────────────────
+label location_anchor:
+    $ current_loc = "location_anchor"
+    $ activity_exit_jump = "location_nadbrzeze"
+    $ activity_exit_name = "Quayside"
+    if not venue_open("bar"):
+        "The Anchor doesn't open until evening."
+        jump location_nadbrzeze
+    scene bar
+    show screen hud
+    menu (screen="activity"):
+        "Have a drink ($6, +mood)":
+            if money < 6:
+                "Not enough cash."
+                jump location_anchor
+            $ spend_time(0.5)
+            $ gain_money(-6)
+            $ gain_stat("chr", 5)
+            "A cold one by the water. The city feels further away from here."
+            jump location_anchor
+        "Stay a while (1h, +CHR)":
+            $ spend_time(1)
+            $ gain_stat("chr", 10)
+            "The crowd here is different from the centrum — looser, less on display. Good conversation finds you."
+            jump location_anchor
+        "Buy a round ($18, +CHR)":
+            if money < 18:
+                "Not enough cash."
+                jump location_anchor
+            $ spend_time(0.5)
+            $ gain_money(-18)
+            $ gain_stat("chr", 18)
+            "A round for the bar. Instant friends for the night."
+            jump location_anchor
+
+# ── RIVERSIDE TERRACE (outdoor, day–evening) ──────────────────────────
+label location_terrace:
+    $ current_loc = "location_terrace"
+    $ activity_exit_jump = "location_nadbrzeze"
+    $ activity_exit_name = "Quayside"
+    if not venue_open("terrace"):
+        "The terrace is closed."
+        jump location_nadbrzeze
+    scene expression ("restaurantnight" if hour >= 19 else "restaurantday")
+    show screen hud
+    menu (screen="activity"):
+        "Sit and watch the water (1h)":
+            $ spend_time(1)
+            $ gain_stat("int", 6)
+            "The city hum fades here. You think more clearly."
+            jump location_terrace
+        "Have a coffee ($4)":
+            if money < 4:
+                "Not enough cash."
+                jump location_terrace
+            $ spend_time(0.5)
+            $ gain_money(-4)
+            $ gain_stat("chr", 4)
+            "Outdoor table, river smell, decent espresso."
+            jump location_terrace
+        "Read (1h, +INT)":
+            $ spend_time(1)
+            $ gain_stat("int", 12)
+            "A chapter in the open air. The light's good."
+            jump location_terrace

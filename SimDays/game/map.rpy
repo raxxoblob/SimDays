@@ -13,6 +13,7 @@ define MAP_ZONES = [
     ("szpital",      "location_hospital",  "szpital",        289, 599),
     ("mall",         "location_mall",      "mall",           964, 552),
     ("plaza",        "location_beach",     "beach",         1061, 929),
+    ("nadbrzeze",   "location_nadbrzeze", "bar",            870, 820),  # ponytail: adjust cx/cy to match your zone PNG centre
 ]
 
 screen city_map():
@@ -77,6 +78,9 @@ init python:
         "garage":      (9, 19),
         "restaurant_eleven": (16, 27),   # kitchen runs evenings
         "flea_market": (9, 18),           # Sat-Sun only
+        "terrace":     (12, 22),
+        "casino":      (20, 28),  # 8pm-4am
+        "lombard":     (10, 20),
     }
 
     _WEEKDAY_ONLY = {"office_exec", "university"}  # closed Sat-Sun (day%7 >= 5)
@@ -149,7 +153,48 @@ screen centrum_hub():
                     else:
                         text label xalign 0.5 size 15 color "#7a8aa0"
                         text venue_hours_str(icon) xalign 0.5 size 12 color "#7a8aa0"
-            # Weekend bonus venue: flea market (Sat-Sun only, appears in the bar)
+            vbox:
+                xsize 132
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_metro.png", size=(108, 108))
+                    hover Transform("images/ui/icons/icon_metro.png", size=(120, 120))
+                    action Jump("map")
+                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
+
+define NADBRZEZE_VENUES = [
+    ("bar",         "The Anchor",  "location_anchor"),
+    ("terrace",     "Terrace",     "location_terrace"),
+    ("casino",      "Casino",      "location_casino"),
+]
+
+screen nadbrzeze_hub():
+    use hud
+    frame:
+        xalign 0.5
+        yalign 1.0
+        yoffset -16
+        background "#000000aa"
+        padding (24, 14, 24, 14)
+        hbox:
+            spacing 26
+            for icon, label, target in NADBRZEZE_VENUES:
+                $ _open = venue_open(icon)
+                vbox:
+                    xsize 132
+                    spacing 4
+                    imagebutton:
+                        xalign 0.5
+                        sensitive _open
+                        idle  Transform("images/ui/icons/icon_%s.png" % icon, size=(108, 108), alpha=(1.0 if _open else 0.32))
+                        hover Transform("images/ui/icons/icon_%s.png" % icon, size=(120, 120))
+                        action Jump(target)
+                    if _open:
+                        text label xalign 0.5 size 16 color "#ffffff"
+                    else:
+                        text label xalign 0.5 size 15 color "#7a8aa0"
+                        text venue_hours_str(icon) xalign 0.5 size 12 color "#7a8aa0"
             if (day % 7) >= 5:
                 $ _fmopen = (9 <= hour < 18)
                 vbox:
@@ -175,6 +220,7 @@ screen centrum_hub():
                     hover Transform("images/ui/icons/icon_metro.png", size=(120, 120))
                     action Jump("map")
                 text "Metro → City" xalign 0.5 size 16 color "#ffffff"
+
 
 # Inside the mall: pick a shop (each has its own interior).
 screen mall_hub():
