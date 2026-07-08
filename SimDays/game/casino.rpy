@@ -237,8 +237,7 @@ screen casino_blackjack():
         # Top bar
         text "BLACKJACK" xalign 0.5 ypos 8 size 30 color "#d4af37" font PROFILE_FONT
         text "Balance: $[money]" xpos 20 ypos 12 size 18 color "#aaffaa"
-        textbutton "← Back" action Return("hub") xpos 1140 ypos 8
-            text_size 16 text_color "#888888"
+        textbutton "← Back" action Return("hub") xpos 1140 ypos 8 text_size 16 text_color "#888888"
 
         # Dealer
         text "Dealer" xpos 20 ypos 58 size 16 color "#777777"
@@ -270,8 +269,7 @@ screen casino_blackjack():
                 textbutton "-$25" action Return("bet_down") text_size 18
                 text "Bet: $[bj_game.bet]" yalign 0.5 size 20 color "#ffffff"
                 textbutton "+$25" action Return("bet_up")   text_size 18
-            textbutton "DEAL" xalign 0.5 ypos 568 action Return("deal")
-                text_size 26 text_color "#d4af37" text_font PROFILE_FONT
+            textbutton "DEAL" xalign 0.5 ypos 568 action Return("deal") text_size 26 text_color "#d4af37" text_font PROFILE_FONT
 
         elif bj_game.phase == "playing":
             hbox xalign 0.5 ypos 530 spacing 28:
@@ -288,15 +286,15 @@ screen casino_blackjack():
 
 
 transform _rou_spin_anim:
-    zoom 0.367
     rotate 0.0
     linear 2.5 rotate 1440.0
 
 transform _rou_static(angle):
-    zoom 0.367
     rotate angle
 
 screen casino_roulette():
+    if rou_game.phase == "spinning":
+        timer 2.5 action Return("spin_done")
     add "casino_night"
     frame:
         background "#000000bb"
@@ -306,8 +304,7 @@ screen casino_roulette():
 
         text "ROULETTE" xalign 0.5 ypos 8 size 30 color "#d4af37" font PROFILE_FONT
         text "Balance: $[money]" xpos 20 ypos 12 size 18 color "#aaffaa"
-        textbutton "← Back" action Return("hub") xpos 1140 ypos 8
-            text_size 16 text_color "#888888"
+        textbutton "← Back" action Return("hub") xpos 1140 ypos 8 text_size 16 text_color "#888888"
 
         # ── Number grid (3 rows × 12 cols, standard layout) ──────────────────
         fixed xpos 18 ypos 52 xysize (870, 290):
@@ -326,16 +323,14 @@ screen casino_roulette():
                 for _row in range(3):
                     $ _n  = _col * 3 + (3 - _row)
                     $ _sn = (rou_game.bet_type == "number" and rou_game.bet_num == _n)
-                    $ _bg = (_sn and "#d4af37" or
-                             (_n in _ROU_REDS and "#6b1515" or "#181818"))
+                    $ _bg = (_sn and "#d4af37" or (_n in _ROU_REDS and "#6b1515" or "#181818"))
                     button:
                         background _bg
                         xysize (66, 57)
                         xpos 56 + _col * 68
                         ypos _row * 60
                         action Return(("bet_num", _n))
-                        text str(_n) xalign 0.5 yalign 0.5 size 17
-                            color ("#000" if _sn else "#fff")
+                        text str(_n) xalign 0.5 yalign 0.5 size 17 color ("#000" if _sn else "#fff")
 
             # Dozens
             for _di, (_dl, _dt) in enumerate([("1st 12","doz1"),("2nd 12","doz2"),("3rd 12","doz3")]):
@@ -346,8 +341,7 @@ screen casino_roulette():
                     xpos 56 + _di * 268
                     ypos 184
                     action Return(("bet_type", _dt))
-                    text _dl xalign 0.5 yalign 0.5 size 14
-                        color ("#000" if _sd else "#ccc")
+                    text _dl xalign 0.5 yalign 0.5 size 14 color ("#000" if _sd else "#ccc")
 
             # Outside bets: 1-18, Even, Red, Black, Odd, 19-36
             for _oi, (_ol, _ot, _obg) in enumerate([
@@ -362,29 +356,24 @@ screen casino_roulette():
                     xpos 56 + _oi * 133
                     ypos 230
                     action Return(("bet_type", _ot))
-                    text _ol xalign 0.5 yalign 0.5 size 14
-                        color ("#000" if _so else "#fff")
+                    text _ol xalign 0.5 yalign 0.5 size 14 color ("#000" if _so else "#fff")
 
         # ── Right panel ───────────────────────────────────────────────────────
         fixed xpos 910 ypos 52 xysize (340, 580):
 
-                # Roulette wheel with spin animation
-            if rou_game.phase == "spinning":
-                timer 2.5 action Return("spin_done")
-                add "images/ui/roulette_wheel_transparent.png" at _rou_spin_anim:
-                    xpos 60 ypos 0
-            elif rou_game.result is not None:
-                add "images/ui/roulette_wheel_transparent.png" at _rou_static(rou_game.result * 137):
-                    xpos 60 ypos 0
-            else:
-                add "images/ui/roulette_wheel_transparent.png" at _rou_static(0):
-                    xpos 60 ypos 0
+            # Roulette wheel — spinning ATL or static at result angle
+            fixed xpos 60 ypos 0 xysize (220, 220):
+                if rou_game.phase == "spinning":
+                    add Transform("images/ui/roulette_wheel_transparent.png", size=(220, 220)) at _rou_spin_anim
+                elif rou_game.result is not None:
+                    add Transform("images/ui/roulette_wheel_transparent.png", size=(220, 220)) at _rou_static(rou_game.result * 137)
+                else:
+                    add Transform("images/ui/roulette_wheel_transparent.png", size=(220, 220)) at _rou_static(0)
 
             # Result number overlay on wheel centre
             if rou_game.result is not None:
                 $ _rn  = rou_game.result
-                $ _rbc = ("#145214" if _rn == 0 else
-                          ("#6b1515" if _rn in _ROU_REDS else "#181818"))
+                $ _rbc = ("#145214" if _rn == 0 else ("#6b1515" if _rn in _ROU_REDS else "#181818"))
                 frame:
                     background _rbc
                     xysize (52, 52)
@@ -396,7 +385,7 @@ screen casino_roulette():
             hbox xpos 0 ypos 252 spacing 10:
                 textbutton "-$25" action Return("bet_down") text_size 17
                 text "$[rou_game.bet_amt]" yalign 0.5 size 20 color "#fff"
-                textbutton "+$25" action Return("bet_up")   text_size 17
+                textbutton "+$25" action Return("bet_up") text_size 17
 
             # Current bet type
             $ _bt_names = {
@@ -410,15 +399,14 @@ screen casino_roulette():
             # Message
             text rou_game.msg xpos 0 ypos 345 size 15 color "#f0d060" xmaximum 340
 
-            # Buttons — all locked during spin animation
+            # Buttons — locked during spin
             if rou_game.phase == "betting":
-                textbutton "SPIN" xpos 80 ypos 400 action Return("spin")
-                    text_size 30 text_color "#d4af37" text_font PROFILE_FONT
+                textbutton "SPIN" xpos 80 ypos 400 action Return("spin") text_size 30 text_color "#d4af37" text_font PROFILE_FONT
             elif rou_game.phase == "spinning":
                 text "Spinning..." xpos 80 ypos 412 size 22 color "#d4af37"
             else:
-                textbutton "Spin Again"  xpos 20 ypos 400 action Return("reset")     text_size 19
-                textbutton "→ Blackjack" xpos 20 ypos 445 action Return("blackjack") text_size 17 text_color "#aaa"
+                textbutton "Spin Again" xpos 20 ypos 400 action Return("reset") text_size 19
+                textbutton "Blackjack" xpos 20 ypos 445 action Return("blackjack") text_size 17 text_color "#aaa"
 
             if rou_game.phase != "spinning":
                 textbutton "Leave Casino" xpos 20 ypos 510 action Return("leave") text_size 17 text_color "#777"
