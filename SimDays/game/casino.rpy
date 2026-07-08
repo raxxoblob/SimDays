@@ -171,38 +171,54 @@ label casino_hub_label:
 
 label casino_blackjack_loop:
     call screen casino_blackjack
-    if   _return == "bet_up":   $ bj_game.bet = min(500, bj_game.bet + 25)
-    elif _return == "bet_down": $ bj_game.bet = max(5,   bj_game.bet - 25)
-    elif _return == "deal":     $ bj_game.deal()
-    elif _return == "hit":      $ bj_game.hit()
-    elif _return == "stand":    $ bj_game.stand()
-    elif _return == "double":   $ bj_game.double_down()
-    elif _return == "new_game": $ bj_game.new_game()
+    if _return == "bet_up":
+        $ bj_game.bet = min(500, bj_game.bet + 25)
+    elif _return == "bet_down":
+        $ bj_game.bet = max(5, bj_game.bet - 25)
+    elif _return == "deal":
+        $ bj_game.deal()
+    elif _return == "hit":
+        $ bj_game.hit()
+    elif _return == "stand":
+        $ bj_game.stand()
+    elif _return == "double":
+        $ bj_game.double_down()
+    elif _return == "new_game":
+        $ bj_game.new_game()
     elif _return == "roulette":
         $ rou_game.reset()
         jump casino_roulette_loop
-    elif _return == "hub":   jump casino_hub_label
-    elif _return == "leave": jump location_nadbrzeze
+    elif _return == "hub":
+        jump casino_hub_label
+    elif _return == "leave":
+        jump location_nadbrzeze
     jump casino_blackjack_loop
 
 label casino_roulette_loop:
     call screen casino_roulette
     if isinstance(_return, tuple):
-        if   _return[0] == "bet_num":
+        if _return[0] == "bet_num":
             $ rou_game.bet_num  = _return[1]
             $ rou_game.bet_type = "number"
         elif _return[0] == "bet_type":
             $ rou_game.bet_type = _return[1]
-    elif _return == "bet_up":    $ rou_game.bet_amt = min(1000, rou_game.bet_amt + 25)
-    elif _return == "bet_down":  $ rou_game.bet_amt = max(5,    rou_game.bet_amt - 25)
-    elif _return == "spin":      $ rou_game.start_spin()
-    elif _return == "spin_done": $ rou_game.finish_spin()
-    elif _return == "reset":     $ rou_game.reset()
+    elif _return == "bet_up":
+        $ rou_game.bet_amt = min(1000, rou_game.bet_amt + 25)
+    elif _return == "bet_down":
+        $ rou_game.bet_amt = max(5, rou_game.bet_amt - 25)
+    elif _return == "spin":
+        $ rou_game.start_spin()
+    elif _return == "spin_done":
+        $ rou_game.finish_spin()
+    elif _return == "reset":
+        $ rou_game.reset()
     elif _return == "blackjack":
         $ bj_game.new_game()
         jump casino_blackjack_loop
-    elif _return == "hub":   jump casino_hub_label
-    elif _return == "leave": jump location_nadbrzeze
+    elif _return == "hub":
+        jump casino_hub_label
+    elif _return == "leave":
+        jump location_nadbrzeze
     jump casino_roulette_loop
 
 
