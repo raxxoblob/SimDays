@@ -214,9 +214,9 @@ screen phone_bank_scr():
             null height 6
             text "Balance:  $[money]" font PROFILE_FONT size 18 color "#39c07a"
             if loan > 0:
-                text "Loan:     $[loan]  (10%/wk)" font PROFILE_FONT size 16 color "#e86a55"
+                text "Loan:     $[loan]  (10%%/wk)" font PROFILE_FONT size 16 color "#e86a55"
             if savings > 0:
-                text "Savings:  $[savings]  (2%/wk)" font PROFILE_FONT size 16 color "#5bcafa"
+                text "Savings:  $[savings]  (2%%/wk)" font PROFILE_FONT size 16 color "#5bcafa"
             null height 8
             # ── Borrow ───────────────────────────────────────────────
             if loan == 0:
@@ -252,7 +252,7 @@ screen phone_bank_scr():
             # ── Savings ──────────────────────────────────────────────
             if loan == 0:
                 null height 4
-                text "Savings (2%/wk)" font PROFILE_FONT size 15 color "#9fb6d6"
+                text "Savings (2%%/wk)" font PROFILE_FONT size 15 color "#9fb6d6"
                 for _dep in [100, 500]:
                     button:
                         xfill True ysize 56

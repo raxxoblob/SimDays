@@ -131,10 +131,10 @@ default job_schedule    = ""     # e.g. "Mon-Fri 09-17"
 # Time helpers called from script
 init python:
     DAILY_EVENT_POOL = [
-        {"key": "gym_trainer",  "from": "Iron Gate",    "body": "Free trainer today — weight sessions give +50% STR EXP."},
+        {"key": "gym_trainer",  "from": "Iron Gate",    "body": "Free trainer today — weight sessions give +50%% STR EXP."},
         {"key": "bar_happy",    "from": "The Barrel",   "body": "Happy Hour all day. Drinks $4, Socialize earns 2x CHR EXP."},
         {"key": "cafe_energy",  "from": "Grounds",      "body": "Double Caffeine Day. Coffee gives +20 energy instead of +10."},
-        {"key": "college_sale", "from": "City College", "body": "Spring deal — all courses 30% off today."},
+        {"key": "college_sale", "from": "City College", "body": "Spring deal — all courses 30%% off today."},
         {"key": "club_night",   "from": "Neon",         "body": "Industry night. Work the Crowd earns 2x CHR EXP."},
         {"key": "park_weather", "from": "City Park",    "body": "Perfect running weather. Morning jog gives 2x STR EXP."},
     ]
@@ -143,7 +143,7 @@ init python:
         return any(e["key"] == key for e in store.daily_events)
 
     def roll_daily_events():
-        import renpy.random as _r
+        _r = renpy.random   # renpy.random is an RNG instance, not an importable module
         pool = list(DAILY_EVENT_POOL)
         _r.shuffle(pool)
         n = _r.choice([0, 0, 1, 1, 2])
@@ -166,6 +166,11 @@ init python:
             setattr(store, need, new)
             _push_drain(need, new - old)
         # hygiene debuff is temporary — see eff_app(); no permanent stat damage
+        # Past 3 AM (DAY_END) you can't stay awake — collapse into the next day.
+        # Without this, hour climbs past 24 forever: time_label wraps %24 while
+        # is_night/venue gates read raw hour, so the clock and day/night desync.
+        if store.hour >= DAY_END:
+            new_day()
 
     def new_day():
         store.day  += 1

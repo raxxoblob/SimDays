@@ -292,7 +292,7 @@ label location_gym:
                 jump location_gym
             $ gain_money(-12)
             $ supplements["protein"] += 1
-            "A vanilla protein powder. Mix with water after training. +50% STR EXP on the next weights session."
+            "A vanilla protein powder. Mix with water after training. +50%% STR EXP on the next weights session."
             jump location_gym
         "Buy Pre-workout ($20)":
             if money < 20:
@@ -300,7 +300,7 @@ label location_gym:
                 jump location_gym
             $ gain_money(-20)
             $ supplements["preworkout"] += 1
-            "The label is mostly warnings. +100% STR EXP on the next weights session."
+            "The label is mostly warnings. +100%% STR EXP on the next weights session."
             jump location_gym
 
 # ── LIBRARY ───────────────────────────────────────────────────────────

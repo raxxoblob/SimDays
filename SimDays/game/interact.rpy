@@ -268,7 +268,7 @@ init python:
     }
 
     def _do_talk_group(npc_id, topic):
-        import renpy.random as _r
+        _r = renpy.random   # renpy.random is an RNG instance, not an importable module
         d = NPC_DATA[npc_id]
         if topic in d.get("likes", []):
             delta, rtype = _r.randint(5, 10), "like"
