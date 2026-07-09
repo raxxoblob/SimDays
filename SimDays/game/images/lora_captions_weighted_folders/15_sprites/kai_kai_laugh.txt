@@ -1,0 +1,4 @@
+description: Character sprite of Kai, laughing expression.
+tags: sprite, character, kai, laughing, transparent, 1536x1024
+character: kai
+source: kai/kai_laugh.png

@@ -1,0 +1,4 @@
+description: Character sprite of Nora, casual outfit/variant; laughing expression.
+tags: sprite, character, nora, casual, laughing, transparent, 1536x1024
+character: nora
+source: nora/nora_casual_laugh.png

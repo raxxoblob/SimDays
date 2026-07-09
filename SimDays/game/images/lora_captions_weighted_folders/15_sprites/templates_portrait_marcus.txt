@@ -1,0 +1,4 @@
+description: Portrait reference sprite for Marcus.
+tags: sprite, character, portrait, reference, marcus, 512x512
+character: templates
+source: templates/portrait_marcus.png

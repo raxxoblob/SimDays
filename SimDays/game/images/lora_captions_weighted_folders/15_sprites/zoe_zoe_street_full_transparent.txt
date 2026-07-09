@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, street outfit/variant; full body pose.
+tags: sprite, character, zoe, street, full_body, transparent, 437x1491
+character: zoe
+source: zoe/zoe_transparent_cleaned_pngs/zoe_street_full_transparent.png

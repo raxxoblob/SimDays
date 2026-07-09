@@ -20,6 +20,8 @@ label location_home_actions:
             jump location_home_cook
 
         "Shower (0.5h)" if need_hygiene < 90:
+            scene cheap_home_shower
+            show screen hud
             $ spend_time(0.5)
             $ need_hygiene = min(100, need_hygiene + 40)
             "You take a quick shower. Feeling fresh."
@@ -42,7 +44,7 @@ label location_home_actions:
 
 
 label location_home_cook:
-    scene expression home_bg()
+    scene cheap_home_cook
     show screen hud
     menu (screen="activity"):
         "Toast ($2, +15 hunger)":
@@ -377,6 +379,8 @@ label location_library:
             if too_tired():
                 "Too tired to concentrate on anything. Sleep first."
                 jump location_library
+            scene expression ("library_study_night" if hour >= 20 else "library_study_day")
+            show screen hud
             menu:
                 "What are you working through?"
                 "Medicine":
@@ -856,7 +860,7 @@ label location_park:
             $ gain_stat("int", 3)
             "A quiet hour on the bench."
             jump location_park
-        "Play basketball (1.5h)":
+        "Play basketball (1.5h)" if hour < 20:
             scene basketball_court_day
             show screen hud
             $ spend_time(1.5)
@@ -896,7 +900,7 @@ label location_sandbeach:
     $ current_loc = "location_sandbeach"
     $ activity_exit_jump = "location_beach"
     $ activity_exit_name = "Beach"
-    scene expression ("sandbeach_night" if hour >= 19 else "sandbeach_swim_day")
+    scene expression ("sandbeach_night" if hour >= 19 else "sandbeach_day")
     show screen hud
     menu (screen="activity"):
         "Relax (1h)":
@@ -1356,6 +1360,8 @@ label college_course(key):
     if too_tired():
         "You're too exhausted to absorb anything. Come back after some sleep."
         return
+    scene college_study
+    show screen hud
     $ _r = take_course(key)
     if _r == "money":
         "You can't cover the course fee at your current level. Earn more first."
@@ -1367,7 +1373,7 @@ label college_course(key):
 
 # ── SLEEP ─────────────────────────────────────────────────────────────
 label action_sleep_menu:
-    scene expression home_bg()
+    scene cheap_home_sleep
     show screen hud
     menu (screen="activity"):
         "Until morning (8h) — new day, full rest":

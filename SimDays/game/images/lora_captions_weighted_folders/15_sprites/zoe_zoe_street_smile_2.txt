@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, street outfit/variant; smiling expression.
+tags: sprite, character, zoe, street, smiling, transparent, 1073x1439
+character: zoe
+source: zoe/zoe_street_smile.webp

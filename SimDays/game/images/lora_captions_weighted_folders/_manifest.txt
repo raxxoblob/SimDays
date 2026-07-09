@@ -1,0 +1,8 @@
+Dataset captions divided by repeat-count folder prefix.
+15_sprites: character sprite captions from the character zip.
+5_loc_world: base/world/location captions.
+10_mix_scenes: mixed scenes, POV/MC/action/named-character scenes matched to locations where possible.
+
+15_sprites: 154 txt files
+5_loc_world: 62 txt files
+10_mix_scenes: 76 txt files

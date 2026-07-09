@@ -48,7 +48,9 @@ init python:
     renpy.image("gym_cardio",       Transform("images/locations/gym_cardio.png",               size=(1920, 1080)))
 
     # Nadbrzeze zone + new venues + activity CG backgrounds
-    for _pn2 in ["casino_night", "lombard_day", "sandbeach_night",
+    for _pn2 in ["cheap_home_sleep", "cheap_home_cook", "cheap_home_shower",
+                 "casino_night", "lombard_day",
+                 "sandbeach_day", "sandbeach_night",
                  "sandbeach_swim_day", "sandbeach_sunbath_day",
                  "gym_reception",
                  "college_study",

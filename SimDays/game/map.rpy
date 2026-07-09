@@ -164,10 +164,11 @@ screen centrum_hub():
                 text "Metro → City" xalign 0.5 size 16 color "#ffffff"
 
 define NADBRZEZE_VENUES = [
-    ("anchor",      "The Anchor",  "location_anchor"),
-    ("terrace",     "Terrace",     "location_terrace"),
-    ("casino",      "Casino",      "location_casino"),
-    ("lombard",     "Lombard",     "location_lombard"),
+    # (venue_key for venue_open/hours, icon filename, label, jump target)
+    ("bar",     "anchor",  "The Anchor", "location_anchor"),
+    ("terrace", "terrace", "Terrace",    "location_terrace"),
+    ("casino",  "casino",  "Casino",     "location_casino"),
+    ("lombard", "lombard", "Lombard",    "location_lombard"),
 ]
 
 screen nadbrzeze_hub():
@@ -180,8 +181,8 @@ screen nadbrzeze_hub():
         padding (24, 14, 24, 14)
         hbox:
             spacing 26
-            for icon, label, target in NADBRZEZE_VENUES:
-                $ _open = venue_open(icon)
+            for vkey, icon, label, target in NADBRZEZE_VENUES:
+                $ _open = venue_open(vkey)
                 vbox:
                     xsize 132
                     spacing 4
@@ -195,7 +196,7 @@ screen nadbrzeze_hub():
                         text label xalign 0.5 size 16 color "#ffffff"
                     else:
                         text label xalign 0.5 size 15 color "#7a8aa0"
-                        text venue_hours_str(icon) xalign 0.5 size 12 color "#7a8aa0"
+                        text venue_hours_str(vkey) xalign 0.5 size 12 color "#7a8aa0"
             if (day % 7) >= 5:
                 $ _fmopen = (9 <= hour < 18)
                 vbox:

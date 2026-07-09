@@ -1,0 +1,4 @@
+description: Character sprite of Martha, neutral expression.
+tags: sprite, character, martha, neutral, transparent, 1024x1536
+character: martha
+source: martha/martha_neutral.png

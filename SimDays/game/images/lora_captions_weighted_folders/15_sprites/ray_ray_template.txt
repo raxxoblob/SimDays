@@ -1,0 +1,4 @@
+description: Reference/template image for Ray.
+tags: sprite, character, ray, reference, template, 1536x1024
+character: ray
+source: ray/ray_template.jfif

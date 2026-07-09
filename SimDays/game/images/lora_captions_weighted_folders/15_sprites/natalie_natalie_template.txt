@@ -1,0 +1,4 @@
+description: Reference/template image for Natalie.
+tags: sprite, character, natalie, reference, template, 1535x1024
+character: natalie
+source: natalie/natalie_template.png

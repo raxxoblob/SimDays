@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, punk outfit/variant; full body, back view pose.
+tags: sprite, character, zoe, punk, full_body, back_view, transparent, 600x1464
+character: zoe
+source: zoe/zoe_transparent_cleaned_pngs/zoe_punk_full_back_transparent.png

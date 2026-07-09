@@ -1,0 +1,4 @@
+description: Character sprite of Eli, talking expression.
+tags: sprite, character, eli, talking, transparent, 557x1010
+character: eli
+source: eli/eli_talk.png

@@ -1,0 +1,4 @@
+description: Character sprite of Anna, normal expression.
+tags: sprite, character, anna, normal, transparent, 1536x1024
+character: anna
+source: anna/ChatGPT Image Jul 4, 2026, 12_34_14 AM.png

@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, punk outfit/variant; full body, waving pose.
+tags: sprite, character, zoe, punk, full_body, waving, transparent, 569x1499
+character: zoe
+source: zoe/zoe_transparent_cleaned_pngs/zoe_punk_full_wave_transparent.png

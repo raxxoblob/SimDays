@@ -1,0 +1,4 @@
+description: Character sprite of Elle, talking expression.
+tags: sprite, character, elle, talking, transparent, 1024x1536
+character: elle
+source: elle/elle_talk.png

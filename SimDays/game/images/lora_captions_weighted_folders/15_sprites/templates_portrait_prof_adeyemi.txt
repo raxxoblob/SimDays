@@ -1,0 +1,4 @@
+description: Portrait reference sprite for Prof Adeyemi.
+tags: sprite, character, portrait, reference, prof_adeyemi, 512x512
+character: templates
+source: templates/portrait_prof_adeyemi.png

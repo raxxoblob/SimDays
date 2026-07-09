@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, punk outfit/variant; full body, sitting pose.
+tags: sprite, character, zoe, punk, full_body, sitting, transparent, 804x1472
+character: zoe
+source: zoe/zoe_punk_full_sit.webp

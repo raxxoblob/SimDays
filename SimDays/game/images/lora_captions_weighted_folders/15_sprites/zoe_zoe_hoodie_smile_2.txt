@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, hoodie outfit/variant; smiling expression.
+tags: sprite, character, zoe, hoodie, smiling, transparent, 929x1532
+character: zoe
+source: zoe/zoe_hoodie_smile.webp

@@ -1,0 +1,4 @@
+description: Character sprite of Anna, neutral expression.
+tags: sprite, character, anna, neutral, transparent, 1536x1024
+character: anna
+source: anna/ChatGPT Image Jul 4, 2026, 12_34_15 AM.png

@@ -1,0 +1,4 @@
+description: Portrait reference sprite for Sam.
+tags: sprite, character, portrait, reference, sam, 512x512
+character: templates
+source: templates/portrait_sam.png

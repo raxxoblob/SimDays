@@ -1,0 +1,4 @@
+description: Character sprite of Sam, determined expression.
+tags: sprite, character, sam, determined, transparent, 571x1012
+character: sam
+source: sam/sam_determined.png

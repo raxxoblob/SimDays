@@ -1,0 +1,4 @@
+description: Reference/template image for Anna.
+tags: sprite, character, anna, reference, template, 1536x1024
+character: anna
+source: anna/ChatGPT Image Jul 4, 2026, 12_23_03 AM.png

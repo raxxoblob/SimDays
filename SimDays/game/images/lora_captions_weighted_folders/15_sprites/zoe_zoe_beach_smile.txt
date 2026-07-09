@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, beach outfit/variant; smiling expression.
+tags: sprite, character, zoe, beach, smiling, raw, transparent, 1024x1536
+character: zoe
+source: zoe/raw/zoe_beach_smile.png

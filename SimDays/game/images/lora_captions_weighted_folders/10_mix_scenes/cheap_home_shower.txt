@@ -1,0 +1,1 @@
+vn_city_cheap_apartment_bathroom, small_bathroom, tiled_walls, shower_curtain, shower_rod, sink, mirror, toothbrushes, soap_bottles, towel_rack, laundry_basket, wet_surfaces, steam, warm_indoor_light, dim_lighting, soft_shadows, one_person, showering_silhouette, anime_visual_novel_background, painterly_anime_realistic, clean_lineart, soft_cel_shading, detailed_background, 16:9

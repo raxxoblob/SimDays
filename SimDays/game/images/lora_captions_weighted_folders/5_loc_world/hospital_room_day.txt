@@ -1,0 +1,1 @@
+Lena, hospital_room, empty_patient_room, patient_bed, medical_monitor, iv_stand, blue_curtains, sink, medical_shelves, rolling_stool, bright_daylight, clean_clinic, anime_visual_novel_background, detailed_background, 16:9

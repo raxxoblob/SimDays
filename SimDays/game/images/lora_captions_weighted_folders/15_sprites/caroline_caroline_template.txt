@@ -1,0 +1,4 @@
+description: Reference/template image for Caroline.
+tags: sprite, character, caroline, reference, template, 1536x1024
+character: caroline
+source: caroline/caroline_template.jfif

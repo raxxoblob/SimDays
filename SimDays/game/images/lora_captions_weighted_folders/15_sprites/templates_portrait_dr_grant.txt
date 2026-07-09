@@ -1,0 +1,4 @@
+description: Portrait reference sprite for Dr Grant.
+tags: sprite, character, portrait, reference, dr_grant, 512x512
+character: templates
+source: templates/portrait_dr_grant.png

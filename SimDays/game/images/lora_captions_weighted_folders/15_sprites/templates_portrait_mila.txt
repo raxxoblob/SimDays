@@ -1,0 +1,4 @@
+description: Portrait reference sprite for Mila.
+tags: sprite, character, portrait, reference, mila, 512x512
+character: templates
+source: templates/portrait_mila.png

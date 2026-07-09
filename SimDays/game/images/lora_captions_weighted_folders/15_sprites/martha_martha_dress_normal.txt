@@ -1,0 +1,4 @@
+description: Character sprite of Martha, dress outfit/variant; normal expression.
+tags: sprite, character, martha, dress, normal, transparent, 1024x1536
+character: martha
+source: martha/martha_dress_normal.png

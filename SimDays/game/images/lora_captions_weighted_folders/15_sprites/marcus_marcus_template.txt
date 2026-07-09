@@ -1,0 +1,4 @@
+description: Reference/template image for Marcus.
+tags: sprite, character, marcus, reference, template, 1535x1024
+character: marcus
+source: marcus/marcus_template.png

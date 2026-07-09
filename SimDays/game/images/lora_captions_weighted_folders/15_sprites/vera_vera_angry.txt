@@ -1,0 +1,4 @@
+description: Character sprite of Vera, angry expression.
+tags: sprite, character, vera, angry, transparent, 1024x1536
+character: vera
+source: vera/vera_angry.png

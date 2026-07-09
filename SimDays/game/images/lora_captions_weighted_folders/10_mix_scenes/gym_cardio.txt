@@ -1,0 +1,1 @@
+vn_city_gym, gym_interior, treadmill_pov, treadmill_console, handrails, floor_to_ceiling_windows, city_skyline, trees_outside, bright_sky, daytime, bright_daylight, window_light, reflective_floor, soft_shadows, pov_hands, abstract_screens, anime_visual_novel_background, painterly_anime_realistic, clean_lineart, soft_cel_shading, detailed_background, 16:9

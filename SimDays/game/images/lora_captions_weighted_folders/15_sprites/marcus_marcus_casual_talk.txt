@@ -1,0 +1,4 @@
+description: Character sprite of Marcus, casual outfit/variant; talking expression.
+tags: sprite, character, marcus, casual, talking, transparent, 1024x1536
+character: marcus
+source: marcus/marcus_casual_talk.png

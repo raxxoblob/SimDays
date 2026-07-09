@@ -1,0 +1,4 @@
+description: Character sprite of Caroline, laughing expression.
+tags: sprite, character, caroline, laughing, transparent, 1024x1536
+character: caroline
+source: caroline/caroline_laugh.png

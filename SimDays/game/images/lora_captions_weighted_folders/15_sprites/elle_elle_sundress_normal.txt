@@ -1,0 +1,4 @@
+description: Character sprite of Elle, sundress outfit/variant; normal expression.
+tags: sprite, character, elle, sundress, normal, transparent, 261x969
+character: elle
+source: elle/elle_sundress_normal.png

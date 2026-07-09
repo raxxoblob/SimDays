@@ -1,0 +1,4 @@
+description: Character sprite of Martha, cold expression.
+tags: sprite, character, martha, cold, transparent, 1024x1536
+character: martha
+source: martha/martha_cold.png

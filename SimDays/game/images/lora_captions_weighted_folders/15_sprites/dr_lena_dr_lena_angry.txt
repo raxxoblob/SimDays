@@ -1,0 +1,4 @@
+description: Character sprite of Dr Lena, angry expression.
+tags: sprite, character, dr_lena, angry, transparent, 1024x1536
+character: dr_lena
+source: dr_lena/drlena_angry.png

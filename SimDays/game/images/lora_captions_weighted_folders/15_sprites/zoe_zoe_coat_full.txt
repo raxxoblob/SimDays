@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, coat outfit/variant; full body pose.
+tags: sprite, character, zoe, coat, full_body, backup_pre_rembg, transparent, 1024x1535
+character: zoe
+source: zoe/backup_pre_rembg/zoe_coat_full.png

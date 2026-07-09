@@ -1,0 +1,4 @@
+description: Character sprite of Nora, casual outfit/variant; talking expression.
+tags: sprite, character, nora, casual, talking, transparent, 1536x1024
+character: nora
+source: nora/nora_casual_talk.png

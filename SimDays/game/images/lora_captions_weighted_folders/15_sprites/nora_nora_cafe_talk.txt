@@ -1,0 +1,4 @@
+description: Character sprite of Nora, cafe outfit/variant; talking expression.
+tags: sprite, character, nora, cafe, talking, transparent, 1024x1536
+character: nora
+source: nora/nora_cafe_talk.png

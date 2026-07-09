@@ -1,0 +1,4 @@
+description: Reference/template image for Sam.
+tags: sprite, character, sam, reference, template, 1535x1024
+character: sam
+source: sam/sam_template.png

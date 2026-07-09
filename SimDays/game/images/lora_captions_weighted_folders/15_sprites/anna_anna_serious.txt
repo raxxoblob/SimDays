@@ -1,0 +1,4 @@
+description: Character sprite of Anna, general character pose.
+tags: sprite, character, anna, transparent, 1536x1024
+character: anna
+source: anna/ChatGPT Image Jul 4, 2026, 12_34_17 AM.png

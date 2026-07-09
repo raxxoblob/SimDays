@@ -1,0 +1,4 @@
+description: Character sprite of Eli, normal expression.
+tags: sprite, character, eli, normal, transparent, 552x1010
+character: eli
+source: eli/eli_normal.png

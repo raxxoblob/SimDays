@@ -1,0 +1,4 @@
+description: Reference/template image for Martha.
+tags: sprite, character, martha, reference, template, 1535x1024
+character: martha
+source: martha/martha_template.png

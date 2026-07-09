@@ -1,0 +1,4 @@
+description: Reference/template image for Kai.
+tags: sprite, character, kai, reference, template, transparent, 1536x1024
+character: kai
+source: kai/kai_template.png

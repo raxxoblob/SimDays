@@ -1,0 +1,1 @@
+warehouse, logistics_center, pallet_racks, cardboard_boxes, forklift, workers, pallet_jack, loading_bay, concrete_floor, industrial_lighting, anime_visual_novel_background, detailed_background, 16:9

@@ -1,0 +1,4 @@
+description: Character sprite of Martha, dress outfit/variant; talking expression.
+tags: sprite, character, martha, dress, talking, transparent, 1024x1536
+character: martha
+source: martha/martha_dress_talk.png

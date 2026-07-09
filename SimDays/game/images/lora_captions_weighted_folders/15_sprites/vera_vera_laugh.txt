@@ -1,0 +1,4 @@
+description: Character sprite of Vera, laughing expression.
+tags: sprite, character, vera, laughing, transparent, 1024x1536
+character: vera
+source: vera/vera_laugh.png

@@ -1,0 +1,4 @@
+description: Character sprite of Natalie, normal expression.
+tags: sprite, character, natalie, normal, transparent, 1024x1536
+character: natalie
+source: natalie/natalie_normal.png

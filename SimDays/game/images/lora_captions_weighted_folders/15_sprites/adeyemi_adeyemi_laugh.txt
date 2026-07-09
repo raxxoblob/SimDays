@@ -1,0 +1,4 @@
+description: Character sprite of Professor Adeyemi, laughing expression.
+tags: sprite, character, adeyemi, laughing, transparent, 1024x1536
+character: adeyemi
+source: adeyemi/adeyemi_laugh.png

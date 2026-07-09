@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, beach outfit/variant; surprised expression.
+tags: sprite, character, zoe, beach, surprised, raw, 1023x1537
+character: zoe
+source: zoe/raw/zoe_beach_surprised_BROKEN.png

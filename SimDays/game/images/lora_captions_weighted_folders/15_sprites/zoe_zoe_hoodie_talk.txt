@@ -1,0 +1,4 @@
+description: Character sprite of Zoe, hoodie outfit/variant; talking expression.
+tags: sprite, character, zoe, hoodie, talking, raw, transparent, 1024x1536
+character: zoe
+source: zoe/raw/zoe_hoodie_talk.png

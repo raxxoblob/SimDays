@@ -1,0 +1,1 @@
+library, bookshelves, reception_desk, study_tables, students, night, desk_lamps, warm_indoor_lighting, potted_plants, quiet_public_space, anime_visual_novel_background, detailed_background, 16:9

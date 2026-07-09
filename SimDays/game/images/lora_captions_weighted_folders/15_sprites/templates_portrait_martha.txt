@@ -1,0 +1,4 @@
+description: Portrait reference sprite for Martha.
+tags: sprite, character, portrait, reference, martha, 512x512
+character: templates
+source: templates/portrait_martha.png

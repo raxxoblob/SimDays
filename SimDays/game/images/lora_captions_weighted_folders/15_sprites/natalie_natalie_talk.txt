@@ -1,0 +1,4 @@
+description: Character sprite of Natalie, talking expression.
+tags: sprite, character, natalie, talking, transparent, 1024x1536
+character: natalie
+source: natalie/natalie_talk.png
