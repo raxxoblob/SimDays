@@ -1,4 +1,0 @@
-description: Character sprite of Marcus, park outfit/variant; sad expression.
-tags: sprite, character, marcus, park, sad, transparent, 1024x1536
-character: marcus
-source: marcus/marcus_park_sad.png

@@ -50,12 +50,20 @@ init python:
     def stock_buy(sym, n=1):
         cost = stock_buy_price(sym) * n
         if store.money >= cost:
+            # FIX 2: charge 0.5h on the first buy or sell of a session only
+            if not store._stock_session_charged:
+                spend_time(0.5)
+                store._stock_session_charged = True
             store.money -= cost
             store.stock_owned[sym] += n
 
     def stock_sell(sym, n=1):
         n = min(n, store.stock_owned[sym])
         if n > 0:
+            # FIX 2: charge 0.5h on the first buy or sell of a session only
+            if not store._stock_session_charged:
+                spend_time(0.5)
+                store._stock_session_charged = True
             store.money += stock_sell_price(sym) * n
             store.stock_owned[sym] -= n
 

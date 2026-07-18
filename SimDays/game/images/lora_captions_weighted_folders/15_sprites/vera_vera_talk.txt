@@ -1,4 +1,0 @@
-description: Character sprite of Vera, talking expression.
-tags: sprite, character, vera, talking, transparent, 1024x1536
-character: vera
-source: vera/vera_talk.png

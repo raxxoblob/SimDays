@@ -1,4 +1,0 @@
-description: Reference/template image for Vera.
-tags: sprite, character, vera, reference, template, 1536x1024
-character: vera
-source: vera/vera_template.jfif

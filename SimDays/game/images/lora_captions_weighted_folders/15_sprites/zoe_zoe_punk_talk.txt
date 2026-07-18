@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, punk outfit/variant; talking expression.
-tags: sprite, character, zoe, punk, talking, raw, transparent, 1024x1536
-character: zoe
-source: zoe/raw/zoe_punk_talk.png

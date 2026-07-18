@@ -68,6 +68,8 @@ default eli_affection      = 0
 default eli_trust          = 0
 default kai_affection      = 0
 default kai_trust          = 0
+default rena_affection     = 0
+default rena_trust         = 0
 
 # Progression flags
 default zoe_met       = False
@@ -79,6 +81,10 @@ default martha_met    = False
 default caroline_met  = False
 default lena_met      = False
 default natalie_met   = False
+default eli_met       = False
+default kai_met       = False
+default sam_met       = False
+default rena_met      = False
 default cafe_shift_done = False   # so the "first shift" line only plays once
 default nora_closing_done = False
 default elle_pier_done = False
@@ -106,8 +112,13 @@ default own_guitar         = False  # music practice
 default own_bed            = False  # better bed: full rest + a quick Nap option
 default own_book           = False  # readable at home for +INT
 default own_sketchbook     = False  # sketch at home for +art skill
-default own_metal_detector = False  # beach searching mechanic
-default gym_pass_expires   = -1     # game day when gym pass runs out (-1 = no pass)
+default own_metal_detector    = False  # beach searching mechanic
+default own_programming_kit      = False  # bonus prog EXP per self-study / course
+default own_coffee_machine       = False  # unlocks Nora scene + home coffee activity
+default own_kitchen_set          = False  # unlocks dinner invite action
+default home_coffee_calibrated   = False  # set after Nora's tasting; home coffee gives +energy bonus
+default gym_pass_expires      = -1     # game day when gym pass runs out (-1 = no pass)
+default cosmetic_boost_until  = -1     # day when cosmetic temp APP boost expires
 # stock market state lives in stocks.rpy
 
 # Finance
@@ -119,8 +130,202 @@ default daily_events = []   # list of event dicts from DAILY_EVENT_POOL
 
 # Contacts (NPC phone numbers; only added when the player asks)
 default npc_contacts = []
-default degrees    = []        # earned degree ids: "med_bach", "med_mast", "prog_bach", etc.
-default npc_anger        = {}   # npc_id -> anger level; decays 1/day
+default degrees         = []   # earned degree ids: "med_bach", "med_mast", "prog_bach", etc.
+default quests_completed = []  # quest ids stamped on first completion — never un-stamps
+default npc_anger           = {}   # npc_id -> anger level; decays 1/day
+default npc_gift_week       = {}   # npc_id -> (week_index, gifts_this_week)
+default work_events_seen    = {}   # cid -> [event ids already fired]
+default _career_event_last  = {}   # cid -> shift count when last event fired
+default _career_event_gap   = {}   # cid -> current gap until next event
+default npc_messages     = []   # list of {npc_id, text, day}
+default npc_texted_today = []   # npc_ids player texted today
+default player_commitments = []  # list of {id, npc_id, title, day, hour, location, label, completed, missed}
+
+# Relationship memory + threshold tracking
+default relationship_memories = {}         # {npc_id: [{id, title, day}]}
+default relationship_thresholds_seen = {}  # {"nora_aff_25": True, ...}
+default npc_last_hug_day = {}              # {npc_id: day_of_last_hug}
+default npc_last_kiss_day = {}             # {npc_id: day_of_last_kiss}
+default failed_physical_attempts = {}     # {(npc_id, action): consecutive_fail_count}
+default physical_boundary_lockout = {}    # {(npc_id, action): day_lockout_expires}
+# Romance progression flags — set by content when relationship crosses into romance
+default nora_romance_unlocked     = False
+default elle_romance_unlocked     = False
+default zoe_romance_unlocked      = False
+default caroline_romance_unlocked = False
+default lena_romance_unlocked     = False
+
+# Activity anti-repetition tracking (FIX 8: single bounded structure)
+default activity_daily_uses = {}           # {activity_id: {"day": N, "count": K}}
+
+# Career performance threshold notifications
+default career_perf_thresholds_seen = {}   # {(job_id, job_rank, threshold): True, ...}
+
+# Stock trading session flag (FIX 2): cleared before opening market, set on first trade
+default _stock_session_charged = False
+
+# Actionable invitation tracking
+default martha_coffee_accepted   = False
+default martha_coffee_day        = -1
+default martha_declined_invites  = []
+default eli_debug_joined         = False
+default eli_debug_day            = -1
+default lena_case_accepted       = False
+default lena_case_day            = -1
+default nora_closing_accepted    = False
+default nora_closing_day         = -1
+default natalie_extra_shift_day  = -1
+default topic_arc_done   = {}   # arc_id -> True when that stage has been played
+default shifts_worked    = {}   # career_id -> total shifts completed
+
+# Corporate arc flags
+default corporate_style        = None    # "ambitious" / "reliable" / "people_first"
+default corp_task_1_done       = False
+default corp_martha_1_done     = False
+default corp_martha_2_done     = False
+default corp_review_intern_done = False
+default corp_shifts            = 0      # total corporate shifts worked (gate for arc pacing)
+default corp_review_score      = 0     # accumulated from arc choices; feeds review outcome
+default corp_net_credit_hallway_done = False
+
+# Project Atlas — Associate arc
+default atlas_started          = False
+default atlas_completed        = False
+default atlas_stage            = 0
+default atlas_score            = 0
+default atlas_risk             = 0
+default atlas_route            = None   # "ambitious" / "reliable" / "people_first"
+default atlas_credit_choice    = None   # "shared" / "self" / "modest"
+default atlas_martha_involved  = False
+default atlas_caroline_warned  = False
+default atlas_intro_done       = False
+default atlas_research_done    = False
+default atlas_problem_done     = False
+default atlas_crunch_done      = False
+default atlas_presentation_done = False
+default atlas_aftermath_done   = False
+default atlas_shifts           = 0     # project-work sessions since intro; gates scenes
+
+# Corporate Associate collab flags
+default mco_client_call_done    = False
+default _corp_promised_client   = False
+default _corp_measured_in_call  = False
+default _corp_client_reframe    = False
+default martha_rooftop_done     = False
+default eli_find_done           = False
+default nora_rent_done          = False
+default sam_gym_done            = False
+default zoe_beach_night_done    = False
+
+# ── Gameplay expansion defaults ────────────────────────────────────────────────
+default nora_ignored_done         = False
+default nora_ignored_pending      = False
+default nora_ignored_response     = ""
+default nora_bad_day_done         = False
+default nora_bad_day_pending      = False
+default nora_touched_arm          = False
+default marcus_missed_done        = False
+default marcus_missed_pending     = None   # None or {trigger_day, commitment_id, title, location, hour, variant}
+default marcus_basketball_invite_done    = False
+default marcus_basketball_invite_pending = False
+default martha_wardrobe_done      = False
+default zoe_park_guitar_done               = False
+default zoe_rain_done                      = False
+default zoe_moment_deflected_done          = False
+default zoe_moment_deflected_pending       = False
+default zoe_moment_deflected_pending_day   = -1
+default martha_corridor_done         = False
+default martha_corridor_pending      = False
+default martha_corridor_pending_day  = -1
+default martha_corridor_context      = None
+default nora_hug_school_done         = False
+default nora_hug_school_pending      = False
+default nora_hug_school_pending_day  = -1
+default eli_deploy_hug_done          = False
+default eli_deploy_pending           = False
+default eli_deploy_pending_day       = -1
+default lena_shoulder_done           = False
+default lena_shoulder_pending        = False
+default lena_shoulder_pending_day    = -1
+default nora_kai_crossover_done      = False
+default nora_kai_pending             = False
+default eli_meets_zoe_done        = False
+default car_marcus_drive_done     = False
+default martha_gift_accusation_done = False
+default martha_gift_scene_pending = None   # None or {trigger_day, gift_id, gift_name, gift_count, trigger_location, variant}
+default programming_kit_eli_done  = False
+default nora_last_seen_day        = 0
+default nora_kai_pending_day      = -1
+default nora_kai_retry_after_day  = 0
+default kitchen_lena_extended_done = False
+default lena_break_room_done      = False
+default hospital_hard_case_pending = False
+default martha_coffee_machine_done = False
+default gift_log                  = []
+default major_scene_last_day      = -1
+
+# ── Content Pack 2: relationship scene flags ──────────────────────────
+default caroline_bar_done             = False
+default caroline_bar_pending          = False
+default caroline_bar_pending_day      = -1
+default natalie_bar_scene_done        = False
+default natalie_bar_scene_pending     = False
+default natalie_bar_scene_pending_day = -1
+default kai_cafe_quiet_done           = False
+default kai_cafe_quiet_pending        = False
+default kai_cafe_quiet_pending_day    = -1
+default elle_decision_done            = False
+default elle_decision_pending         = False
+default elle_travel_2_response        = None
+default elle_abroad_day               = -1
+default sam_marcus_scene_done         = False
+default sam_marcus_scene_pending      = False
+default sam_marcus_scene_pending_day  = -1
+default eli_dinner_done               = False
+
+# Corporate work activity system
+default office_reputation      = 0    # 0-100; built through networking
+default martha_last_collab     = -7   # day of last "work with martha" session
+default network_week_count     = 0    # networking sessions this week
+default network_week_idx       = -1   # day//7 when network_week_count was last reset
+
+# IT arc (Junior Dev)
+default it_first_day_done = False
+default it_task_1_done    = False
+default it_npc1_done      = False
+default it_npc2_done      = False
+default it_review_done    = False
+default it_shifts         = 0
+
+# Hospital arc (Clinical Assistant)
+default hosp_first_day_done = False
+default hosp_task_1_done    = False
+default hosp_npc1_done      = False
+default hosp_npc2_done      = False
+default hosp_review_done    = False
+default hosp_shifts         = 0
+
+# Culinary arc (Commis Chef)
+default cul_first_day_done = False
+default cul_task_1_done    = False
+default cul_npc1_done      = False
+default cul_npc2_done      = False
+default cul_review_done    = False
+default cul_shifts         = 0
+
+# Trainer arc (Assistant Trainer)
+default tr_first_day_done  = False
+default tr_task_1_done     = False
+default tr_npc1_done       = False
+default tr_npc2_done       = False
+default tr_review_done     = False
+default tr_shifts          = 0
+
+# Story flags set by topic arcs
+default zoe_grant_discussed   = False
+default zoe_exhibition_invited = False
+default nora_school_revealed  = False
+default elle_abroad_revealed  = False
 
 # Job / career. job_id = career key in CAREERS (None = unemployed); the rest is
 # derived from CAREERS[job_id]["ranks"][job_rank] via _sync_job() in careers.rpy.
@@ -175,6 +380,9 @@ init python:
         # is_night/venue gates read raw hour, so the clock and day/night desync.
         if store.hour >= DAY_END:
             new_day()
+            return   # new_day() already runs its own miss/deliver cycle
+        expire_late_commitments()
+        notify_available_commitments()
 
     def new_day():
         store.day  += 1
@@ -183,8 +391,11 @@ init python:
         if store.skill_fit >= 4:   # Metabolic Engine perk: sleep recovery +15%
             base_energy = min(100, int(base_energy * 1.15))
         store.need_energy  = base_energy
-        store.need_hunger  = max(0, store.need_hunger  - 15)
-        store.need_hygiene = max(0, store.need_hygiene - 10)
+        _tier = store.apartment_tier
+        _hunger_loss  = 15 if _tier == 1 else (10 if _tier == 2 else 5)
+        _hygiene_loss = 10 if _tier == 1 else (8  if _tier == 2 else 5)
+        store.need_hunger  = max(0, store.need_hunger  - _hunger_loss)
+        store.need_hygiene = max(0, store.need_hygiene - _hygiene_loss)
         store.warned_today = False
         # topic streak: increment for topics used today, decay unused ones
         for npc_id, used in store._topics_today.items():
@@ -198,11 +409,14 @@ init python:
         store._topics_today = {}
         # anger decays 1 per day (jealousy or bad interactions)
         store.npc_anger = {k: v - 1 for k, v in store.npc_anger.items() if v > 1}
+        store.npc_texted_today = []
+        check_missed_commitments()
+        deliver_due_messages()
         stocks_step()
         roll_daily_events()
         # Monday: rent + car (direct debit, bypasses debt block) + interest
         if store.day % 7 == 0:
-            RENT = {1: 100, 2: 250, 3: 600}
+            RENT = {1: 220, 2: 550, 3: 1300}
             store.money -= RENT.get(store.apartment_tier, 100)
             if store.car_tier > 0:
                 store.money -= store.car_tier * 40
@@ -212,10 +426,10 @@ init python:
                 store.money = 0
             # 10%/week interest on outstanding loan
             if store.loan > 0:
-                store.loan += max(1, int(store.loan * 0.10))
+                store.loan += max(1, int(store.loan * 0.05))
             # 2%/week interest on savings
             if store.savings > 0:
-                store.savings += max(1, int(store.savings * 0.02))
+                store.savings += min(50, max(1, int(store.savings * 0.02)))
             # Ignore decay: -2 affection for each NPC not seen in the last 7 days
             # (NPC_DATA defined in interact.rpy, accessible at runtime)
             for _nid, _d in NPC_DATA.items():
@@ -225,14 +439,168 @@ init python:
                 if _aff > 0 and (store.day - _last) > 7:
                     setattr(store, _aff_var, max(0, _aff - 2))
 
+        # ── Gameplay expansion: scene triggers ─────────────────────────────
+        # martha_gift_scene_pending: promote to "delayed" after 4 days
+        if (store.martha_gift_scene_pending
+                and store.martha_gift_scene_pending.get("variant") == "immediate"
+                and store.day >= store.martha_gift_scene_pending["trigger_day"] + 4):
+            _mgp = dict(store.martha_gift_scene_pending)
+            _mgp["variant"] = "delayed"
+            store.martha_gift_scene_pending = _mgp
+
+        # nora feels ignored
+        if (not store.nora_ignored_done and not store.nora_ignored_pending
+                and store.nora_affection >= 30 and store.nora_trust >= 20
+                and store.nora_closing_done
+                and "nora" in store.npc_contacts
+                and (store.day - store.nora_last_seen_day) >= 8):
+            store.nora_ignored_pending = True
+            queue_phone_message("nora",
+                "You've been quiet. Is that a thing I should know about, or just a busy week that turned into two?",
+                store.day, "nora_ignored_text", responses=_NORA_IGNORED_RESP)
+
+        # nora bad day visit
+        if (not store.nora_bad_day_done and not store.nora_bad_day_pending
+                and store.nora_affection >= 30 and store.nora_trust >= 20
+                and store.nora_closing_done
+                and "nora" in store.npc_contacts
+                and worn_out()):
+            store.nora_bad_day_pending = True
+            queue_phone_message("nora",
+                "You had the look today. I'm off at seven. I'm bringing bread. You don't have to talk, you just have to let me in.",
+                store.day, "nora_bad_day_text", responses=_NORA_BAD_DAY_RESP)
+
+        # nora kai crossover — set pending; expires after 14 days if not triggered at café
+        if (not store.nora_kai_crossover_done and not store.nora_kai_pending
+                and store.nora_affection >= 30 and store.kai_affection >= 20
+                and store.nora_met and store.kai_met
+                and store.day >= store.nora_kai_retry_after_day):
+            store.nora_kai_pending = True
+            store.nora_kai_pending_day = store.day
+        elif (store.nora_kai_pending
+                and store.nora_kai_pending_day > 0
+                and store.day > store.nora_kai_pending_day + 14):
+            store.nora_kai_pending = False
+            store.nora_kai_pending_day = -1
+            store.nora_kai_retry_after_day = store.day + 21  # 3-week cooldown before re-triggering
+
+        # Marcus basketball invite — fires once after sports arc + relationship gate.
+        # ponytail: arc completion tracked in topic_arc_done dict (not a standalone bool).
+        #   Falls back to affection gate only; add arc check here if a dedicated flag is added.
+        if (not store.marcus_basketball_invite_done
+                and not store.marcus_basketball_invite_pending
+                and store.marcus_met
+                and store.marcus_affection >= 25
+                and store.topic_arc_done.get("marcus_sports_1")
+                and not any(c.get("npc_id") == "marcus" for c in store.player_commitments)):
+            store.marcus_basketball_invite_pending = True
+
+        # ── Zoe spontaneous moment: pending when thresholds met ─────────────
+        if (not store.zoe_moment_deflected_done
+                and not store.zoe_moment_deflected_pending
+                and store.zoe_affection >= 45
+                and store.zoe_trust >= 35
+                and store.zoe_beach_night_done):
+            store.zoe_moment_deflected_pending = True
+            store.zoe_moment_deflected_pending_day = store.day
+
+        # nora hug school (pending after school reveal arc + affection/trust thresholds)
+        # ponytail: nora_bad_day_done removed as gate — school reveal + stats are sufficient.
+        #   nora_bad_day_done may still gate bonus dialogue inside scene_nora_hug_school.
+        if (not store.nora_hug_school_done and not store.nora_hug_school_pending
+                and store.nora_school_revealed
+                and store.nora_affection >= 40 and store.nora_trust >= 35):
+            store.nora_hug_school_pending = True
+            store.nora_hug_school_pending_day = store.day
+
+        # eli deploy hug (pending after open-source session done)
+        if (not store.eli_deploy_hug_done and not store.eli_deploy_pending
+                and store.programming_kit_eli_done):
+            store.eli_deploy_pending = True
+            store.eli_deploy_pending_day = store.day
+
+        # lena shoulder gesture: pending after break-room + hospital hard case + thresholds.
+        # hospital_hard_case_pending is set by hospital shift when job_performance < 70;
+        # cleared here when scene is armed so it doesn't re-trigger on next qualifying shift.
+        if (not store.lena_shoulder_done and not store.lena_shoulder_pending
+                and store.lena_break_room_done
+                and store.hospital_hard_case_pending
+                and store.lena_affection >= 45 and store.lena_trust >= 45):
+            store.lena_shoulder_pending = True
+            store.lena_shoulder_pending_day = store.day
+            store.hospital_hard_case_pending = False
+
+        # ── Content Pack 2 triggers ────────────────────────────────────
+
+        # Caroline off-work: set pending on any Thursday once gates met.
+        # Expires after 14 days if player never visits bar that Thursday window.
+        if (store.caroline_met
+                and store.caroline_affection >= 30 and store.caroline_trust >= 25
+                and not store.caroline_bar_done and not store.caroline_bar_pending):
+            if store.day % 7 == 3:  # Thursday
+                store.caroline_bar_pending = True
+                store.caroline_bar_pending_day = store.day
+        elif (store.caroline_bar_pending and store.caroline_bar_pending_day > 0
+                and store.day > store.caroline_bar_pending_day + 14):
+            store.caroline_bar_pending = False
+            store.caroline_bar_pending_day = -1
+
+        # Natalie humanisation: set pending once gates met; expires after 14 days.
+        if (store.natalie_met
+                and store.natalie_affection >= 25 and store.natalie_trust >= 20
+                and not store.natalie_bar_scene_done and not store.natalie_bar_scene_pending):
+            store.natalie_bar_scene_pending = True
+            store.natalie_bar_scene_pending_day = store.day
+        elif (store.natalie_bar_scene_pending and store.natalie_bar_scene_pending_day > 0
+                and store.day > store.natalie_bar_scene_pending_day + 14):
+            store.natalie_bar_scene_pending = False
+            store.natalie_bar_scene_pending_day = -1
+
+        # Kai café quiet: set pending once gates met; expires after 21 days.
+        # Guard: not nora_kai_pending (nora_kai takes priority at the café).
+        if (store.kai_met
+                and store.kai_affection >= 30 and store.kai_trust >= 25
+                and not store.kai_cafe_quiet_done and not store.kai_cafe_quiet_pending
+                and not store.nora_kai_pending):
+            store.kai_cafe_quiet_pending = True
+            store.kai_cafe_quiet_pending_day = store.day
+        elif (store.kai_cafe_quiet_pending and store.kai_cafe_quiet_pending_day > 0
+                and store.day > store.kai_cafe_quiet_pending_day + 21):
+            store.kai_cafe_quiet_pending = False
+            store.kai_cafe_quiet_pending_day = -1
+
+        # Elle Portugal payoff: phone message 7+ days after abroad_revealed + pier_done.
+        if (store.elle_pier_done and store.elle_abroad_revealed
+                and not store.elle_decision_done and not store.elle_decision_pending
+                and store.elle_affection >= 40 and store.elle_trust >= 25
+                and (store.elle_abroad_day < 0 or store.day >= store.elle_abroad_day + 7)
+                and not message_already_queued("elle_decision_msg")):
+            store.elle_decision_pending = True
+            queue_phone_message("elle",
+                "I made up my mind about Portugal. Come find me at the beach when you have time.",
+                store.day, "elle_decision_msg")
+
+        # Sam × Marcus crossover: set pending when both relationships developed.
+        # Individual gates ensure neither is a stranger; combined >= 55 for pacing.
+        if (store.sam_met and store.marcus_met
+                and store.sam_affection >= 25 and store.marcus_affection >= 25
+                and store.sam_affection + store.marcus_affection >= 55
+                and not store.sam_marcus_scene_done and not store.sam_marcus_scene_pending):
+            store.sam_marcus_scene_pending = True
+            store.sam_marcus_scene_pending_day = store.day
+
+    def cosmetic_days_left():
+        return max(0, store.cosmetic_boost_until - store.day)
+
     def eff_app():
-        """Effective Appearance: stat_app minus a temporary hygiene debuff."""
+        """Effective Appearance: stat_app minus hygiene debuff, plus cosmetic temp bonus."""
         h = store.need_hygiene
         if h >= 60: debuff = 0
         elif h >= 40: debuff = 5
         elif h >= 20: debuff = 12
         else: debuff = 22
-        return max(0, store.stat_app - debuff)
+        bonus = 10 if store.day < store.cosmetic_boost_until else 0
+        return max(0, store.stat_app - debuff + bonus)
 
     def worn_out():
         # performance penalty zone: shift quality suffers but work still possible
@@ -275,3 +643,55 @@ init python:
     def cafe_bg():
         is_night = store.hour >= 19
         return "cafenight" if is_night else "cafeday"
+
+    # ── Activity anti-repetition helpers ──────────────────────────────────
+    # FIX 8: single bounded dict; count resets automatically on a new day.
+    # Public interface unchanged: activity_recently_used / activity_use_count_today
+    # / mark_activity_used / mark_activity_used_today.
+
+    def activity_recently_used(activity_id, days=1):
+        entry = store.activity_daily_uses.get(activity_id)
+        if not entry:
+            return False
+        return store.day - entry["day"] < days
+
+    def mark_activity_used(activity_id):
+        d = dict(store.activity_daily_uses)
+        entry = d.get(activity_id, {})
+        if entry.get("day") != store.day:
+            d[activity_id] = {"day": store.day, "count": 1}
+        store.activity_daily_uses = d
+
+    def activity_use_count_today(activity_id):
+        """How many times this activity has been used today."""
+        entry = store.activity_daily_uses.get(activity_id)
+        if not entry or entry["day"] != store.day:
+            return 0
+        return entry["count"]
+
+    def mark_activity_used_today(activity_id):
+        d = dict(store.activity_daily_uses)
+        entry = d.get(activity_id, {})
+        if entry.get("day") != store.day:
+            d[activity_id] = {"day": store.day, "count": 1}
+        else:
+            d[activity_id] = {"day": store.day, "count": entry["count"] + 1}
+        store.activity_daily_uses = d
+
+    # ── Commitment overlap warning ─────────────────────────────────────────
+
+    def _overlap_warning_text(duration):
+        """Returns a warning string if any active same-day commitment falls within [now, now+duration)."""
+        end_hour = store.hour + duration
+        for c in store.player_commitments:
+            if not _c_active(c):
+                continue
+            if c["day"] != store.day:
+                continue
+            if store.hour <= c["hour"] < end_hour:
+                hrs = c["hour"] - store.hour
+                time_str = "%.0fh" % hrs if hrs >= 1 else "30 min"
+                return "You have plans (%s) in %s.\nThis activity takes %dh." % (
+                    c["title"], time_str, int(duration)
+                )
+        return ""

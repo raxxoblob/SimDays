@@ -1,4 +1,0 @@
-description: Character sprite of Sam, laughing expression.
-tags: sprite, character, sam, laughing, transparent, 554x1012
-character: sam
-source: sam/sam_laugh.png

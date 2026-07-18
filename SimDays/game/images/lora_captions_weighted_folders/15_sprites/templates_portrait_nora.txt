@@ -1,4 +1,0 @@
-description: Portrait reference sprite for Nora.
-tags: sprite, character, portrait, reference, nora, 512x512
-character: templates
-source: templates/portrait_nora.png

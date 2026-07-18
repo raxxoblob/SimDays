@@ -2,6 +2,16 @@
 
 # ── HOME ──────────────────────────────────────────────────────────────
 label location_home:
+    # Queue home-visit invitations the first time item + relationship conditions are met.
+    if (own_programming_kit and eli_affection >= 25 and eli_trust >= 20
+            and eli_met and not message_already_queued("eli_side_project_invite")):
+        $ queue_phone_message("eli", "You mentioned that kit you bought. I have a small side project that could use a second person. Your place or mine?", day, "eli_side_project_invite", responses=_ELI_SIDE_RESP)
+    if (own_coffee_machine and nora_affection >= 30 and nora_trust >= 20
+            and nora_met and not message_already_queued("nora_coffee_machine_invite")):
+        $ queue_phone_message("nora", "You bought a home coffee machine and didn't ask the person who works with coffee all day? This needs an inspection.", day, "nora_coffee_machine_invite", responses=_NORA_HOME_COFFEE_RESP)
+    if (own_guitar and skill_music >= 1 and zoe_affection >= 25
+            and zoe_met and not message_already_queued("zoe_guitar_invite")):
+        $ queue_phone_message("zoe", "You own a guitar? Either prove it or stop pretending it counts as furniture.", day, "zoe_guitar_invite", responses=_ZOE_GUITAR_RESP)
     scene expression home_bg()
     show screen hud
     jump location_home_actions
@@ -11,6 +21,19 @@ label location_home_actions:
     $ activity_exit_name = "Hallway"
     scene expression home_bg()
     show screen hud
+    # Commitment triggers for home-visit scenes
+    if commitment_available("eli_side_project_1"):
+        call home_eli_side_project_scene
+        jump location_home_actions
+    if commitment_available("nora_coffee_1"):
+        call home_nora_coffee_scene
+        jump location_home_actions
+    if commitment_available("zoe_guitar_1"):
+        call home_zoe_guitar_scene
+        jump location_home_actions
+    if commitment_available("nora_bad_day_1"):
+        call scene_nora_bad_day
+        jump location_home_actions
 
     menu (screen="activity"):
         "Sleep":
@@ -28,6 +51,14 @@ label location_home_actions:
             jump location_home_actions
 
         "Nap (3h)" if own_bed:
+            $ _nap_owarn = _overlap_warning_text(3)
+            if _nap_owarn:
+                menu:
+                    "[_nap_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_home_actions
             $ spend_time(3)
             $ need_energy = min(100, need_energy + 45)
             "A proper nap on a proper bed. You wake up sharp."
@@ -37,9 +68,46 @@ label location_home_actions:
             jump use_computer
 
         "Practice guitar (2h)" if own_guitar:
+            $ _guitar_owarn = _overlap_warning_text(2)
+            if _guitar_owarn:
+                menu:
+                    "[_guitar_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_home_actions
+            $ _guitar_uses = activity_use_count_today("home_guitar")
+            $ mark_activity_used_today("home_guitar")
             $ spend_time(2)
-            $ gain_skill("music", 5)
-            "You run scales and a couple of songs. Fingers sore, ear sharper."
+            if _guitar_uses == 0:
+                $ gain_skill("music", 5)
+                "You run scales and a couple of songs. Fingers sore, ear sharper."
+            elif _guitar_uses == 1:
+                $ gain_skill("music", 2)
+                "A second session. Progress is slower, but you find a cleaner chord shape."
+            else:
+                "You noodle for a bit. Your fingers aren't interested today."
+            jump location_home_actions
+
+        "Make coffee (0.5h)" if own_coffee_machine:
+            $ spend_time(0.5)
+            if home_coffee_calibrated:
+                $ need_energy = min(100, need_energy + 12)
+                "Nora's settings. Comes out right."
+            else:
+                $ need_energy = min(100, need_energy + 7)
+                "Fine. Could be better."
+            jump location_home_actions
+
+        "Invite someone for dinner (3h)" if own_kitchen_set:
+            call home_dinner_invite_menu
+            jump location_home_actions
+
+        "Check phone":
+            $ deliver_due_messages()
+            call screen phone_inbox_modal
+            if _return:
+                call expression _return
             jump location_home_actions
 
 
@@ -116,11 +184,12 @@ label use_computer:
     menu (screen="activity"):
         "Practice coding (3h)":
             $ spend_time(3)
-            $ gain_skill("prog", 3)
+            $ gain_skill("prog", 7 if own_programming_kit else 5)
             $ need_energy = max(0, need_energy - 15)
             "Three hours deep in a side project. The docs finally click."
             jump use_computer
         "Trade stocks":
+            $ store._stock_session_charged = False
             call screen stock_market
             jump use_computer
         "Browse the web (0.5h)":
@@ -133,6 +202,23 @@ label use_computer:
 # ── CAFE ──────────────────────────────────────────────────────────────
 label location_cafe:
     $ current_loc = "location_cafe"
+    # nora_last_seen_day is set in nora_greet (on actual interaction), not on location entry
+    # Priority 2: pending conflict/repair scenes (minor)
+    if nora_ignored_pending and nora_met:
+        call scene_nora_feels_ignored
+    # Priority 3: pending breakthrough scenes (major) — one per day
+    if major_scene_last_day != day:
+        if nora_hug_school_pending and nora_met:
+            call scene_nora_hug_school
+    # Priority 4: crossover scenes
+    if nora_kai_pending and nora_met and kai_met:
+        call scene_nora_kai_crossover
+    # Priority 5: Kai café quiet (defers when nora_kai_pending has priority)
+    if kai_cafe_quiet_pending and npc_here("kai") and not nora_kai_pending:
+        call scene_kai_cafe_quiet
+    if commitment_available("nora_closing_1"):
+        call phone_nora_closing_scene
+        jump take_metro
     if not venue_open("coffee_shop"):
         "The café is closed. Come back between 07:00–19:00."
         jump take_metro
@@ -165,8 +251,12 @@ label cafe_first_visit:
     jump cafe_actions
 
 label cafe_actions:
+    if commitment_available("martha_coffee_1"):
+        call phone_martha_coffee_scene
     if nora_affection >= 40 and hour >= 19 and not nora_closing_done:
         jump nora_closing_scene
+    if nora_trust >= 30 and nora_affection >= 30 and not nora_rent_done and nora_closing_done:
+        jump nora_rent_scene
     if hour >= 19:
         "The café lights are going off. Time to head out."
         jump take_metro
@@ -215,12 +305,22 @@ label cafe_work_shift:
     if need_energy < 15:
         "You can barely keep your eyes open. Even Henry would send you home. Sleep first."
         jump cafe_actions
+    $ _owarn = _overlap_warning_text(4)
+    if _owarn:
+        menu:
+            "[_owarn]\nContinue anyway?"
+            "Continue":
+                pass
+            "Go back":
+                jump cafe_actions
     scene pov_barista
     show screen hud
+    $ _cafe_n = store.shifts_worked.get("cafe", 0)
+    $ _cafe_pay = 55 if _cafe_n < 5 else (65 if _cafe_n >= 15 else 60)
     $ spend_time(4)
-    $ gain_money(60)
-    $ need_energy = max(0, need_energy - 20)
-    "Four hours of steaming milk and small talk. You pocket $60."
+    $ gain_money(_cafe_pay)
+    $ store.need_energy = max(0, store.need_energy - 20)
+    "Four hours of steaming milk and small talk. You pocket $[_cafe_pay]."
     if npc_here("nora"):
         show nora_cafe_normal at sprite_r
         if not cafe_shift_done:
@@ -228,7 +328,15 @@ label cafe_work_shift:
             n "Not bad for a first shift. Henry says you're a natural - high praise, he called me 'adequate' for a year."
         else:
             n "Another one down. You're basically furniture now. The good kind."
+        if hour >= 20 and not message_already_queued("cafe_nora_late_1"):
+            $ queue_phone_message("nora", "I saw you close tonight. Tell me next time — I'll do the last run with you.", day + 1, "cafe_nora_late_1")
+        if nora_trust >= 20 and shifts_worked.get("cafe", 0) >= 5 and not message_already_queued("nora_closing_invite"):
+            $ queue_phone_message("nora", "Closing crew tomorrow is just me and Henry. Come do the last hour? I'll make it worth it, coffee-wise.", day + 1, "nora_closing_invite", responses=_NORA_CLOSING_RESP)
+        if commitment_available("nora_closing_1"):
+            call phone_nora_closing_scene
         hide nora_cafe_normal
+    if _work_event_roll("cafe"):
+        call work_event_cafe
     jump cafe_actions
 
 # ── GYM ───────────────────────────────────────────────────────────────
@@ -282,6 +390,9 @@ label gym_reception:
 label gym_floor:
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
+    # ponytail: hour window matches Sam's actual gym schedule (Mon-Fri 10-14, WKD 09-13).
+    if sam_affection >= 35 and sam_trust >= 25 and not sam_gym_done and 10 <= hour < 14:
+        jump sam_gym_scene
     scene gymdaypeople
     show screen hud
     $ _vis = location_sprites()
@@ -290,6 +401,50 @@ label gym_floor:
     if len(_vis) >= 2:
         show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
+        "Work a shift (8h)" if job_id == "trainer":
+            if hour + 8 > DAY_END:
+                "Too late to start a full shift today."
+                jump gym_floor
+            if too_tired():
+                "You're running on empty. Trainers need rest too."
+                jump gym_floor
+            $ _tr_owarn = _overlap_warning_text(8)
+            if _tr_owarn:
+                menu:
+                    "[_tr_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump gym_floor
+            scene pov_trainer
+            show screen hud
+            $ _tired = do_shift("trainer", 8)
+            $ tr_shifts += 1
+            if not kai_met:
+                call tr_first_day
+            elif not tr_task_1_done and tr_shifts >= 3:
+                call tr_task_1
+            elif tr_task_1_done and not tr_npc1_done and tr_shifts >= 5:
+                call tr_npc1_kai
+            elif tr_npc1_done and not tr_npc2_done and tr_shifts >= 7:
+                call tr_npc2_kai
+            elif tr_npc2_done and not tr_review_done and job_performance >= 100 and can_promote():
+                call tr_review_asst
+            else:
+                if _tired:
+                    "Drained, but you kept your energy up for every client. That's the job."
+                else:
+                    "Back-to-back sessions. You finish knowing exactly what you did today."
+            if _work_event_roll("trainer"):
+                call work_event_trainer
+            jump gym_floor
+        "Apply as a Personal Trainer" if job_id is None:
+            if can_apply("trainer"):
+                $ apply_job("trainer")
+                "Kai looks you over, then at your form on the floor. \"You know how to move. Let's see if you can teach it.\" Assistant trainer. Starting Monday."
+            else:
+                "Kai checks your profile. \"STR and the Athletic Training cert minimum. The college runs the course — come back when you're there.\""
+            jump gym_floor
         "Talk to Kai" if npc_talkable("kai"):
             call npc_interact("kai")
             jump gym_floor
@@ -369,11 +524,27 @@ label location_library:
             if too_tired():
                 "Too tired to focus. The words blur. Sleep first."
                 jump location_library
+            $ _study_owarn = _overlap_warning_text(2)
+            if _study_owarn:
+                menu:
+                    "[_study_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_library
             scene expression ("library_study_night" if hour >= 20 else "library_study_day")
             show screen hud
+            $ _study_uses = activity_use_count_today("library_study")
+            $ mark_activity_used_today("library_study")
             $ spend_time(2)
-            $ gain_stat("int", 10)
-            "Two hours of focused reading. Your brain hurts in a good way."
+            if _study_uses == 0:
+                $ gain_stat("int", 10)
+                "Two hours of focused reading. Your brain hurts in a good way."
+            elif _study_uses == 1:
+                $ gain_stat("int", 5)
+                "Second session. Progress slows — the mind's full — but you push through."
+            else:
+                "You're staring at the page. Nothing new is going in. Get some rest."
             jump location_library
         "Self-study a subject (2h, free)":
             if too_tired():
@@ -385,23 +556,24 @@ label location_library:
                 "What are you working through?"
                 "Medicine":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 18)
-                    $ gain_skill("med", 1)
+                    $ store.need_energy = max(0, store.need_energy - 18)
+                    $ gain_skill("med", 2)
                     "Dense textbooks, clinical notes. Slower than a real course, but it sticks."
                 "Programming":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 18)
-                    $ gain_skill("prog", 1)
+                    $ store.need_energy = max(0, store.need_energy - 18)
+                    $ _prog_gain = 3 if own_programming_kit else 2
+                    $ gain_skill("prog", _prog_gain)
                     "Tutorials, docs, Stack Overflow rabbit holes. You get somewhere."
                 "Business":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 18)
-                    $ gain_skill("biz", 1)
+                    $ store.need_energy = max(0, store.need_energy - 18)
+                    $ gain_skill("biz", 2)
                     "Case studies and frameworks. Dry but useful."
                 "Art":
                     $ spend_time(2)
-                    $ need_energy = max(0, need_energy - 18)
-                    $ gain_skill("art", 1)
+                    $ store.need_energy = max(0, store.need_energy - 18)
+                    $ gain_skill("art", 2)
                     "Theory, references, sketching. You can feel the improvement in small ways."
             jump location_library
         "Talk to Eli" if npc_talkable("eli"):
@@ -413,8 +585,32 @@ label location_bar:
     $ current_loc = "location_bar"
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
+    # Priority 2: pending conflict scenes
+    if marcus_missed_pending and marcus_affection >= 30:
+        call scene_marcus_missed_commitment
+    # Priority 2b: Caroline off-work (Thursday 19-22; bypasses npc_here — no bar schedule)
+    if caroline_bar_pending and day % 7 == 3 and 19 <= hour < 22:
+        call scene_caroline_thursday_bar
+    # Priority 3: major scenes — one per day, late night only
+    if major_scene_last_day != day:
+        if not car_marcus_drive_done and marcus_affection >= 30 and marcus_trust >= 20 and car_tier >= 1 and hour >= 22:
+            call scene_car_marcus_drive
     scene bar
     show screen hud
+    # Priority 4: Natalie humanisation (weekend bar schedule, npc_here check)
+    if natalie_bar_scene_pending and npc_here("natalie"):
+        call scene_natalie_bar_offduty
+    # Priority 5: Marcus basketball invite — fires once at bar when Marcus is present
+    if marcus_basketball_invite_pending and marcus_met and npc_here("marcus"):
+        $ marcus_basketball_invite_pending = False
+        $ marcus_basketball_invite_done = True
+        m "Hey. You free tomorrow morning? I know a court at the park. Eight o'clock, if you can make it."
+        menu:
+            "I'll be there.":
+                $ add_commitment("marcus_basketball_1", "marcus", "Basketball with Marcus", day + 1, 8, "City Park", "nop")
+                m "Good. Don't be late."
+            "Maybe another time.":
+                m "Your loss."
     $ _vis = location_sprites()
     if len(_vis) >= 1:
         show expression _vis[0][1] as npcsprite at sprite_r
@@ -430,12 +626,20 @@ label location_bar:
             jump location_bar
         "Socialize (1h)":
             if stat_chr >= 25:
+                $ _soc_uses = activity_use_count_today("bar_socialize")
+                $ mark_activity_used_today("bar_socialize")
                 $ spend_time(1)
-                $ gain_stat("chr", _chr_bonus)
-                if has_event("bar_happy"):
-                    "Happy hour energy in the air — you're electric tonight."
+                if _soc_uses == 0:
+                    $ gain_stat("chr", _chr_bonus)
+                    if has_event("bar_happy"):
+                        "Happy hour energy in the air — you're electric tonight."
+                    else:
+                        "You work the room. A few numbers exchanged."
+                elif _soc_uses == 1:
+                    $ gain_stat("chr", _chr_bonus // 2)
+                    "Second round of conversation. Still good, but the fresh energy is gone."
                 else:
-                    "You work the room. A few numbers exchanged."
+                    "You've made the rounds. Everyone's heard your best material. Call it a night."
             else:
                 "You hover near a few groups but can't quite break in. Maybe with a bit more charm."
             jump location_bar
@@ -458,6 +662,18 @@ label location_bar:
 # ── OFFICE (corporate career) ─────────────────────────────────────────
 label location_office:
     $ current_loc = "location_office"
+    # Priority 2: pending conflict scenes
+    if martha_gift_scene_pending and martha_met and hour >= 9 and hour < 18:
+        call scene_martha_gift_accusation
+    # Priority 3: pending breakthrough scenes (major) — one per day
+    if major_scene_last_day != day:
+        if martha_corridor_pending and hour >= 9 and hour < 18:
+            call scene_martha_corridor_gesture
+    # Priority 4/5: everyday first-time scenes (minor)
+    if wardrobe_tier >= 2 and martha_affection >= 25 and martha_met and not martha_wardrobe_done:
+        call scene_wardrobe_martha
+    if hour < 10 and martha_affection >= 20 and martha_met and not martha_coffee_machine_done:
+        call scene_martha_office_coffee
     if not venue_open("office_exec"):
         if day % 7 >= 5:
             "Nexus Tower is dark on weekends. The corporate world takes Saturdays off."
@@ -474,42 +690,55 @@ label location_office:
     if len(_vis) >= 2:
         show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
-        "Work a shift (8h)" if job_id == "corporate":
+        "Go to work" if job_id == "corporate":
             if too_tired() or hour + 8 > DAY_END:
                 "You're too tired or it's too late to start a shift."
                 jump location_nexus
-            $ _tired = do_shift("corporate", 8)
-            if not caroline_met:
-                $ caroline_met = True
-                $ martha_met = True
-                "A long first day. HR's Caroline clocks you on the way out - \"I keep tabs on everyone.\" A sharp woman by the windows barely looks up: Martha, apparently, and unimpressed."
-            elif _tired:
-                "Running on empty, you limp to end of day. Your manager notices the slippage."
-            else:
-                "A long day of meetings and spreadsheets. The pay is solid."
+            $ _corp_owarn = _overlap_warning_text(8)
+            if _corp_owarn:
+                menu:
+                    "[_corp_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_office
+            menu:
+                "Handle regular responsibilities.":
+                    call corp_regular_work
+                "Focus on Project Atlas." if atlas_started and not atlas_completed:
+                    call corp_project_work
+                "Work alongside Martha." if martha_collab_available():
+                    call corp_work_martha
+                "Spend some time getting to know the floor.":
+                    call corp_network
+            if need_energy > 40 and hour + 2 <= DAY_END:
+                menu:
+                    "Head out.":
+                        pass
+                    "Stay for overtime.":
+                        call corp_overtime
             jump location_office
 
         "Ask about a promotion" if job_id == "corporate" and can_promote():
-            $ _trial = cur_rank().get("trial")
-            if _trial and not store.promotion_trials.get(("corporate", job_rank), False):
-                call expression _trial
+            if job_rank == 0 and not corp_review_intern_done:
+                call corporate_review_intern
             else:
-                if promote():
-                    "New title. Caroline hands you the updated contract with a tight smile."
+                $ _trial = cur_rank().get("trial")
+                if _trial and not store.promotion_trials.get(("corporate", job_rank), False):
+                    call expression _trial
                 else:
-                    "\"Strong quarter - but you need the skills for the next rung first.\""
+                    if promote():
+                        "New title. Caroline hands you the updated contract with a tight smile."
+                    else:
+                        "\"Strong quarter - but you need the skills for the next rung first.\""
             jump location_office
 
         "Apply for the graduate scheme" if job_id is None:
             if can_apply("corporate"):
-                $ apply_job("corporate")
-                $ caroline_met = True
-                show caroline_normal as npcsprite at sprite_c
-                caro "Good credentials. You start Monday. Keep your metrics up."
-                hide npcsprite
+                call corporate_recruit
             else:
                 show caroline_normal as npcsprite at sprite_c
-                caro "HR. Let me save us both time - these roles need a sharper head. INT 20, minimum. The college helps."
+                caro "HR. Let me save us both time - Business 1, INT 20, CHR 20, APP 20. All four, minimum. The college helps."
                 hide npcsprite
             jump location_office
 
@@ -536,21 +765,23 @@ label location_shop_clothing:
     scene clothesshop
     show screen hud
     menu (screen="activity"):
-        "Buy an outfit ($80)":
+        "Buy a casual outfit ($80)" if wardrobe_tier < 1:
             if money < 80:
                 "Not enough money."
             else:
                 $ gain_money(-80)
-                $ gain_stat("app", 15)
-                "New fit. You look sharper."
+                $ wardrobe_tier = 1
+                $ gain_stat("app", 3)
+                "A clean, well-fitted outfit. You carry yourself a little differently."
             jump location_shop_clothing
-        "Upgrade your wardrobe ($200, +status)" if wardrobe_tier < 3:
-            if money < 200:
+        "Upgrade your wardrobe (+status)" if 1 <= wardrobe_tier < 3:
+            $ _wd_price = {2: 500, 3: 1000}[wardrobe_tier + 1]
+            if money < _wd_price:
                 "Not enough money."
             else:
-                $ gain_money(-200)
+                $ gain_money(-_wd_price)
                 $ wardrobe_tier += 1
-                "Designer pieces, tailored. You carry yourself differently - people notice."
+                "Designer pieces, tailored. You carry yourself differently — people notice."
             jump location_shop_clothing
 
 label location_shop_electronics:
@@ -559,13 +790,14 @@ label location_shop_electronics:
     scene electronicsshop
     show screen hud
     menu (screen="activity"):
-        "Buy a gadget ($100)":
+        "Buy a gadget ($100)" if not own_programming_kit:
             if money < 100:
                 "Not enough money."
             else:
                 $ gain_money(-100)
-                $ gain_stat("int", 8)
-                "A new toy to tinker with. You learn a thing or two."
+                $ own_programming_kit = True
+                $ gain_stat("int", 2)
+                "A new toy to tinker with. You spend a few evenings digging into it — and pick up a thing or two."
             jump location_shop_electronics
         "Buy a guitar ($150)" if not own_guitar:
             if money < 150:
@@ -574,6 +806,14 @@ label location_shop_electronics:
                 $ gain_money(-150)
                 $ own_guitar = True
                 "A decent starter guitar. Now you can practice music at home."
+            jump location_shop_electronics
+        "Metal detector ($120)" if not own_metal_detector:
+            if money < 120:
+                "You can't quite afford it right now."
+            else:
+                $ gain_money(-120)
+                $ own_metal_detector = True
+                "You pick up a compact metal detector. Good for the beach, if you have time."
             jump location_shop_electronics
 
 label location_shop_gifts:
@@ -590,6 +830,22 @@ label location_shop_gifts:
                 $ need_energy = min(100, need_energy + 15)
                 "A small indulgence. You feel a little brighter."
             jump location_shop_gifts
+        "Buy a coffee machine ($150)" if not own_coffee_machine:
+            if money < 150:
+                "Not enough money."
+            else:
+                $ gain_money(-150)
+                $ own_coffee_machine = True
+                "Compact, capable, and immediately on the counter. You'll figure out the settings."
+            jump location_shop_gifts
+        "Buy a kitchen set ($200)" if not own_kitchen_set:
+            if money < 200:
+                "Not enough money."
+            else:
+                $ gain_money(-200)
+                $ own_kitchen_set = True
+                "Good pans, proper knives, a cutting board that doesn't slide. Cooking becomes less miserable."
+            jump location_shop_gifts
         "Buy a better bed ($400)" if not own_bed:
             if money < 400:
                 "Not enough money."
@@ -598,11 +854,12 @@ label location_shop_gifts:
                 $ own_bed = True
                 "Delivered and set up at home. Sleep restores fully now - and you can grab a Nap."
             jump location_shop_gifts
-        "Buy jewelry ($250, +status)" if jewelry_tier < 3:
-            if money < 250:
+        "Buy jewelry (+status)" if jewelry_tier < 3:
+            $ _jw_price = [250, 650, 1500][jewelry_tier]
+            if money < _jw_price:
                 "Not enough money."
             else:
-                $ gain_money(-250)
+                $ gain_money(-_jw_price)
                 $ jewelry_tier += 1
                 "A tasteful piece that quietly says you've arrived."
             jump location_shop_gifts
@@ -654,19 +911,19 @@ label location_cardealer:
                 $ car_tier = 1
                 "Nothing fancy, but it's yours. Wheels change how the city sees you."
             jump location_cardealer
-        "Trade up to a nice car ($5000)" if car_tier == 1:
-            if money < 5000:
+        "Trade up to a nice car ($4000)" if car_tier == 1:
+            if money < 4000:
                 "Not enough money for the upgrade yet."
             else:
-                $ gain_money(-5000)
+                $ gain_money(-4000)
                 $ car_tier = 2
                 "Clean lines, leather seats. People clock it in the parking lot."
             jump location_cardealer
-        "Buy the luxury model ($15000)" if car_tier == 2:
-            if money < 15000:
+        "Buy the luxury model ($12000)" if car_tier == 2:
+            if money < 12000:
                 "Not enough for the flagship. Come back richer."
             else:
-                $ gain_money(-15000)
+                $ gain_money(-12000)
                 $ car_tier = 3
                 "The kind of car that opens doors before you say a word."
             jump location_cardealer
@@ -688,13 +945,35 @@ label location_kitchen:
             if too_tired():
                 "Too wiped to cook a full service. Go sleep - chef's orders."
                 jump location_kitchen
+            $ _cul_owarn = _overlap_warning_text(8)
+            if _cul_owarn:
+                menu:
+                    "[_cul_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_kitchen
             scene pov_chef
             show screen hud
             $ _tired = do_shift("culinary", 8)
-            if _tired:
-                "Slammed and half-asleep, you burn a plate and hear about it. Bad night on the line."
+            $ cul_shifts += 1
+            if not rena_met:
+                call cul_first_day
+            elif not cul_task_1_done and cul_shifts >= 3 and job_rank == 0:
+                call cul_task_1
+            elif cul_task_1_done and not cul_npc1_done and cul_shifts >= 5 and job_rank == 0:
+                call cul_npc1_rena
+            elif cul_npc1_done and not cul_npc2_done and cul_shifts >= 7 and job_rank == 0:
+                call cul_npc2_rena
+            elif cul_npc2_done and not cul_review_done and job_performance >= 100 and can_promote() and job_rank == 0:
+                call cul_review_commis
             else:
-                "A brutal service, but you kept your station clean and fast. Chef almost nodded."
+                if _tired:
+                    "Slammed and half-asleep, you burn a plate and hear about it. Bad night on the line."
+                else:
+                    "A brutal service, but you kept your station clean and fast. Chef almost nodded."
+            if _work_event_roll("culinary"):
+                call work_event_culinary
             jump location_kitchen
 
         "Ask about a promotion" if job_id == "culinary" and job_performance >= 100:
@@ -723,6 +1002,10 @@ label location_nightclub:
     $ current_loc = "location_nightclub"
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
+    # Priority 3: Zoe spontaneous moment (major, night only)
+    if (zoe_moment_deflected_pending and major_scene_last_day != day
+            and hour >= 21 and zoe_met):
+        call scene_zoe_spontaneous
     scene nightclub
     show screen hud
     $ _vis = location_sprites()
@@ -807,7 +1090,7 @@ label location_flea_market:
                 jump location_flea_market
             $ spend_time(0.5)
             $ gain_money(-25)
-            $ gain_stat("app", 15)
+            $ gain_stat("app", 3)
             "A score — your eye for style is sharpening."
             jump location_flea_market
         "Buy a book ($12, +INT)":
@@ -816,7 +1099,7 @@ label location_flea_market:
                 jump location_flea_market
             $ spend_time(0.5)
             $ gain_money(-12)
-            $ gain_stat("int", 8)
+            $ gain_stat("int", 2)
             "A dog-eared paperback from a half-collapsed box. You'll read it tonight."
             jump location_flea_market
         "Haggle with vendors (1h)":
@@ -830,6 +1113,19 @@ label location_park:
     $ current_loc = "location_park"
     $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
+    $ _sam_marcus_fired = False
+    # Priority 2: pending conflict scenes
+    if marcus_missed_pending and marcus_affection >= 30:
+        call scene_marcus_missed_commitment
+    # Priority 3: Sam × Marcus crossover (MAJOR; weekday morning only)
+    if (sam_marcus_scene_pending and npc_here("sam") and npc_here("marcus")
+            and 6 <= hour < 10 and major_scene_last_day != day):
+        call scene_sam_marcus_park
+        $ _sam_marcus_fired = True
+    # Priority 5: Zoe rain shelter (auto-trigger, Thu/Fri afternoon, minor)
+    if (not zoe_rain_done and zoe_met and zoe_affection >= 15
+            and day % 7 in [3, 4] and 14 <= hour <= 18):
+        call scene_zoe_rain_shelter
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
     $ _vis = location_sprites()
@@ -840,25 +1136,41 @@ label location_park:
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
     menu (screen="activity"):
-        "Join [_group_lbl] →" if _group:
+        "Join [_group_lbl] →" if _group and not _sam_marcus_fired:
             call group_interact(_group[0], _group[1])
             jump location_park
         "Jog (1h)":
             scene expression ("park_jog_night" if hour >= 20 else "park_jog_day")
             show screen hud
+            $ _jog_uses = activity_use_count_today("park_jog")
+            $ mark_activity_used_today("park_jog")
             $ spend_time(1)
-            $ gain_stat("str", 8 if has_event("park_weather") else 4)
-            if has_event("park_weather"):
-                "Perfect conditions. You hit your stride and don't stop. Best run in weeks."
+            if _jog_uses == 0:
+                $ gain_stat("str", 8 if has_event("park_weather") else 4)
+                if has_event("park_weather"):
+                    "Perfect conditions. You hit your stride and don't stop. Best run in weeks."
+                else:
+                    "The air is crisp. Good start to the day."
+            elif _jog_uses == 1:
+                $ gain_stat("str", 4 if has_event("park_weather") else 2)
+                "Second lap. Body's getting used to it — still worthwhile."
             else:
-                "The air is crisp. Good start to the day."
+                "You're going through the motions. Not much left to gain today."
             jump location_park
         "Read a book (1.5h)":
             scene expression ("park_readbook_night" if hour >= 20 else "park_readbook_day")
             show screen hud
+            $ _read_uses = activity_use_count_today("park_read")
+            $ mark_activity_used_today("park_read")
             $ spend_time(1.5)
-            $ gain_stat("int", 3)
-            "A quiet hour on the bench."
+            if _read_uses == 0:
+                $ gain_stat("int", 3)
+                "A quiet hour on the bench. A few ideas shake loose."
+            elif _read_uses == 1:
+                $ gain_stat("int", 1)
+                "You read, but your mind is elsewhere. A bit of INT, at least."
+            else:
+                "You stare at the page. The words blur. Nothing left to take in today."
             jump location_park
         "Play basketball (1.5h)" if hour < 20:
             scene basketball_court_day
@@ -876,6 +1188,9 @@ label location_park:
         "Talk to Sam" if npc_talkable("sam"):
             call npc_interact("sam")
             jump location_park
+        "Play guitar (Zoe's here) (2h)" if own_guitar and skill_music >= 3 and zoe_affection >= 30 and zoe_met and not zoe_park_guitar_done and (day % 7 in [3, 4]) and hour >= 14 and hour <= 17:
+            call scene_guitar_zoe_busking
+            jump location_park
 
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
@@ -888,6 +1203,9 @@ label location_beach:
         jump beach_meet_zoe
     if elle_affection >= 40 and not elle_pier_done and npc_talkable("elle"):
         jump elle_pier_scene
+    # Elle Portugal payoff: fires after pier + decision message received
+    if elle_decision_pending and npc_talkable("elle"):
+        call scene_elle_portugal_payoff
     $ _vis = location_sprites()
     if len(_vis) >= 1:
         show expression _vis[0][1] as npcsprite at sprite_r
@@ -900,9 +1218,29 @@ label location_sandbeach:
     $ current_loc = "location_sandbeach"
     $ activity_exit_jump = "location_beach"
     $ activity_exit_name = "Beach"
+    if zoe_affection >= 40 and hour >= 20 and not zoe_beach_night_done:
+        jump zoe_beach_night_scene
     scene expression ("sandbeach_night" if hour >= 19 else "sandbeach_day")
     show screen hud
     menu (screen="activity"):
+        "Search with metal detector (2h)" if own_metal_detector and hour < 18:
+            $ _metal_owarn = _overlap_warning_text(2)
+            if _metal_owarn:
+                menu:
+                    "[_metal_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_sandbeach
+            if eli_met and not eli_find_done and npc_talkable("eli"):
+                jump eli_find_scene
+            else:
+                scene sandbeach_day
+                show screen hud
+                $ spend_time(2)
+                $ _sf = renpy.random.choice(["a rusted coin", "an old bottle cap", "a corroded key", "a waterproof lighter"])
+                "Two hours sweeping the shoreline. You find [_sf]."
+                jump location_sandbeach
         "Relax (1h)":
             $ spend_time(1)
             $ need_energy = min(100, need_energy + 12)
@@ -1104,6 +1442,9 @@ label location_warehouse:
     $ current_loc = "location_warehouse"
     $ activity_exit_jump = "take_metro"
     $ activity_exit_name = "City Map"
+    if commitment_available("natalie_shift_1"):
+        call phone_natalie_extra_scene
+        jump location_warehouse
     scene warehouse
     show screen hud
     if npc_talkable("natalie"):
@@ -1113,20 +1454,31 @@ label location_warehouse:
             if too_tired() or hour + 8 > DAY_END:
                 "Too tired or too late to start a shift."
                 jump location_warehouse
+            $ _wh_owarn = _overlap_warning_text(8)
+            if _wh_owarn:
+                menu:
+                    "[_wh_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_warehouse
             scene pov_warehouse
             show screen hud
             $ _is_sun = (day % 7 == 6)
             $ spend_time(8)
-            $ gain_money(220 if _is_sun else 110)
+            $ gain_money(170 if _is_sun else 115)
             $ gain_stat("str", 12)
-            $ need_energy = max(0, need_energy - (80 if _is_sun else 40))
+            $ store.need_energy = max(0, store.need_energy - (80 if _is_sun else 40))
             if _is_sun:
-                "Sunday overtime. Double pay, double grind - Natalie's words. Your back will remind you tomorrow."
+                "Sunday overtime. Time-and-a-half and a sore back — Natalie's standard deal. Your back will remind you tomorrow."
             elif not natalie_met:
                 $ natalie_met = True
                 "Eight hours of hauling. At clock-out the floor manager, Natalie, sizes you up: \"Not useless. I'm Natalie. Don't make me remember your name for the wrong reasons.\""
+                $ queue_phone_message("natalie", "First shift done. You held up. Get some sleep.", day, "warehouse_natalie_first")
             else:
                 "Eight hours of hauling and stacking. Your back aches; your wallet's heavier."
+                if natalie_met and renpy.random.random() < 0.15 and not message_already_queued("natalie_shift_invite"):
+                    $ queue_phone_message("natalie", "Short-handed Saturday. You up for an extra shift? Time and a half, same terms.", day + 1, "natalie_shift_invite", responses=_NATALIE_SHIFT_RESP)
             jump location_warehouse
         "Apply for work" if stat_str < 25:
             show natalie_normal at sprite_r
@@ -1142,6 +1494,10 @@ label location_hospital:
     $ current_loc = "location_hospital"
     $ activity_exit_jump = "take_metro"
     $ activity_exit_name = "City Map"
+    # Priority 3: pending breakthrough scenes (major) — one per day
+    if major_scene_last_day != day:
+        if lena_shoulder_pending and lena_met:
+            call scene_lena_shoulder_gesture
     scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
     show screen hud
     $ _vis = location_sprites()
@@ -1150,14 +1506,15 @@ label location_hospital:
     if len(_vis) >= 2:
         show expression _vis[1][1] as npcsprite2 at sprite_l
     menu (screen="activity"):
-        "Cosmetic touch-up ($200, 2h)":
-            if money < 200:
-                "The clinic coordinator slides the price sheet back. You can't cover $200 today."
+        "Cosmetic treatment ($350, 2h)":
+            if money < 350:
+                "The clinic coordinator slides the price sheet back. You can't cover $350 today."
             else:
                 $ spend_time(2)
-                $ gain_money(-200)
-                $ gain_stat("app", 15)
-                "A minor cosmetic procedure. A little sharper in the mirror on the way out."
+                $ gain_money(-350)
+                $ gain_stat("app", 2)
+                $ cosmetic_boost_until = day + 7
+                "A minor procedure. Subtle, but noticeable — you leave looking especially polished. It'll last about a week."
             jump location_hospital
 
         # Medicine career (shares the engine + CAREERS["hospital"]).
@@ -1165,13 +1522,49 @@ label location_hospital:
             if too_tired() or hour + 8 > DAY_END:
                 "You're too tired or it's too late to start a shift."
                 jump location_hospital
+            $ _hosp_owarn = _overlap_warning_text(8)
+            if _hosp_owarn:
+                menu:
+                    "[_hosp_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_hospital
             scene pov_doctor
             show screen hud
             $ _tired = do_shift("hospital", 8)
-            if _tired:
-                "Exhausted and unfed, you fumble a chart and get chewed out. A shift like this sets you back."
+            $ hosp_shifts += 1
+            if not lena_met:
+                call hosp_first_day
+            elif not hosp_task_1_done and hosp_shifts >= 3 and job_rank == 0:
+                call hosp_task_1
+            elif hosp_task_1_done and not hosp_npc1_done and hosp_shifts >= 5 and job_rank == 0:
+                call hosp_npc1_lena
+            elif hosp_npc1_done and not hosp_npc2_done and hosp_shifts >= 7 and job_rank == 0:
+                call hosp_npc2_lena
+            elif hosp_npc2_done and not hosp_review_done and job_performance >= 100 and can_promote() and job_rank == 0:
+                call hosp_review_assistant
             else:
-                "Charts, rounds, a dozen small crises handled. You earned the coffee."
+                if commitment_available("lena_case_1"):
+                    call phone_lena_case_scene
+                elif _tired:
+                    "Exhausted and unfed, you fumble a chart and get chewed out. A shift like this sets you back."
+                else:
+                    "Charts, rounds, a dozen small crises handled. You earned the coffee."
+            # A hard case is a random event, not a result of poor performance.
+            # Performance may change the debrief dialogue, but not scene availability.
+            # ponytail: ceiling is 25%/shift once prerequisites met; upgrade path is
+            #   a dedicated case-type event if the hospital arc gains scripted shifts.
+            if (not lena_shoulder_done and not lena_shoulder_pending
+                    and lena_break_room_done and hosp_shifts >= 10
+                    and job_rank >= 1 and renpy.random.random() < 0.25):
+                $ hospital_hard_case_pending = True
+                if job_performance >= 70:
+                    "You did everything correctly. The outcome wasn't yours to control."
+                else:
+                    "There are things to review. But not tonight."
+            if _work_event_roll("hospital"):
+                call work_event_hospital
             if not lena_rooftop_done and job_rank >= 1 and lena_trust >= 25 and hour >= 22:
                 jump lena_rooftop_scene
             jump location_hospital
@@ -1198,8 +1591,12 @@ label location_hospital:
                 hide drlena_normal
                 $ apply_job("hospital")
             else:
-                "A tired doctor hands your CV back. \"Not there yet - Medicine 1 and INT 20, minimum. The college teaches it.\""
+                "A tired doctor hands your CV back. \"Not there yet - Medicine 2, INT 30, CHR 15 minimum. The college teaches it.\""
                 hide drlena_normal
+            jump location_hospital
+
+        "Find Dr. Lena on break (0.5h)" if lena_affection >= 20 and lena_trust >= 15 and lena_met and not lena_break_room_done and hour >= 12 and hour <= 14:
+            call scene_lena_hospital_break_room
             jump location_hospital
 
         "Talk to Dr. Lena" if npc_talkable("lena"):
@@ -1220,6 +1617,10 @@ label location_hub:
         jump take_metro
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
+    # Priority 3: pending breakthrough scenes (major) — one per day, evening only
+    if major_scene_last_day != day:
+        if eli_deploy_pending and eli_met and hour >= 19:
+            call scene_eli_deploy_hug
     scene expression ("hub_night" if (hour >= 20 or hour < 6) else "hub_day")
     show screen hud
     menu (screen="activity"):
@@ -1231,13 +1632,37 @@ label location_hub:
             if too_tired():
                 "You're running on empty. Your lead would send you home. Sleep first."
                 jump location_hub
+            $ _it_owarn = _overlap_warning_text(_it_h)
+            if _it_owarn:
+                menu:
+                    "[_it_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump location_hub
             scene hub_pov
             show screen hud
             $ _tired = do_shift("it", _it_h)
-            if _tired:
-                "Running on fumes, you ship bugs and miss the standup. At least the commit went through."
+            $ it_shifts += 1
+            if not eli_met:
+                call it_first_day
+            elif not it_task_1_done and it_shifts >= 3:
+                call it_task_1
+            elif it_task_1_done and not it_npc1_done and it_shifts >= 5:
+                call it_npc1_eli
+            elif it_npc1_done and not it_npc2_done and it_shifts >= 7:
+                call it_npc2_eli
+            elif it_npc2_done and not it_review_done and job_performance >= 100 and can_promote():
+                call it_review_junior
             else:
-                "Headphones on, heads down. A good day's work shipped."
+                if commitment_available("eli_debug_1"):
+                    call phone_eli_debug_scene
+                elif _tired:
+                    "Running on fumes, you ship bugs and miss the standup. At least the commit went through."
+                else:
+                    "Headphones on, heads down. A good day's work shipped."
+            if _work_event_roll("it"):
+                call work_event_it
             jump location_hub
 
         "Ask about a promotion" if job_id == "it" and can_promote():
@@ -1257,12 +1682,20 @@ label location_hub:
                 $ apply_job("it")
                 "You nail the interview. Junior Dev at The Hub. Welcome to the grind."
             else:
-                "A dev lead skims your work and slides it back. \"Not yet - Programming 1 and INT 25, minimum. The college runs courses.\""
+                "A dev lead skims your work and slides it back. \"Not yet - Programming 2 and INT 30 minimum. The college runs courses.\""
             jump location_hub
 
         "Quit this job" if job_id == "it":
             $ quit_job()
             "You hand in your notice. Free again - broke soon, but free."
+            jump location_hub
+
+        "Introduce Eli and Zoe (2h)" if own_programming_kit and eli_affection >= 35 and zoe_affection >= 30 and eli_met and zoe_met and not eli_meets_zoe_done:
+            call scene_eli_meets_zoe
+            jump location_hub
+
+        "Work on Eli's open source project (2h)" if own_programming_kit and eli_affection >= 30 and eli_trust >= 25 and eli_met and not programming_kit_eli_done and hour >= 17:
+            call scene_programming_kit_eli
             jump location_hub
 
 
@@ -1312,42 +1745,42 @@ label location_college_exams:
     $ _bb_cost  = DEGREE_EXAMS["biz_bach"]["cost"]
     $ _bm_cost  = DEGREE_EXAMS["biz_mast"]["cost"]
     menu (screen="activity"):
-        "Medicine Bachelor's ($[_mb_cost], 8h) [[Req: Med Lv3]":
+        "Medicine Bachelor's ($[_mb_cost], 8h) [[Req: Med Lv4]]":
             if not can_sit_exam("med_bach") or too_tired():
                 "Requirements not met or too tired."
                 jump location_college_exams
             $ sit_exam("med_bach")
             "Eight hours of exams across three halls. You pass. Medicine — Bachelor's earned."
             jump location_college_exams
-        "Medicine Master's ($[_mm_cost], 8h) [[Req: Med Lv5]":
+        "Medicine Master's ($[_mm_cost], 8h) [[Req: Med Lv7]]":
             if not can_sit_exam("med_mast") or too_tired():
                 "Requirements not met or too tired."
                 jump location_college_exams
             $ sit_exam("med_mast")
             "The hardest day you've had at a desk. Medicine — Master's earned."
             jump location_college_exams
-        "CS Bachelor's ($[_pb_cost], 8h) [[Req: Prog Lv3]":
+        "CS Bachelor's ($[_pb_cost], 8h) [[Req: Prog Lv4]]":
             if not can_sit_exam("prog_bach") or too_tired():
                 "Requirements not met or too tired."
                 jump location_college_exams
             $ sit_exam("prog_bach")
             "Theory, algorithms, a written section. Computer Science — Bachelor's earned."
             jump location_college_exams
-        "CS Master's ($[_pm_cost], 8h) [[Req: Prog Lv5]":
+        "CS Master's ($[_pm_cost], 8h) [[Req: Prog Lv7]]":
             if not can_sit_exam("prog_mast") or too_tired():
                 "Requirements not met or too tired."
                 jump location_college_exams
             $ sit_exam("prog_mast")
             "Eight hours of advanced systems theory. Computer Science — Master's earned."
             jump location_college_exams
-        "Business Bachelor's ($[_bb_cost], 8h) [[Req: Biz Lv3]":
+        "Business Bachelor's ($[_bb_cost], 8h) [[Req: Biz Lv4]]":
             if not can_sit_exam("biz_bach") or too_tired():
                 "Requirements not met or too tired."
                 jump location_college_exams
             $ sit_exam("biz_bach")
             "Case studies, finance, a group presentation. Business — Bachelor's earned."
             jump location_college_exams
-        "Business Master's ($[_bm_cost], 8h) [[Req: Biz Lv5]":
+        "Business Master's ($[_bm_cost], 8h) [[Req: Biz Lv7]]":
             if not can_sit_exam("biz_mast") or too_tired():
                 "Requirements not met or too tired."
                 jump location_college_exams
@@ -1360,6 +1793,14 @@ label college_course(key):
     if too_tired():
         "You're too exhausted to absorb anything. Come back after some sleep."
         return
+    $ _crs_owarn = _overlap_warning_text(3)
+    if _crs_owarn:
+        menu:
+            "[_crs_owarn]\nContinue anyway?"
+            "Continue":
+                pass
+            "Go back":
+                return
     scene college_study
     show screen hud
     $ _r = take_course(key)
@@ -1377,18 +1818,50 @@ label action_sleep_menu:
     show screen hud
     menu (screen="activity"):
         "Until morning (8h) — new day, full rest":
+            $ _sleep_owarn = _overlap_warning_text(8)
+            if _sleep_owarn:
+                menu:
+                    "[_sleep_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump action_sleep_menu
             jump action_sleep
         "6 hours (+60 energy)":
+            $ _sleep_owarn = _overlap_warning_text(6)
+            if _sleep_owarn:
+                menu:
+                    "[_sleep_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump action_sleep_menu
             $ spend_time(6)
             $ need_energy = min(100, need_energy + 60)
             "Six hours. You wake in the dark, properly rested."
             jump location_home_actions
         "4 hours (+40 energy)":
+            $ _sleep_owarn = _overlap_warning_text(4)
+            if _sleep_owarn:
+                menu:
+                    "[_sleep_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump action_sleep_menu
             $ spend_time(4)
             $ need_energy = min(100, need_energy + 40)
             "Four hours. Functional, if not fresh."
             jump location_home_actions
         "2 hours (+20 energy)":
+            $ _sleep_owarn = _overlap_warning_text(2)
+            if _sleep_owarn:
+                menu:
+                    "[_sleep_owarn]\nContinue anyway?"
+                    "Continue":
+                        pass
+                    "Go back":
+                        jump action_sleep_menu
             $ spend_time(2)
             $ need_energy = min(100, need_energy + 20)
             "Two hours. Takes the edge off, nothing more."
@@ -1436,6 +1909,8 @@ label take_metro:
 # ── MAP ────────────────────────────────────────────────────────────────
 label map:
     call check_collapse
+    $ expire_late_commitments()
+    $ notify_available_commitments()
     scene map_city
     show screen hud
     call screen city_map
@@ -1631,7 +2106,353 @@ label lena_rooftop_scene:
     "She heads for the door. Stops."
     lena "It helps. Having someone up here who gets it."
     "You take the stairs down and head for the metro."
+    $ add_relationship_memory("lena", "lena_rooftop", "The rooftop")
     jump take_metro
+
+
+# ── ELI — BEACH METAL DETECTOR ────────────────────────────────────────
+label eli_find_scene:
+    $ eli_find_done = True
+    scene sandbeach_day with dissolve
+    show screen hud
+    "You pull out the metal detector. Eli watches like they're deciding whether to take this seriously."
+    scene eli_find_1 with dissolve
+    show screen hud
+    eli "Does that thing actually find anything?"
+    "You tell them: sometimes."
+    eli "Define sometimes."
+    menu:
+        "\"Bottle caps, mostly.\"":
+            eli "That's bleak."
+            $ _apply_aff("eli", 1)
+        "\"You'd be surprised.\"":
+            eli "I'm already surprised you own this."
+            $ _apply_aff("eli", 2)
+    scene eli_find_2 with dissolve
+    show screen hud
+    "You sweep the shoreline. Eli walks alongside, not helping exactly, but present."
+    "There's a rhythm to it — step, sweep, listen."
+    "First hit: a 2009 euro coin, warped from salt."
+    eli "Keep it?"
+    menu:
+        "\"It's something.\"":
+            "You pocket it."
+            $ _apply_trust("eli", 1)
+        "\"It's a coin.\"":
+            "You toss it back into the sand for the next person."
+            $ _apply_aff("eli", 1)
+    scene eli_find_3 with dissolve
+    show screen hud
+    "A second hit — louder. Eli stops talking."
+    "You dig. A key, old enough that you can't tell what it opened."
+    eli "Someone lost that and had a very bad day."
+    "A pause. The sea is unhelpfully indifferent."
+    eli "I've never thought about how many things just... stay in the ground. Permanently lost."
+    $ _apply_trust("eli", 2)
+    scene eli_find_4 with dissolve
+    show screen hud
+    "Third hit. Strong. Different frequency from the others."
+    "You dig for a minute. Something metallic, small. You pull it out."
+    menu:
+        "\"It's a ring.\"":
+            scene eli_find_ring_bonus with dissolve
+            show screen hud
+            "Gold band. Old. Still intact."
+            eli "...huh."
+            "They take it carefully. Look at it."
+            eli "There's probably no one to give this back to."
+            menu:
+                "\"Keep it.\"":
+                    eli "I feel like we're supposed to feel something about this."
+                    "You both look at it for a moment."
+                    $ gain_money(15)
+                    $ _apply_aff("eli", 3)
+                "\"Leave it somewhere visible.\"":
+                    "You put it on top of a nearby rock. It won't be there tomorrow. But it's not yours."
+                    eli "That's probably the right call."
+                    $ _apply_trust("eli", 3)
+        "\"Old token. Transport or something.\"":
+            eli "Way less dramatic."
+            $ gain_money(2)
+            $ _apply_aff("eli", 1)
+    scene eli_find_5 with dissolve
+    show screen hud
+    "You pack the detector away. The light is going orange. Eli sits on the sand."
+    eli "I'd been meaning to say — you're easier to be around than I expected. At the start."
+    "You ask what they expected."
+    eli "Someone more eager. You're not."
+    menu:
+        "\"Is that a compliment?\"":
+            eli "It's an observation. But yes."
+            $ _apply_aff("eli", 3)
+            $ _apply_trust("eli", 2)
+        "Say nothing. Let it land.":
+            "Eli nods once. Conversation apparently complete."
+            $ _apply_trust("eli", 3)
+    jump location_sandbeach
+
+
+# ── MARTHA — ROOFTOP BAR ──────────────────────────────────────────────
+label martha_rooftop_scene:
+    $ martha_rooftop_done = True
+    scene bar_rooftop_night with dissolve
+    show screen hud
+    "Martha suggested this place. End of quarter, she said. Good enough reason."
+    "The rooftop bar is the kind of place that costs more than it shows."
+    scene martha_rooftop_1 with dissolve
+    show screen hud
+    "She's already there. Different from the office — not looser exactly. Less constructed."
+    show martha_dress_normal at sprite_r
+    ma "You found it."
+    "She says it like she wasn't entirely sure you would."
+    menu:
+        "\"You gave good directions.\"":
+            ma "I gave you a postcode and a floor number."
+            $ _apply_aff("martha", 1)
+        "\"I almost went to the wrong bar.\"":
+            ma "There are three on this block. It's a recurring problem."
+            $ _apply_aff("martha", 2)
+    scene martha_rooftop_2 with dissolve
+    show screen hud
+    hide martha_dress_normal
+    "Drinks. The city from above. She's looking at something middle-distance."
+    show martha_dress_normal at sprite_r
+    ma "I wanted to say something I can't say in the office."
+    ma "You've been handled badly there. By a few people. Before you were established."
+    ma "I noticed. I didn't always act on it. I wanted you to know I noticed."
+    $ _apply_trust("martha", 4)
+    menu:
+        "\"Why are you telling me now?\"":
+            ma "Because you're past the point where it can be used against you."
+            "She says it practically. The kindness is in the timing."
+            $ _apply_trust("martha", 2)
+        "\"Thank you.\"":
+            "She looks briefly uncomfortable with the gratitude."
+            ma "Don't. Just — don't let it happen to the next person."
+            $ _apply_aff("martha", 3)
+    scene martha_rooftop_3 with dissolve
+    show screen hud
+    hide martha_dress_normal
+    "Halfway through the second drink, the city gets louder and she gets quieter."
+    show martha_dress_normal at sprite_r
+    ma "I had a plan when I joined Nexus. Very specific. Five years."
+    ma "That was nine years ago."
+    menu:
+        "\"What changed?\"":
+            ma "The work kept being interesting. I kept being good at it."
+            ma "Those two things are harder to walk away from than I planned for."
+            $ _apply_aff("martha", 2)
+            $ _apply_trust("martha", 2)
+        "\"Is that a bad thing?\"":
+            ma "Ask me in another nine years."
+            "Something almost like a smile."
+            $ _apply_aff("martha", 3)
+        "\"I think you like it more than you admit.\"":
+            "She looks at you for a moment."
+            ma "That's probably true."
+            $ _apply_aff("martha", 2)
+            $ _apply_trust("martha", 3)
+    scene martha_rooftop_4 with dissolve
+    show screen hud
+    hide martha_dress_normal
+    "She pours the last of the bottle into your glass before her own. You notice."
+    show martha_dress_normal at sprite_r
+    ma "What do you actually want from this? Not the title. Not the review scores."
+    "The question is specific enough that you believe she wants an actual answer."
+    menu:
+        "\"Something I built. That stays.\"":
+            ma "That's a real answer."
+            "She says it like it surprised her."
+            $ _apply_trust("martha", 3)
+            $ _apply_aff("martha", 2)
+        "\"I don't know yet. I'm still figuring that out.\"":
+            ma "That's a better answer than most people give at your stage."
+            ma "Most people have a rehearsed version. Yours is honest."
+            $ _apply_trust("martha", 4)
+        "\"Honestly? To stop worrying about it.\"":
+            ma "..."
+            ma "That's the most honest thing anyone's said to me at this bar."
+            $ _apply_aff("martha", 4)
+            $ _apply_trust("martha", 2)
+    scene martha_rooftop_5 with dissolve
+    show screen hud
+    hide martha_dress_normal
+    "The bar fills up around you. You stop noticing."
+    show martha_dress_normal at sprite_r
+    "At some point she refills your glass and says:"
+    ma "You're going to be good at this. Whatever you choose."
+    "She doesn't wait for a response. Just finishes her drink."
+    $ _apply_aff("martha", 3)
+    scene martha_rooftop_6 with dissolve
+    show screen hud
+    hide martha_dress_normal
+    "Outside. The city is warm and continuous below."
+    show martha_dress_normal at sprite_r
+    ma "Same time next quarter."
+    "She doesn't frame it as a question."
+    hide martha_dress_normal
+    $ add_relationship_memory("martha", "martha_rooftop", "The rooftop conversation")
+    jump take_metro
+
+
+# ── NORA — RENT CONVERSATION ──────────────────────────────────────────
+label nora_rent_scene:
+    $ nora_rent_done = True
+    scene cafenight with dissolve
+    show screen hud
+    "Late. You're the only customer left. Nora's filling out a form at the counter."
+    scene nora_rent_1 with dissolve
+    show screen hud
+    n "You ever thought about how much of your life is just paying for the place you sleep?"
+    "She says it like she's been thinking about it for a while."
+    scene nora_rent_2 with dissolve
+    show screen hud
+    "The form. You can see the number from where you're sitting."
+    n "Landlord's raising it again. Third time in two years."
+    scene nora_rent_3 with dissolve
+    show screen hud
+    menu:
+        "\"Is it still worth it?\"":
+            n "That's the question I've been avoiding."
+            "She puts the pen down."
+            $ _apply_trust("nora", 2)
+            scene nora_rent_4a with dissolve
+            show screen hud
+            n "The café's here. Henry's not going to find someone else. That's the trap."
+            n "Good enough to stay. Not good enough to actually want."
+            scene nora_rent_5a with dissolve
+            show screen hud
+            n "You're doing that thing where you listen like you actually care what the answer is."
+            menu:
+                "\"I do.\"":
+                    $ _apply_aff("nora", 3)
+                    n "Then you're one of the few."
+                "Say nothing.":
+                    $ _apply_trust("nora", 2)
+                    "She goes back to the form."
+        "\"Can you negotiate with him?\"":
+            n "I tried. He sent back a PDF."
+            "You both sit with that."
+            $ _apply_trust("nora", 1)
+            scene nora_rent_4b with dissolve
+            show screen hud
+            n "I looked at moving. The numbers don't work unless I also quit, which — no."
+            scene nora_rent_5b with dissolve
+            show screen hud
+            n "It's fine. I'll figure it out. Always do."
+            "She says it in a way that suggests she's had to say it a lot."
+            menu:
+                "\"You don't have to act like it's fine.\"":
+                    $ _apply_aff("nora", 3)
+                    $ _apply_trust("nora", 2)
+                    n "...yeah."
+                "\"Let me know if something opens up near me.\"":
+                    $ _apply_aff("nora", 2)
+                    n "That's either generous or you don't know what I'd be like as a neighbour."
+    $ add_relationship_memory("nora", "nora_rent_talk", "The rent conversation")
+    jump location_cafe
+
+
+# ── SAM — GYM ─────────────────────────────────────────────────────────
+label sam_gym_scene:
+    $ sam_gym_done = True
+    scene gym with dissolve
+    show screen hud
+    "Sam's still here. The gym's nearly empty — just the two of you and the overhead hum."
+    scene sam_gym_1 with dissolve
+    show screen hud
+    sam "I noticed you've been putting in the time. You're consistent. That's rarer than people think."
+    scene sam_gym_2 with dissolve
+    show screen hud
+    "You stretch out by the weights. Sam sits across, water bottle in hand."
+    sam "What are you actually training for? Or is it just the routine?"
+    scene sam_gym_3 with dissolve
+    show screen hud
+    menu:
+        "\"Mostly the routine.\"":
+            sam "That's enough. Most people need a reason. The routine is its own reason."
+            $ _apply_trust("sam", 2)
+        "\"Something to feel in control of.\"":
+            sam "Yeah. I get that."
+            "A pause that means they get it more than they're saying."
+            $ _apply_trust("sam", 3)
+            $ _apply_aff("sam", 2)
+        "\"To keep up with you, honestly.\"":
+            "Sam looks at you."
+            sam "I'm going to pretend I didn't like that."
+            $ _apply_aff("sam", 3)
+    scene sam_gym_4 with dissolve
+    show screen hud
+    sam "I used to hate this place. Now it's the only part of the day I don't second-guess."
+    "You ask what changed."
+    scene sam_gym_5a with dissolve
+    show screen hud
+    sam "Stopped trying to turn it into something productive. Just — moved."
+    menu:
+        "\"That's harder than it sounds.\"":
+            sam "It really is."
+            $ _apply_trust("sam", 2)
+            scene sam_gym_6a with dissolve
+            show screen hud
+            "You finish the session without counting reps. That's the best kind."
+            $ gain_stat("str", 5)
+            $ _apply_aff("sam", 2)
+        "\"I still count every rep.\"":
+            sam "You'll get there."
+            scene sam_gym_5b with dissolve
+            show screen hud
+            "Sam shows you one thing. One adjustment in the grip. It makes a difference."
+            $ gain_stat("str", 5)
+            scene sam_gym_6a with dissolve
+            show screen hud
+            "By the end you're both quiet. That's fine."
+            $ _apply_trust("sam", 2)
+    jump location_gym
+
+
+# ── ZOE — BEACH NIGHT ─────────────────────────────────────────────────
+label zoe_beach_night_scene:
+    $ zoe_beach_night_done = True
+    scene beachnight with dissolve
+    show screen hud
+    scene zoe_beach_night_1 with dissolve
+    show screen hud
+    "The beach at this hour is mostly dark. Zoe's at the water's edge, shoes off."
+    z "I didn't think you'd actually come."
+    "You say you weren't sure either."
+    z "Honest. Good."
+    menu:
+        "\"You looked like you needed the company.\"":
+            $ _apply_aff("zoe", 2)
+            z "I did. Don't tell me I was obvious."
+            scene zoe_beach_night_2a with dissolve
+            show screen hud
+            "She sits. You follow. The tide doesn't care about either of you."
+            z "I've been thinking about whether I'm doing this city right."
+            z "Like — is there a right way? Or does everyone feel like they're making it up?"
+            $ _apply_trust("zoe", 2)
+        "\"I wanted to come.\"":
+            $ _apply_aff("zoe", 3)
+            z "Okay. That's — okay."
+            scene zoe_beach_night_2b with dissolve
+            show screen hud
+            "She doesn't say anything for a while. The water fills the silence."
+            z "This is the only place I don't feel like I should be somewhere else."
+            $ _apply_aff("zoe", 2)
+    scene zoe_beach_night_3 with dissolve
+    show screen hud
+    "Later. The city hum, the cold air, neither of you quite ready to leave."
+    menu:
+        "\"Same time next week?\"":
+            z "Don't make it a schedule. Just — show up."
+            $ _apply_aff("zoe", 3)
+            $ _apply_trust("zoe", 2)
+        "Walk her home.":
+            z "You don't have to."
+            "You go anyway."
+            $ _apply_aff("zoe", 4)
+    $ add_relationship_memory("zoe", "zoe_beach_night", "Night at the beach")
+    jump location_sandbeach
 
 
 # ── IT TRIAL: Server crisis at 2am ────────────────────────────────────

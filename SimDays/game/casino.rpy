@@ -177,6 +177,7 @@ label casino_blackjack_loop:
         $ bj_game.bet = max(5, bj_game.bet - 25)
     elif _return == "deal":
         $ bj_game.deal()
+        $ spend_time(0.25)
     elif _return == "hit":
         $ bj_game.hit()
     elif _return == "stand":
@@ -208,6 +209,7 @@ label casino_roulette_loop:
         $ rou_game.bet_amt = max(5, rou_game.bet_amt - 25)
     elif _return == "spin":
         $ rou_game.start_spin()
+        $ spend_time(0.25)
     elif _return == "spin_done":
         $ rou_game.finish_spin()
     elif _return == "reset":

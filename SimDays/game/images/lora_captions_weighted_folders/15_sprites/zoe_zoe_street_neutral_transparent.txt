@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, street outfit/variant; neutral expression.
-tags: sprite, character, zoe, street, neutral, transparent, 1000x1441
-character: zoe
-source: zoe/zoe_transparent_cleaned_pngs/zoe_street_neutral_transparent.png

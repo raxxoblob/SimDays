@@ -1,4 +1,0 @@
-description: Character sprite of Dr Lena, general character pose.
-tags: sprite, character, dr_lena, 1254x1254
-character: dr_lena
-source: dr_lena/drlena.png

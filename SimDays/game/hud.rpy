@@ -22,6 +22,9 @@ screen hud():
             idle  Transform("images/ui/phone.png", crop=(0, 0, 1024, 215), size=(460, 94))
             hover Transform("images/ui/phone.png", crop=(0, 0, 1024, 215), size=(470, 97))
             action Show("phone_home")
+        if unread_message_count() > 0:
+            $ _hud_uc = unread_message_count()
+            text ("(" + ("9+" if _hud_uc > 9 else str(_hud_uc)) + ")") xpos 1875 ypos 988 font "fonts/Quicksand-SemiBold.ttf" size 20 color "#e05533" outlines [(2, "#000000", 0, 0)]
 
     fixed:
         xalign 0.5
@@ -69,6 +72,18 @@ screen hud():
     if _tt:
         text "[_tt]":
             xalign 0.5 ypos 146 size 17 color "#ffffff"
+            font "fonts/Quicksand-SemiBold.ttf"
+            outlines [(2, "#000000cc", 0, 0)]
+
+    # Next-commitment reminder: show when ≤3h away regardless of notified state.
+    # FIX 4: notified only gates the one-time toast in phone_messages.notify_available_commitments.
+    $ _nc = next_commitment()
+    if _nc and hours_until_commitment(_nc) <= 3 and hours_until_commitment(_nc) > 0:
+        $ _nc_hrs = hours_until_commitment(_nc)
+        $ _nc_time = "in 30min" if _nc_hrs < 0.5 else ("in %dh" % int(_nc_hrs) if _nc_hrs >= 1 else "in 30min")
+        $ _nc_txt  = _nc["title"] + " — " + _nc_time
+        text "[_nc_txt]":
+            xalign 0.5 ypos 170 size 14 color "#5bcafa"
             font "fonts/Quicksand-SemiBold.ttf"
             outlines [(2, "#000000cc", 0, 0)]
 

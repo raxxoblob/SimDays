@@ -1,4 +1,0 @@
-description: Reference/template image for Dr Grant.
-tags: sprite, character, dr_grant, reference, template, 1254x1254
-character: dr_grant
-source: dr_grant/dr_grant_template.jfif

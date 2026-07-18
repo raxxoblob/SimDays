@@ -1,4 +1,0 @@
-description: Character sprite of Sam, talking expression.
-tags: sprite, character, sam, talking, transparent, 565x1012
-character: sam
-source: sam/sam_talk.png

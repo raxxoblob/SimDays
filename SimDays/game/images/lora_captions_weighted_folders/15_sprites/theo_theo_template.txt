@@ -1,4 +1,0 @@
-description: Reference/template image for Theo.
-tags: sprite, character, theo, reference, template, 1254x1254
-character: theo
-source: theo/theo_template.jfif

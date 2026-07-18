@@ -46,7 +46,7 @@ screen activity(items):
                     $ _nm, _cs = _split_caption(i.caption)
                     button:
                         action i.action
-                        sensitive (getattr(i, 'sensitive', True) and not (_in_debt and _cs != ""))
+                        sensitive (getattr(i, 'sensitive', True) and not (_in_debt and "$" in _cs))
                         xysize (360, 76)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)

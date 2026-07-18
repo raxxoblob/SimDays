@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, coat outfit/variant; smiling expression.
-tags: sprite, character, zoe, coat, smiling, transparent, 1036x1443
-character: zoe
-source: zoe/zoe_coat_smile.webp

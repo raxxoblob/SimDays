@@ -1,4 +1,0 @@
-description: Reference/template image for Nora.
-tags: sprite, character, nora, reference, template, 1536x1024
-character: nora
-source: nora/nora_casual_template.png

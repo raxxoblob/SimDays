@@ -1,4 +1,0 @@
-description: Character sprite of Professor Adeyemi, angry expression.
-tags: sprite, character, adeyemi, angry, transparent, 1024x1536
-character: adeyemi
-source: adeyemi/adeyemi_angry.png

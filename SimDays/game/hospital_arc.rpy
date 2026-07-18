@@ -1,0 +1,266 @@
+# hospital_arc.rpy — Hospital career preview arc (Clinical Assistant → Resident)
+# NPC: Dr. Lena — warm, medically precise, carries the weight of the work
+# Lena's sprite drlena_normal exists. Character object may be defined elsewhere;
+# this define is a safe fallback.
+# Work events are appended to _HOSP_POOL on init.
+
+define lena = Character("Dr. Lena", color="#6cc4a1")
+
+init 1 python:
+    _HOSP_ARC_EVENTS = ["wev_hosp_case_presentation", "wev_hosp_overtime_call"]
+    try:
+        _HOSP_POOL.extend(_HOSP_ARC_EVENTS)
+    except NameError:
+        _HOSP_POOL = list(_HOSP_ARC_EVENTS)
+
+
+label hosp_first_day:
+    $ lena_met = True
+    scene cg_hosp_first_day
+    show screen hud
+    "Lena walks two steps ahead, already briefing. The ward is quieter than you expected — tired in a specific way."
+    scene hospital1
+    show screen hud
+    show drlena_normal at sprite_r
+    lena "Clinical assistant orientation. You're with me today — I'll walk you through the ward, then the first set of charts is yours."
+    lena "Two rules. Document what you observe, not what you assume. And if you're unsure: ask once. Still unsure: ask me, not the patient."
+    menu:
+        "\"What's the most important thing to get right on day one?\"":
+            lena "Don't fall behind on charts. Everything flows from the paperwork. If the paperwork's wrong, the treatment plan is wrong."
+            $ gain_skill("med", 3)
+        "\"How will I know if I'm doing well?\"":
+            lena "You won't, at first. You'll know when something goes wrong. That's normal — it's how the skill builds."
+        "\"Ready.\"":
+            lena "Good."
+            "She's already walking."
+    "The ward is quieter than you expected. People are tired in a specific way — not tired of being here, just tired."
+    hide drlena_normal
+    $ _apply_trust("lena", 2)
+    return
+
+
+label hosp_task_1:
+    $ hosp_task_1_done = True
+    $ _hosp_patv = "conservative"
+    scene hospital1
+    show screen hud
+    "The intake is complicated. Mr. Arends, 68 — chest pain, two pages of existing conditions. His daughter is in the room and gives a different medication history than he does."
+    show drlena_normal at sprite_r
+    lena "I'll be observing. Document what you find. I'll come back when you've finished."
+    hide drlena_normal
+    scene cg_hosp_task_1
+    show screen hud
+    "The chart is dense. Two accounts. You work through it."
+    scene hospital1
+    show screen hud
+    menu:
+        "Document both accounts, flag the discrepancy clearly.":
+            "You write up both versions side by side and mark the inconsistency. The chart is dense."
+            show drlena_normal at sprite_r
+            lena "The discrepancy needs resolving before any prescriptions are written. Good catch."
+            $ gain_skill("med", 5)
+            $ _apply_trust("lena", 3)
+            hide drlena_normal
+            $ _hosp_patv = "thorough"
+        "Ask the patient to clarify which account is correct.":
+            "He's not sure. His daughter insists. You document her version with a note about the patient's uncertainty."
+            show drlena_normal at sprite_r
+            lena "The family member's account can be more reliable. But note the uncertainty — don't resolve it for them. Keep both versions."
+            $ gain_skill("med", 3)
+            $ _apply_trust("lena", 2)
+            hide drlena_normal
+            $ _hosp_patv = "patient_centered"
+        "Document conservatively — only what you can verify.":
+            "You limit yourself to what he's confirmed. The chart is thin but clean."
+            show drlena_normal at sprite_r
+            lena "In doubt, document less and flag more. You erred on the right side. Build confidence and the charts will fill out."
+            $ gain_skill("med", 3)
+            $ _apply_trust("lena", 2)
+            hide drlena_normal
+            $ _hosp_patv = "conservative"
+    if _hosp_patv == "thorough":
+        $ queue_phone_message("lena", "The Arends intake — both accounts, discrepancy flagged. That's the correct approach. Don't let the family dynamic pressure you into resolving what isn't yours to resolve.", day + 1, "hosp_task1_followup")
+    elif _hosp_patv == "patient_centered":
+        $ queue_phone_message("lena", "Documenting the uncertainty alongside the daughter's account was right. Keep both versions when you can't verify. The chart should reflect what you found, not what you concluded.", day + 1, "hosp_task1_followup")
+    else:
+        $ queue_phone_message("lena", "The conservative chart on Arends was the right instinct at this stage. The skill builds — so will the detail. You erred correctly.", day + 1, "hosp_task1_followup")
+    if _hosp_patv in ("thorough", "patient_centered") and not message_already_queued("lena_case_invite"):
+        $ queue_phone_message("lena", "Observation round Wednesday — difficult case, third-year presenting. Come if you'd like to see how it works.", day + 3, "lena_case_invite", responses=_LENA_CASE_RESP)
+    return
+
+
+label hosp_npc1_lena:
+    $ hosp_npc1_done = True
+    $ _hosp_presv = "observed_method"
+    scene hospital1
+    show screen hud
+    show drlena_normal at sprite_r
+    "Lena invites you along for rounds."
+    hide drlena_normal
+    scene cg_hosp_npc1
+    show screen hud
+    "At the first bed she shifts register — warmer, slower. She leans slightly. No clinical terms. He answers more completely than he had to."
+    scene hospital1
+    show screen hud
+    show drlena_normal at sprite_r
+    "After the room:"
+    lena "What did you notice?"
+    menu:
+        "\"You didn't start with the medical questions.\"":
+            lena "People will tell you what you need if they trust you're interested in what they're saying. The clinical picture is in what they choose to share."
+            lena "The textbook gives you the framework. What's in front of you is the patient."
+            $ gain_skill("med", 5)
+            $ _apply_trust("lena", 3)
+            $ _hosp_presv = "observed_method"
+        "\"You seemed different in there.\"":
+            lena "Yes."
+            "A pause, not uncomfortable."
+            lena "The work requires it. You'll find your version."
+            $ _apply_aff("lena", 2)
+            $ _hosp_presv = "observed_shift"
+        "\"How do you always know the right thing to say?\"":
+            lena "I don't. I know how to listen well enough that they tell me."
+            $ gain_skill("med", 3)
+            $ _apply_trust("lena", 2)
+            $ _hosp_presv = "asked_how"
+    hide drlena_normal
+    if _hosp_presv == "observed_method":
+        $ queue_phone_message("lena", "The rounds — you noticed what mattered. That's the foundation. The rest of it builds from there.", day + 1, "hosp_npc1_followup")
+    elif _hosp_presv == "observed_shift":
+        $ queue_phone_message("lena", "You'll find your register in there. It won't look exactly like mine — it shouldn't. That's how it works.", day + 1, "hosp_npc1_followup")
+    else:
+        $ queue_phone_message("lena", "It's not always. It's frequently enough that it looks like always. That difference matters more than it sounds.", day + 1, "hosp_npc1_followup")
+    return
+
+
+label hosp_npc2_lena:
+    $ hosp_npc2_done = True
+    $ _hosp_npc2v = "silent"
+    scene cg_hosp_npc2
+    show screen hud
+    "Room 7 was a referral from the ED that didn't stabilise in time. You weren't directly responsible — the chain was long and none of it was yours to make."
+    "But you were there. You charted the last observations."
+    scene hospital_break_room
+    show screen hud
+    "You're in the break room, not eating, not doing anything."
+    show drlena_normal at sprite_r
+    "Lena comes in. She doesn't make it a teaching moment. She sits down."
+    lena "You'll think about this one for a while. That's how it should work."
+    menu:
+        "Say nothing. Sit with it.":
+            "She doesn't leave. After a few minutes she makes tea, puts one in front of you without asking."
+            $ _apply_aff("lena", 3)
+            $ _apply_trust("lena", 2)
+            $ _hosp_npc2v = "silent"
+        "\"How do you handle it?\"":
+            lena "I put it somewhere specific. Not away — somewhere I can find it again. You learn what it means over time."
+            lena "The ones that still sit with you after fifteen years — those are the ones that made you the doctor you are."
+            $ _apply_trust("lena", 3)
+            $ gain_skill("med", 3)
+            $ _hosp_npc2v = "asked"
+        "\"Was there anything else that could have been done?\"":
+            "She considers the question properly."
+            lena "That's the right thing to want to know. Probably not. But go back through it when you're ready — not to find blame, to understand."
+            $ gain_skill("med", 4)
+            $ _apply_trust("lena", 3)
+            $ _hosp_npc2v = "analytical"
+    hide drlena_normal
+    if _hosp_npc2v == "silent":
+        $ queue_phone_message("lena", "You stayed this afternoon. That was the right thing. Some of this is just about being present. Room 7 was a hard one.", day + 2, "hosp_npc2_followup")
+    elif _hosp_npc2v == "asked":
+        $ queue_phone_message("lena", "The question you asked in the break room — it's the right one. The answer takes years. You're asking it earlier than I did.", day + 2, "hosp_npc2_followup")
+    else:
+        $ queue_phone_message("lena", "You asked what else could have been done. That instinct — to understand rather than assign blame — is going to serve you well here.", day + 2, "hosp_npc2_followup")
+    return
+
+
+label hosp_review_assistant:
+    $ hosp_review_done = True
+    scene hospital1
+    show screen hud
+    show drlena_normal at sprite_r
+    "Lena finds you between rounds."
+    lena "The formal notification comes through tomorrow. I wanted to tell you first."
+    lena "You're moving to resident. The clinical director signed off this morning."
+    menu:
+        "\"Thank you. For everything on the ward.\"":
+            lena "You did the work. I just gave you the patients."
+            $ _apply_aff("lena", 2)
+        "\"What changes when I'm a resident?\"":
+            lena "More decisions are yours to make. More of the picture is yours to read. The paperwork expands."
+            lena "The part that doesn't change: you still ask when you're uncertain."
+            $ gain_skill("med", 4)
+        "\"What should I be ready for?\"":
+            lena "The patients are the same. Your relationship to what they need — that shifts. Take it one day."
+            $ _apply_trust("lena", 2)
+    hide drlena_normal
+    $ promote()
+    return
+
+
+# ─── Arc work events (appended to _HOSP_POOL) ──────────────────────────────
+
+label wev_hosp_case_presentation:
+    $ _mark_wev("hospital", "wev_hosp_case_presentation")
+    scene hospital1
+    show screen hud
+    "Morning rounds. The attending asks you to present the new admission's case."
+    "You've read the chart. Halfway through you stumble — the imaging contradicts the blood panel. You hadn't noticed."
+    show drlena_normal at sprite_r
+    lena "Take your time."
+    menu:
+        "Acknowledge the discrepancy and keep presenting.":
+            "\"The imaging and the bloods don't align — flagged for follow-up. Working hypothesis is...\""
+            "The attending nods. Lena says nothing. Her silence is specific."
+            $ gain_skill("med", 5)
+            $ _work_perf(4)
+        "Rush through it and hope nobody notices.":
+            "The attending notices. The follow-up question lands exactly where you didn't want it to."
+            $ _work_perf(-2)
+    hide drlena_normal
+    return
+
+
+label wev_hosp_overtime_call:
+    $ _mark_wev("hospital", "wev_hosp_overtime_call")
+    scene hospital1
+    show screen hud
+    "A nurse coordinator at 4pm: \"Orla called in sick. Can you stay until nine?\""
+    menu:
+        "Stay.":
+            if need_energy < 30:
+                "You're already flagging but you say yes."
+                $ spend_time(4)
+                $ need_energy = max(0, need_energy - 15)
+                "It shows by the end. A senior nurse quietly takes over your last chart."
+                $ _work_perf(-2)
+            else:
+                $ spend_time(4)
+                $ need_energy = max(0, need_energy - 12)
+                $ gain_money(40)
+                "Four more hours. Harder than the first eight, but manageable."
+                $ _work_perf(3)
+        "You can't tonight.":
+            "\"No problem. We'll manage.\""
+            "They will."
+    return
+
+
+label wev_hosp_difficult_patient:
+    $ _mark_wev("hospital", "wev_hosp_difficult_patient")
+    scene hospital1
+    show screen hud
+    "The patient in bed three is refusing the scheduled procedure. Not because of pain — because they don't trust the process."
+    "The attending has spoken to them twice. Now they're asking you to try."
+    menu:
+        "Listen first, explain second.":
+            "You sit down. Ask what their specific concern is. They tell you — it's not what the chart suggested."
+            "Twenty minutes later they've agreed to a modified version of the procedure."
+            $ gain_skill("med", 5)
+            $ _work_perf(5)
+        "Explain the medical reasoning clearly.":
+            "You go through the clinical logic carefully. They follow it. They still say no."
+            "You document the refusal accurately and escalate. It was the right call — the outcome required more than explanation."
+            $ gain_skill("med", 3)
+            $ _work_perf(2)
+    return

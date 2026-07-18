@@ -1,4 +1,0 @@
-description: Portrait reference sprite for Zoe.
-tags: sprite, character, portrait, reference, zoe, 512x512
-character: templates
-source: templates/portrait_zoe.png

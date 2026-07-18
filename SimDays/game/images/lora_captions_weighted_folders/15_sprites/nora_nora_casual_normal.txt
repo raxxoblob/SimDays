@@ -1,4 +1,0 @@
-description: Character sprite of Nora, casual outfit/variant; normal expression.
-tags: sprite, character, nora, casual, normal, transparent, 1536x1024
-character: nora
-source: nora/nora_casual_normal.png

@@ -47,6 +47,16 @@ init python:
                 (WKD,     (10, 14), "location_cafe"),
             ],
             "likes": ["food", "ambition", "movies"], "dislikes": ["nightlife"],
+            "topic_arcs": {
+                "food": [
+                    {"id": "nora_food_1", "label": "arc_nora_food_1"},
+                    {"id": "nora_food_2", "req": {"aff": 12, "done": "nora_food_1"}, "label": "arc_nora_food_2"},
+                ],
+                "ambition": [
+                    {"id": "nora_ambition_1", "label": "arc_nora_ambition_1"},
+                    {"id": "nora_ambition_2", "req": {"trust": 20, "done": "nora_ambition_1"}, "label": "arc_nora_ambition_2"},
+                ],
+            },
         },
         "marcus": {
             "name": "Marcus", "portrait": "portrait_marcus", "sprite": "marcus_casual_normal", "say": "m",
@@ -57,6 +67,16 @@ init python:
                 (WKD,  (23, 27), "location_nightclub"),
             ],
             "likes": ["sports", "food", "nightlife"], "dislikes": ["art"],
+            "topic_arcs": {
+                "sports": [
+                    {"id": "marcus_sports_1", "label": "arc_marcus_sports_1"},
+                    {"id": "marcus_sports_2", "req": {"aff": 15, "done": "marcus_sports_1"}, "label": "arc_marcus_sports_2"},
+                ],
+                "food": [
+                    {"id": "marcus_food_1", "label": "arc_marcus_food_1"},
+                    {"id": "marcus_food_2", "req": {"trust": 15, "done": "marcus_food_1"}, "label": "arc_marcus_food_2"},
+                ],
+            },
         },
         "caroline": {
             "name": "Caroline", "portrait": "portrait_caroline", "sprite": "caroline_normal", "say": "caro",
@@ -101,6 +121,12 @@ init python:
                 (WKD,    (21, 25), "location_nightclub"),
             ],
             "likes": ["travel", "music", "art"], "dislikes": ["work"],
+            "topic_arcs": {
+                "travel": [
+                    {"id": "elle_travel_1", "label": "arc_elle_travel_1"},
+                    {"id": "elle_travel_2", "req": {"aff": 15, "done": "elle_travel_1"}, "label": "arc_elle_travel_2"},
+                ],
+            },
         },
         "zoe": {
             "name": "Zoe", "portrait": "portrait_zoe", "sprite": "zoe_punk_smile", "say": "z",
@@ -108,9 +134,22 @@ init python:
             "world": True, "sched": [
                 (WKD,    (12, 18), "location_beach"),
                 ({3, 4}, (14, 18), "location_park"),
+                (WKD,    (19, 24), "location_sandbeach"),  # covers zoe_beach_night_scene window
                 (FRISUN, (21, 27), "location_nightclub"),
             ],
             "likes": ["art", "music", "nightlife"], "dislikes": ["ambition"],
+            "topic_arcs": {
+                "art": [
+                    {"id": "zoe_art_1", "label": "arc_zoe_art_1"},
+                    {"id": "zoe_art_2", "req": {"aff": 10, "done": "zoe_art_1"}, "label": "arc_zoe_art_2"},
+                    {"id": "zoe_art_3", "req": {"trust": 15, "done": "zoe_art_2"}, "label": "arc_zoe_art_3"},
+                    {"id": "zoe_art_4", "req": {"aff": 30, "done": "zoe_art_3"}, "label": "arc_zoe_art_4"},
+                ],
+                "music": [
+                    {"id": "zoe_music_1", "label": "arc_zoe_music_1"},
+                    {"id": "zoe_music_2", "req": {"aff": 15, "done": "zoe_music_1"}, "label": "arc_zoe_music_2"},
+                ],
+            },
         },
         "sam": {
             "name": "Sam", "portrait": "portrait_sam", "sprite": "sam_normal", "say": "sam",
@@ -130,9 +169,15 @@ init python:
                 ({1, 2, 3}, (20, 23), "location_bar"),
             ],
             "likes": ["work", "movies", "music"], "dislikes": ["sports"],
+            "topic_arcs": {
+                "work": [
+                    {"id": "eli_work_1", "label": "arc_eli_work_1"},
+                    {"id": "eli_work_2", "req": {"aff": 10, "done": "eli_work_1"}, "label": "arc_eli_work_2"},
+                ],
+            },
         },
         "kai": {
-            "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_normal", "say": "kai",
+            "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_gym_normal", "say": "kai",
             "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
             "world": True, "sched": [
                 ({1, 3}, (10, 14), "location_cafe"),
@@ -175,6 +220,12 @@ init python:
         mv = d.get("met")
         return bool(getattr(store, mv)) if mv else True
 
+    def home_invite_available(npc_id, min_aff=0, min_trust=0):
+        """True if npc_id is known and meets the aff/trust thresholds for a home visit."""
+        return (npc_known(npc_id)
+                and npc_aff(npc_id) >= min_aff
+                and npc_trust(npc_id) >= min_trust)
+
     def npc_talkable(npc_id):
         return npc_here(npc_id) and npc_known(npc_id)
 
@@ -204,9 +255,154 @@ init python:
     def topic_used_today(npc_id, topic):
         return topic in store._topics_today.get(npc_id, [])
 
+    # ── Relationship memory helpers ────────────────────────────────────────
+
+    def add_relationship_memory(npc_id, memory_id, title):
+        mems = dict(store.relationship_memories)
+        lst  = list(mems.get(npc_id, []))
+        if any(m["id"] == memory_id for m in lst):
+            return
+        lst.append({"id": memory_id, "title": title, "day": store.day})
+        mems[npc_id] = lst
+        store.relationship_memories = mems
+
+    def relationship_memory_exists(npc_id, memory_id):
+        return any(m["id"] == memory_id
+                   for m in store.relationship_memories.get(npc_id, []))
+
+    def relationship_memories_for(npc_id):
+        return list(store.relationship_memories.get(npc_id, []))
+
+    # ── Relationship threshold notifications ───────────────────────────────
+
+    _REL_THRESHOLD_MSGS = {
+        ("aff", 25): "{name} and you are becoming friends.",
+        ("aff", 40): "You and {name} have grown close.",
+        ("aff", 60): "{name} clearly enjoys your company.",
+        ("aff", 75): "You and {name} have something real.",
+        ("trust", 25): "{name} is starting to trust you.",
+        ("trust", 40): "{name} trusts your judgement.",
+        ("trust", 60): "{name} confides in you.",
+    }
+
+    def _check_relationship_thresholds(npc_id):
+        """Call after applying aff/trust changes. Fires renpy.notify() for new thresholds.
+        FIX 6: key is a 3-tuple (npc_id, stat_type, threshold) so aff 25 and trust 25
+        are stored under distinct keys and never suppress each other."""
+        d = NPC_DATA.get(npc_id)
+        if not d:
+            return
+        seen = dict(store.relationship_thresholds_seen)
+        name = d["name"]
+        aff_val   = getattr(store, d["aff"],   0)
+        trust_val = getattr(store, d["trust"], 0)
+        changed = False
+        for (kind, thresh), msg in _REL_THRESHOLD_MSGS.items():
+            key = (npc_id, kind, thresh)
+            if key in seen:
+                continue
+            val = aff_val if kind == "aff" else trust_val
+            if val >= thresh:
+                seen[key] = True
+                changed = True
+                renpy.notify(msg.format(name=name))
+        if changed:
+            store.relationship_thresholds_seen = seen
+        # Martha corridor gesture — set pending when thresholds first crossed
+        if (npc_id == "martha"
+                and store.martha_affection >= 40 and store.martha_trust >= 35
+                and not store.martha_corridor_done
+                and not store.martha_corridor_pending):
+            store.martha_corridor_pending = True
+            store.martha_corridor_pending_day = store.day
+            store.martha_corridor_context = {
+                "source": "relationship_threshold",
+                "trigger_day": store.day,
+            }
+
     def _apply_aff(npc_id, delta):
         av = NPC_DATA[npc_id]["aff"]
         setattr(store, av, max(0, min(getattr(store, av) + delta, 100)))
+        if delta > 0:
+            _check_relationship_thresholds(npc_id)
+
+    def _apply_trust(npc_id, delta):
+        tv = NPC_DATA[npc_id]["trust"]
+        setattr(store, tv, max(0, min(getattr(store, tv) + delta, 100)))
+        if delta > 0:
+            _check_relationship_thresholds(npc_id)
+
+    def mark_topic_today(npc_id, topic):
+        td = dict(store._topics_today)
+        td.setdefault(npc_id, [])
+        if topic not in td[npc_id]:
+            td[npc_id] = td[npc_id] + [topic]
+        store._topics_today = td
+
+    def complete_arc(arc_id):
+        d = dict(store.topic_arc_done)
+        d[arc_id] = True
+        store.topic_arc_done = d
+
+    LOCATION_NAMES = {
+        "location_cafe":       "Grounds Café",
+        "location_bar":        "the bar",
+        "location_gym":        "the gym",
+        "location_park":       "the park",
+        "location_beach":      "the beach",
+        "location_library":    "the library",
+        "location_nightclub":  "Neon",
+        "location_hospital":   "the hospital",
+        "location_warehouse":  "the warehouse",
+        "location_office":     "Nexus Tower",
+        "location_hub":        "The Hub",
+        "location_nadbrzeze":  "the Quayside",
+        "location_anchor":     "The Anchor",
+    }
+
+    def npc_location_now(npc_id):
+        sched = NPC_DATA[npc_id].get("sched")
+        if not sched:
+            return None
+        wd = store.day % 7
+        for entry in sched:
+            days, (h0, h1) = entry[0], entry[1]
+            loc = entry[2] if len(entry) > 2 else None
+            if not (days is None or wd in days):
+                continue
+            if h0 <= store.hour < h1:
+                return loc
+        return None
+
+    def send_npc_message(npc_id, text):
+        _tag = "hi_%s_%d" % (npc_id, store.day)
+        queue_phone_message(npc_id, text, store.day, _tag)
+        deliver_message_now(_tag)
+
+    def npc_last_message(npc_id):
+        for m in reversed(store.npc_messages):
+            if m.get("npc_id") == npc_id and m.get("delivered"):
+                return m
+        return None
+
+    def check_arc(npc_id, topic):
+        """Return next available arc stage for this NPC+topic, or None."""
+        for stage in NPC_DATA[npc_id].get("topic_arcs", {}).get(topic, []):
+            if store.topic_arc_done.get(stage["id"]):
+                continue
+            req = stage.get("req", {})
+            if npc_aff(npc_id) < req.get("aff", 0):
+                break
+            if npc_trust(npc_id) < req.get("trust", 0):
+                break
+            flag = req.get("flag")
+            if flag and not getattr(store, flag, False):
+                break
+            done_req = req.get("done")
+            if done_req and not store.topic_arc_done.get(done_req):
+                break
+            return stage
+        return None
 
     def npc_is_angry(npc_id):
         """True when NPC won't engage with intimate actions: hygiene too low or accumulated anger."""
@@ -279,7 +475,8 @@ init python:
         _apply_aff(npc_id, delta)
         _td = dict(store._topics_today)
         _td.setdefault(npc_id, [])
-        _td[npc_id] = _td[npc_id] + [topic]
+        if topic not in _td[npc_id]:
+            _td[npc_id] = _td[npc_id] + [topic]
         store._topics_today = _td
         return rtype
 
@@ -356,25 +553,491 @@ init python:
         "flowers": ["These are lovely, thank you.", "That's really kind of you."],
     }
 
+    # ── Hug profiles ──────────────────────────────────────────────────────
+
+    # FIX 7: each profile has two failure keys:
+    #   "low_affection" — returned when aff < min_aff (not close enough yet)
+    #   "low_trust"     — returned when aff is ok but trust < min_trust (trust not there yet)
+    HUG_PROFILES = {
+        "martha": {
+            "min_aff": 35, "min_trust": 30, "cooldown_days": 4,
+            "first": "Martha pauses for a moment, then accepts — brief, controlled, and over quickly. It means something precisely because it's unlike her.",
+            "warm":  "A short hug. Martha doesn't linger. Neither of you mentions it.",
+            "repeat": "She accepts without surprise this time.",
+            "too_soon": "She steps back slightly. \"Not right now.\"",
+            "low_affection": "She acknowledges you with a nod. Not there yet.",
+            "low_trust": "She gives you a look that means no, politely.",
+            "aff_gain": 2, "trust_gain": 1, "repeat_gain": 0,
+        },
+        "nora": {
+            "min_aff": 20, "min_trust": 15, "cooldown_days": 2,
+            "first": "Nora hugs you back without making it a thing. Natural, brief, warm.",
+            "warm":  "She hugs back and pulls away with a small smile. \"You're going to make that a habit, aren't you?\"",
+            "repeat": "Nora leans in easily. Some people are just like that.",
+            "too_soon": "She laughs. \"Give it a day.\"",
+            "low_affection": "She smiles, a little surprised. \"We're not quite there yet.\"",
+            "low_trust": "She smiles but takes a small step back.",
+            "aff_gain": 3, "trust_gain": 1, "repeat_gain": 1,
+        },
+        "zoe": {
+            "min_aff": 25, "min_trust": 20, "cooldown_days": 3,
+            "first": "Zoe hugs you quickly, then immediately turns away to look at something across the street. \"Anyway.\"",
+            "warm":  "She leans in for a second. When she steps back she's already looking elsewhere.",
+            "repeat": "Quick, genuine, then immediately deflected.",
+            "too_soon": "\"You're very enthusiastic today.\" She doesn't hug back.",
+            "low_affection": "She gives you a look. Not hostile — just not yet.",
+            "low_trust": "She raises an eyebrow. Doesn't move closer.",
+            "aff_gain": 3, "trust_gain": 2, "repeat_gain": 1,
+        },
+        "eli": {
+            "min_aff": 30, "min_trust": 25, "cooldown_days": 5,
+            "first": "Eli hugs you back, a little stiffly at first, then relaxes. It's brief and slightly awkward in the best way.",
+            "warm":  "They lean in. Still slightly awkward. Still genuine.",
+            "repeat": "Less awkward this time. They don't comment on it.",
+            "too_soon": "They look slightly uncertain. \"I'm okay. Thanks though.\"",
+            "low_affection": "They look a bit startled. \"Oh — I, uh. Hi.\"",
+            "low_trust": "They take a small step back. Not unfriendly — just not there yet.",
+            "aff_gain": 3, "trust_gain": 2, "repeat_gain": 1,
+        },
+        "lena": {
+            "min_aff": 35, "min_trust": 35, "cooldown_days": 4,
+            "first": "Lena accepts the hug quietly — calm, steady, for exactly the right amount of time.",
+            "warm":  "She holds for a moment longer than expected. Then: \"Thank you.\"",
+            "repeat": "Calm and genuine. She seems to appreciate that you don't make it a performance.",
+            "too_soon": "\"I'm all right.\" A gentle decline.",
+            "low_affection": "She takes a small step back. Professional warmth, not personal.",
+            "low_trust": "She nods but doesn't move closer.",
+            "aff_gain": 2, "trust_gain": 2, "repeat_gain": 1,
+        },
+        "marcus": {
+            "min_aff": 20, "min_trust": 15, "cooldown_days": 2,
+            "first": "Marcus pulls you in for a proper hug. No ceremony. \"Good to have you around.\"",
+            "warm":  "He claps you on the back. \"Yeah, yeah.\" He's smiling.",
+            "repeat": "Easy and natural. Marcus is just like that.",
+            "too_soon": "He laughs. \"Again? I just saw you.\"",
+            "low_affection": "He raises an eyebrow. \"Bit early for that, isn't it?\"",
+            "low_trust": "He's friendly but doesn't match the gesture.",
+            "aff_gain": 3, "trust_gain": 1, "repeat_gain": 1,
+        },
+        "kai": {
+            "min_aff": 25, "min_trust": 20, "cooldown_days": 3,
+            "first": "Kai hugs you back, quick and genuine. \"Don't go soft on me,\" she says, then grins.",
+            "warm":  "She leans in briefly. Back to business.",
+            "repeat": "Natural and casual. No big deal.",
+            "too_soon": "\"You're good.\" She doesn't close the distance.",
+            "low_affection": "She tilts her head. \"We barely know each other.\"",
+            "low_trust": "She smiles but doesn't reach back.",
+            "aff_gain": 3, "trust_gain": 1, "repeat_gain": 1,
+        },
+        "natalie": {
+            "min_aff": 35, "min_trust": 40, "cooldown_days": 6,
+            "first": "Natalie goes very still for a moment. Then she accepts — briefly, arms not quite committing. When she steps back she says nothing, but her expression is different.",
+            "warm":  "She's less surprised this time. Still brief.",
+            "repeat": "She accepts. Still doesn't make it easy, but she accepts.",
+            "too_soon": "She holds up one hand. \"Not right now.\"",
+            "low_affection": "She looks at you flatly. \"What are you doing?\"",
+            "low_trust": "She takes a half-step back. \"I'm fine.\"",
+            "aff_gain": 2, "trust_gain": 3, "repeat_gain": 1,
+        },
+        "caroline": {
+            "min_aff": 50, "min_trust": 45, "cooldown_days": 7,
+            "first": "Caroline accepts, briefly and precisely. She seems mildly surprised at herself. \"Well. Okay then.\"",
+            "warm":  "She doesn't step back. That's new.",
+            "repeat": "She barely reacts, but she leans in slightly.",
+            "too_soon": "\"I think we're not quite there.\" Perfectly polite refusal.",
+            "low_affection": "She looks at you with mild amusement. \"Bold.\" She doesn't move.",
+            "low_trust": "She smiles, takes a step back. \"Another time.\"",
+            "aff_gain": 2, "trust_gain": 2, "repeat_gain": 0,
+        },
+        "elle": {
+            "min_aff": 20, "min_trust": 15, "cooldown_days": 2,
+            "first": "Elle hugs you back warmly. Easy and light.",
+            "warm":  "Warm. She pulls back with a smile.",
+            "repeat": "Elle hugs easily. It's just who she is.",
+            "too_soon": "She laughs. \"Again so soon?\"",
+            "low_affection": "She smiles. \"Oh — I, hi! Maybe next time.\"",
+            "low_trust": "She smiles, but keeps some distance.",
+            "aff_gain": 3, "trust_gain": 1, "repeat_gain": 1,
+        },
+        "sam": {
+            "min_aff": 20, "min_trust": 15, "cooldown_days": 2,
+            "first": "Sam hugs you back naturally. \"Good to have you around.\"",
+            "warm":  "Easy and warm. Sam doesn't overthink it.",
+            "repeat": "Natural, like it's always been this way.",
+            "too_soon": "She shakes her head with a grin. \"Again already?\"",
+            "low_affection": "She looks slightly caught off guard. \"Oh! We're doing that? Okay.\" She laughs but doesn't lean in.",
+            "low_trust": "She smiles but keeps some space.",
+            "aff_gain": 3, "trust_gain": 1, "repeat_gain": 1,
+        },
+    }
+
+    # ── Escalating failure tracking ───────────────────────────────────────
+    # ponytail: multiplier caps at 2× on the 3rd+ failure; lockout 3 days after
+    # the 3rd consecutive rejection. Upgrade path: per-NPC configurable cap.
+
+    def _apply_escalation(npc_id, action, base_aff_pen, base_trust_pen):
+        count = store.failed_physical_attempts.get((npc_id, action), 0)
+        if count == 0:
+            multiplier = 1.0
+        elif count == 1:
+            multiplier = 1.5
+        else:
+            multiplier = 2.0
+        _apply_aff(npc_id, int(base_aff_pen * multiplier))
+        _apply_trust(npc_id, int(base_trust_pen * multiplier))
+        new_count = count + 1
+        _fa = dict(store.failed_physical_attempts)
+        _fa[(npc_id, action)] = new_count
+        store.failed_physical_attempts = _fa
+        # 3rd+ failure: 3-day boundary lockout
+        if count >= 2:
+            _lb = dict(store.physical_boundary_lockout)
+            _lb[(npc_id, action)] = store.day + 3
+            store.physical_boundary_lockout = _lb
+
+    def do_hug(npc_id):
+        """Execute a hug interaction. Returns display text, applies stat effects."""
+        hp = HUG_PROFILES.get(npc_id)
+        if not hp or npc_id not in NPC_DATA:
+            return "You share a brief hug."
+        aff   = npc_aff(npc_id)
+        trust = npc_trust(npc_id)
+        last_hug_day = store.npc_last_hug_day.get(npc_id, -999)
+        # Lockout check (3+ consecutive failures → 3-day cooldown)
+        lockout_day = store.physical_boundary_lockout.get((npc_id, "hug"), -1)
+        if store.day <= lockout_day:
+            return hp.get("too_soon", "Not right now.")
+        # FIX 7: separate failure texts — low_affection fires first (not close enough),
+        # low_trust fires when aff is sufficient but trust is not yet there.
+        if aff < hp["min_aff"]:
+            _apply_escalation(npc_id, "hug",
+                hp.get("aff_pen_low_aff", -2),
+                hp.get("trust_pen_low_aff", -1))
+            return hp.get("low_affection", hp["low_trust"])
+        if trust < hp["min_trust"]:
+            _apply_escalation(npc_id, "hug",
+                hp.get("aff_pen_low_trust", -1),
+                hp.get("trust_pen_low_trust", -3))
+            return hp["low_trust"]
+        # Cooldown active — no penalty, no failure increment
+        if store.day - last_hug_day < hp["cooldown_days"]:
+            _apply_aff(npc_id, hp.get("repeat_gain", 0))
+            return hp["too_soon"]
+        # Accepted — reset failure counter
+        _fa = dict(store.failed_physical_attempts)
+        _fa[(npc_id, "hug")] = 0
+        store.failed_physical_attempts = _fa
+        # First hug ever?
+        is_first = not relationship_memory_exists(npc_id, "first_hug_" + npc_id)
+        days_since = store.day - last_hug_day  # read before updating
+        # Record and apply
+        d = dict(store.npc_last_hug_day)
+        d[npc_id] = store.day
+        store.npc_last_hug_day = d
+        if is_first:
+            _apply_aff(npc_id, hp["aff_gain"])
+            _apply_trust(npc_id, hp["trust_gain"])
+            add_relationship_memory(npc_id, "first_hug_" + npc_id, "First hug")
+            return hp["first"]
+        else:
+            _apply_aff(npc_id, hp.get("repeat_gain", 0))
+            # warm_after_days defaults to 2× cooldown: waited longer than minimum → warm,
+            # hugged at first opportunity → repeat.
+            warm_threshold = hp.get("warm_after_days", hp["cooldown_days"] * 2)
+            if days_since >= warm_threshold:
+                return hp["warm"]
+            return hp["repeat"]
+
+    # ── Kiss profiles ─────────────────────────────────────────────────────
+    # romance_flag: None = non-romanceable (kiss always romance_locked).
+    # valid_contexts: locations where a kiss is contextually appropriate.
+    # Default penalties: low_aff aff -7/tr -4; low_trust aff -4/tr -6;
+    #   romance_locked aff -4/tr -3; wrong_context aff -1/tr 0.
+
+    KISS_PROFILES = {
+        "nora": {
+            "min_aff": 45, "min_trust": 40, "cooldown_days": 3,
+            "romance_flag": "nora_romance_unlocked",
+            "valid_contexts": ["location_cafe", "location_bar"],
+            "warm_after_days": 10,
+            "first_kiss": "She goes still for just a moment. Then she kisses you back — brief, certain, and exactly right. When she pulls away she's looking at the counter. \"Well,\" she says. \"Okay then.\"",
+            "repeat": "She kisses you back easily. Like it's been this way for a while.",
+            "warm": "She pauses what she's doing and looks at you properly. The kiss is unhurried. \"You always show up at the right time,\" she says.",
+            "too_soon": "She laughs softly. \"Give it a minute.\"",
+            "low_affection": "She blinks. \"Whoa. We're not there yet.\" Not unkind — just honest.",
+            "low_trust": "She steps back slightly, expression careful. \"Let's slow down.\"",
+            "romance_locked": "She tilts her head. \"What are you doing?\" There's a wall behind her eyes.",
+            "wrong_context": "She glances around. \"Not here. Not like this.\"",
+            "aff_gain": 6, "trust_gain": 4, "repeat_gain": 2,
+        },
+        "marcus": {
+            "min_aff": 30, "min_trust": 25, "cooldown_days": 3,
+            "romance_flag": None,
+            "valid_contexts": ["location_bar", "location_park", "location_nightclub"],
+            "first_kiss": "", "repeat": "", "warm": "",
+            "too_soon": "\"Easy there.\"",
+            "low_affection": "He raises both eyebrows. \"Okay, where did that come from?\"",
+            "low_trust": "He steps back, hands up. \"Nah, we're not doing that.\"",
+            "romance_locked": "Marcus gives you a look. \"Come on. Not like that.\"",
+            "wrong_context": "\"Maybe not here, yeah?\"",
+            "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
+        },
+        "caroline": {
+            "min_aff": 65, "min_trust": 60, "cooldown_days": 5,
+            "romance_flag": "caroline_romance_unlocked",
+            "valid_contexts": ["location_bar", "location_nightclub"],
+            "warm_after_days": 14,
+            "first_kiss": "She doesn't move for a moment after. Then: \"That was either brave or catastrophically stupid.\" She doesn't say which. But she doesn't leave.",
+            "repeat": "Brief, controlled, and clearly intentional on her end.",
+            "warm": "She kisses you first this time. Steps back like she didn't. \"Don't read into it.\"",
+            "too_soon": "\"Patience.\" She doesn't elaborate.",
+            "low_affection": "She gives you a look that could strip paint. \"Bold. Ill-advised.\"",
+            "low_trust": "\"No.\" Flat. Final. No anger — just a closed door.",
+            "romance_locked": "She looks at you steadily. \"We work together. Pick your next words carefully.\"",
+            "wrong_context": "She glances pointedly at the surroundings. \"Not at work. Are you serious?\"",
+            "aff_gain": 7, "trust_gain": 5, "repeat_gain": 2,
+            "aff_pen_low_aff": -8, "trust_pen_low_aff": -5,
+            "aff_pen_low_trust": -5, "trust_pen_low_trust": -8,
+            "aff_pen_romance_locked": -6, "trust_pen_romance_locked": -4,
+        },
+        "lena": {
+            "min_aff": 55, "min_trust": 55, "cooldown_days": 4,
+            "romance_flag": "lena_romance_unlocked",
+            "valid_contexts": ["location_bar"],
+            "warm_after_days": 12,
+            "first_kiss": "She goes quiet after. Not uncomfortable — processing. \"I wasn't expecting that,\" she says finally. A pause. \"I'm glad it happened.\"",
+            "repeat": "She kisses you back, calm and deliberate. Everything she does is like that.",
+            "warm": "She leans in before you do. Just slightly. \"You know,\" she says quietly, \"this part of the day I actually look forward to.\"",
+            "too_soon": "\"I'm still catching my breath from last time.\" A small smile.",
+            "low_affection": "She takes a measured step back. \"I think we're moving too fast.\"",
+            "low_trust": "Her expression doesn't change but her posture does. \"Not yet. I'm sorry.\"",
+            "romance_locked": "\"I like you. But not like that. Not right now.\" Clean, kind, and closed.",
+            "wrong_context": "She glances at the corridor. \"Not here. I'm still on shift.\"",
+            "aff_gain": 6, "trust_gain": 5, "repeat_gain": 2,
+            "aff_pen_low_aff": -7, "trust_pen_low_aff": -4,
+            "aff_pen_low_trust": -4, "trust_pen_low_trust": -7,
+        },
+        "natalie": {
+            "min_aff": 40, "min_trust": 40, "cooldown_days": 7,
+            "romance_flag": None,
+            "valid_contexts": ["location_bar"],
+            "first_kiss": "", "repeat": "", "warm": "",
+            "too_soon": "She holds up one hand. Stop.",
+            "low_affection": "She stares at you. Then goes back to what she was doing.",
+            "low_trust": "\"What exactly do you think this is?\"",
+            "romance_locked": "\"No.\" She doesn't raise her voice. She doesn't have to.",
+            "wrong_context": "\"Not at work. I will actually fire you.\"",
+            "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
+            "aff_pen_low_aff": -8, "trust_pen_low_aff": -5,
+            "aff_pen_low_trust": -5, "trust_pen_low_trust": -8,
+        },
+        "martha": {
+            "min_aff": 50, "min_trust": 50, "cooldown_days": 7,
+            "romance_flag": None,
+            "valid_contexts": ["location_bar"],
+            "first_kiss": "", "repeat": "", "warm": "",
+            "too_soon": "She gives you a look that closes the topic.",
+            "low_affection": "She turns back to her drink. You've been dismissed.",
+            "low_trust": "A sharp glance. \"That's not something I'm interested in.\"",
+            "romance_locked": "\"Ambitious,\" she says. \"Wrong direction entirely.\"",
+            "wrong_context": "\"At the office? Really?\" Said with the tone she reserves for very bad proposals.",
+            "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
+            "aff_pen_low_aff": -7, "trust_pen_low_aff": -4,
+            "aff_pen_low_trust": -4, "trust_pen_low_trust": -7,
+        },
+        "elle": {
+            "min_aff": 40, "min_trust": 35, "cooldown_days": 3,
+            "romance_flag": "elle_romance_unlocked",
+            "valid_contexts": ["location_beach", "location_sandbeach", "location_cafe", "location_bar", "location_nightclub"],
+            "warm_after_days": 9,
+            "first_kiss": "She laughs a little — surprise, not rejection. Then she kisses you back. When she pulls away she's looking at the horizon. \"Well. That was... yeah.\"",
+            "repeat": "She kisses you back warmly. Light and easy.",
+            "warm": "She closes the distance first. \"I missed you,\" she says after, like it's nothing.",
+            "too_soon": "She laughs. \"You're very eager today.\"",
+            "low_affection": "She smiles carefully. \"Oh — I don't think so. Not yet.\"",
+            "low_trust": "She shakes her head gently. \"I really like you. But not yet.\"",
+            "romance_locked": "\"Hey.\" She takes a small step back. \"Can we just be this for now?\"",
+            "wrong_context": "She looks around, amused. \"Maybe somewhere a bit less... here?\"",
+            "aff_gain": 6, "trust_gain": 4, "repeat_gain": 2,
+        },
+        "zoe": {
+            "min_aff": 50, "min_trust": 45, "cooldown_days": 4,
+            "romance_flag": "zoe_romance_unlocked",
+            "valid_contexts": ["location_beach", "location_sandbeach", "location_park", "location_bar", "location_nightclub"],
+            "warm_after_days": 12,
+            "first_kiss": "She kisses you back, and then immediately steps away and looks at something in the middle distance. \"Okay,\" she says. \"Okay.\" And then nothing else for a while.",
+            "repeat": "Quick and real. She's already looking away before it's over.",
+            "warm": "She doesn't deflect this time. She leans into it. \"Don't make it weird,\" she says, which is how you know it already means something.",
+            "too_soon": "\"You just kissed me, like, three days ago.\" She doesn't sound upset. Just noting it.",
+            "low_affection": "She gives you a flat look. \"Hm. No.\"",
+            "low_trust": "She takes a step back. Just one. Says nothing.",
+            "romance_locked": "She looks at you for a moment. Then away. \"I don't — we're not doing that.\"",
+            "wrong_context": "She glances around. \"Not exactly the vibe, is it.\"",
+            "aff_gain": 6, "trust_gain": 5, "repeat_gain": 2,
+            "aff_pen_low_aff": -7, "trust_pen_low_aff": -4,
+            "aff_pen_low_trust": -4, "trust_pen_low_trust": -6,
+        },
+        "sam": {
+            "min_aff": 30, "min_trust": 25, "cooldown_days": 3,
+            "romance_flag": None,
+            "valid_contexts": ["location_park", "location_gym", "location_bar"],
+            "first_kiss": "", "repeat": "", "warm": "",
+            "too_soon": "She steps back, eyebrows up. \"Whoa, hey.\"",
+            "low_affection": "She blinks. \"Oh — no, we're not — no. Sorry.\"",
+            "low_trust": "She puts a hand on your arm. Stops you. \"We're friends. Okay?\"",
+            "romance_locked": "\"I don't think of you that way. Sorry.\" Genuinely kind about it.",
+            "wrong_context": "\"Not at the gym, please.\" She laughs a little.",
+            "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
+        },
+        "eli": {
+            "min_aff": 30, "min_trust": 25, "cooldown_days": 5,
+            "romance_flag": None,
+            "valid_contexts": ["location_bar", "location_library"],
+            "first_kiss": "", "repeat": "", "warm": "",
+            "too_soon": "They lean back slightly. \"Uh — I'm fine, thanks.\"",
+            "low_affection": "They look alarmed. \"I — what? No. Sorry.\"",
+            "low_trust": "They go very still. \"Please don't do that.\"",
+            "romance_locked": "\"I — yeah, that's not something I'm into. Like, at all. Sorry.\" They look genuinely uncomfortable.",
+            "wrong_context": "They gesture at the surroundings. \"In the library? There are people here.\"",
+            "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
+        },
+        "kai": {
+            "min_aff": 30, "min_trust": 25, "cooldown_days": 3,
+            "romance_flag": None,
+            "valid_contexts": ["location_beach", "location_sandbeach", "location_bar", "location_nightclub"],
+            "first_kiss": "", "repeat": "", "warm": "",
+            "too_soon": "She puts a hand on your chest. Stops you. Shakes her head.",
+            "low_affection": "She tilts her head back. \"Huh. No.\"",
+            "low_trust": "\"Not happening.\" Friendly, but final.",
+            "romance_locked": "\"Hey, you're great. But this?\" She shakes her head. \"Not what we are.\"",
+            "wrong_context": "She looks around. \"There's a whole beach. Pick your moment better.\"",
+            "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
+        },
+    }
+
+    def do_kiss(npc_id):
+        """Execute a kiss attempt. Returns (outcome_key, display_text).
+        outcome_key: low_affection | low_trust | romance_locked | wrong_context
+                     | too_soon | first_kiss | repeat | warm"""
+        kp = KISS_PROFILES.get(npc_id)
+        if not kp:
+            return ("low_affection", "This doesn't feel right.")
+        aff   = npc_aff(npc_id)
+        trust = npc_trust(npc_id)
+        # Lockout check (3+ consecutive failures → 3-day cooldown)
+        lockout_day = store.physical_boundary_lockout.get((npc_id, "kiss"), -1)
+        if store.day <= lockout_day:
+            return ("too_soon", kp.get("too_soon", "Not right now."))
+        # Affection gate
+        if aff < kp["min_aff"]:
+            _apply_escalation(npc_id, "kiss",
+                kp.get("aff_pen_low_aff", -7),
+                kp.get("trust_pen_low_aff", -4))
+            return ("low_affection", kp.get("low_affection", "This doesn't feel right."))
+        # Trust gate
+        if trust < kp["min_trust"]:
+            _apply_escalation(npc_id, "kiss",
+                kp.get("aff_pen_low_trust", -4),
+                kp.get("trust_pen_low_trust", -6))
+            return ("low_trust", kp.get("low_trust", "She pulls back."))
+        # Romance gate: None = non-romanceable (always locked)
+        romance_flag = kp.get("romance_flag")
+        if romance_flag is None or not getattr(store, romance_flag, False):
+            _apply_escalation(npc_id, "kiss",
+                kp.get("aff_pen_romance_locked", -4),
+                kp.get("trust_pen_romance_locked", -3))
+            return ("romance_locked", kp.get("romance_locked", "That's not where this is going."))
+        # Context gate (no failure escalation — just a light nudge)
+        valid_contexts = kp.get("valid_contexts", [])
+        if valid_contexts and store.current_loc not in valid_contexts:
+            _apply_aff(npc_id, kp.get("aff_pen_wrong_context", -1))
+            _tr_pen = kp.get("trust_pen_wrong_context", 0)
+            if _tr_pen != 0:
+                _apply_trust(npc_id, _tr_pen)
+            return ("wrong_context", kp.get("wrong_context", "This isn't the right moment."))
+        # Cooldown gate — no penalty, no failure increment
+        last_kiss_day = store.npc_last_kiss_day.get(npc_id, -999)
+        if store.day - last_kiss_day < kp["cooldown_days"]:
+            return ("too_soon", kp.get("too_soon", "Not yet."))
+        # Accepted — reset failure counter, record day
+        _fa = dict(store.failed_physical_attempts)
+        _fa[(npc_id, "kiss")] = 0
+        store.failed_physical_attempts = _fa
+        _lk = dict(store.npc_last_kiss_day)
+        _lk[npc_id] = store.day
+        store.npc_last_kiss_day = _lk
+        # First kiss?
+        if not relationship_memory_exists(npc_id, "first_kiss_" + npc_id):
+            add_relationship_memory(npc_id, "first_kiss_" + npc_id, "First kiss")
+            _apply_aff(npc_id, kp.get("aff_gain", 5))
+            _apply_trust(npc_id, kp.get("trust_gain", 3))
+            return ("first_kiss", kp.get("first_kiss", "A first kiss."))
+        # Repeat / warm
+        days_since = store.day - last_kiss_day
+        warm_threshold = kp.get("warm_after_days", kp["cooldown_days"] * 2)
+        _apply_aff(npc_id, kp.get("repeat_gain", 1))
+        if days_since >= warm_threshold:
+            return ("warm", kp.get("warm", "A warm, familiar kiss."))
+        return ("repeat", kp.get("repeat", "She kisses you back."))
+
+    def gift_count_for(npc_id):
+        return sum(1 for g in store.gift_log if g.get("npc_id") == npc_id)
+
     def do_gift(npc_id, gift_type):
         if store.gifts.get(gift_type, 0) <= 0:
             return
         store.gifts[gift_type] -= 1
+        _gl = list(store.gift_log)
+        _gl.append({"npc_id": npc_id, "gift_type": gift_type, "day": store.day})
+        store.gift_log = _gl
         d = NPC_DATA[npc_id]
         interests = GIFT_TYPES[gift_type][2]
         likes     = d.get("likes", [])
         dislikes  = d.get("dislikes", [])
         if any(i in likes for i in interests):
-            delta = 5
-            line = renpy.random.choice(GIFT_LIKE_LINES[gift_type])
+            # diminishing returns: track (week_index, count) per NPC
+            gw   = store.npc_gift_week.get(npc_id, (-1, 0))
+            week = store.day // 7
+            if gw[0] != week:
+                gw = (week, 0)
+            count = gw[1]
+            if count == 0:
+                delta = 5
+                line = renpy.random.choice(GIFT_LIKE_LINES[gift_type])
+            elif count == 1:
+                delta = 2
+                line = renpy.random.choice(GIFT_NEUTRAL_LINES[gift_type])
+            else:
+                delta = 0
+                line = "You can tell she's been here before."
+            ngw = dict(store.npc_gift_week)
+            ngw[npc_id] = (week, count + 1)
+            store.npc_gift_week = ngw
         elif any(i in dislikes for i in interests):
             delta = 1
             line = renpy.random.choice(GIFT_DISLIKE_LINES[gift_type])
         else:
             delta = 3
             line = renpy.random.choice(GIFT_NEUTRAL_LINES[gift_type])
-        _apply_aff(npc_id, delta)
-        gain_aff(d["name"], delta)
+        if delta > 0:
+            _apply_aff(npc_id, delta)
+            gain_aff(d["name"], delta)
+        # Martha gift accusation — set pending on exactly the 3rd gift.
+        # gift_log already includes the current gift so count == 3 means this IS the 3rd.
+        # ponytail: == 3 prevents re-trigger on 4th+ gifts.
+        if (npc_id == "martha"
+                and gift_count_for("martha") == 3
+                and not store.martha_gift_accusation_done
+                and store.martha_gift_scene_pending is None):
+            _gc = gift_count_for("martha")
+            store.martha_gift_scene_pending = {
+                "trigger_day":      store.day,
+                "gift_id":          gift_type,
+                "gift_name":        GIFT_TYPES[gift_type][0],
+                "gift_count":       _gc,
+                "trigger_location": store.current_loc,
+                "variant":          "immediate",
+            }
         renpy.say(getattr(store, d["say"]), line)
 
 
@@ -460,7 +1123,6 @@ screen npc_actions(npc_id):
     zorder 22
     $ _gift_ok   = sum(gifts.values()) > 0
     $ _date_ok   = npc_aff(npc_id) >= 30
-    $ _hug_ok    = npc_aff(npc_id) >= 15
     $ _num_ok    = npc_aff(npc_id) >= 25 and npc_id not in npc_contacts
     $ _angry     = npc_is_angry(npc_id)
     frame:
@@ -479,7 +1141,8 @@ screen npc_actions(npc_id):
                 for _icon, _lbl, _ret, _ok in [
                         ("act_talk",   "Talk",                    "talk",   True),
                         ("act_gift",   "Gift (%d)" % sum(gifts.values()),  "gift",   _gift_ok),
-                        ("act_hug",    "Hug",                     "hug",    _hug_ok and not _angry),
+                        ("act_hug",    "Hug",                     "hug",    not _angry),
+                        ("act_hug",    "Kiss",                    "kiss",   not _angry),
                         ("act_invite", "Invite",                  "date",   _date_ok and not _angry),
                         ("act_phone",  "Get #",                   "number", _num_ok and not _angry),
                         ("act_leave",  "Leave",                   "leave",  True)]:
@@ -542,6 +1205,7 @@ screen npc_topics(npc_id):
                     $ _tint  = ("#ffd76a" if key in _likes else ("#6b82a6" if key in _dislikes else "#cfe0f5"))
                     $ _used  = topic_used_today(npc_id, key)
                     $ _badge = _topics_seen.get(npc_id, {}).get(key)
+                    $ _arc_avail = (not _used) and (check_arc(npc_id, key) is not None)
                     button:
                         xysize (148, 120)
                         sensitive not _used
@@ -559,6 +1223,8 @@ screen npc_topics(npc_id):
                                     text "+" xpos 42 ypos 0 size 18 color "#39c07a" font ACT_FONT
                                 elif _badge == "dislike":
                                     text "−" xpos 42 ypos 0 size 18 color "#e86a55" font ACT_FONT
+                                if _arc_avail:
+                                    text "★" xpos 0 ypos 0 size 14 color "#f0d060" font ACT_FONT
                             text label font ACT_FONT size 15 color ("#445060" if _used else _tint) hover_color "#ffffff" xalign 0.5
 
 
@@ -592,7 +1258,11 @@ label npc_interact(npc_id):
         if _act == "talk":
             $ _t = renpy.call_screen("npc_topics", npc_id)
             if _t != "back":
-                $ do_talk(npc_id, _t)
+                $ _arc = check_arc(npc_id, _t)
+                if _arc is not None:
+                    call expression _arc["label"]
+                else:
+                    $ do_talk(npc_id, _t)
         elif _act == "gift":
             $ _g = renpy.call_screen("npc_gift_select")
             if _g != "back":
@@ -602,9 +1272,15 @@ label npc_interact(npc_id):
             if _jealous:
                 $ _jn = " and ".join(_jealous)
                 "[_jn] clocks the embrace. Their expression flickers."
-            $ _apply_aff(npc_id, 3)
+            call do_hug_interaction(npc_id)
             $ spend_time(0.1)
-            "[_nm] smiles and leans in. A brief, warm hug."
+        elif _act == "kiss":
+            $ _jealous = check_jealousy(npc_id)
+            if _jealous:
+                $ _jn = " and ".join(_jealous)
+                "[_jn] catches your eye. Their expression shifts."
+            call do_kiss_interaction(npc_id)
+            $ spend_time(0.1)
         elif _act == "number":
             $ store.npc_contacts = store.npc_contacts + [npc_id]
             $ _apply_aff(npc_id, 2)
@@ -639,6 +1315,14 @@ label npc_date(npc_id):
             return
     show screen hud
     show expression _spr as npcsprite at sprite_c
+    $ _date_owarn = _overlap_warning_text(3)
+    if _date_owarn:
+        menu:
+            "[_date_owarn]\nContinue anyway?"
+            "Continue":
+                pass
+            "Go back":
+                return
     $ spend_time(3)
     $ _apply_aff(npc_id, 6)
     $ setattr(store, NPC_DATA[npc_id]["trust"], npc_trust(npc_id) + 3)
@@ -650,6 +1334,9 @@ label npc_date(npc_id):
 
 # ══ Greetings (scale with affection) ═══════════════════════════════════
 label nora_greet:
+    # Track actual interaction (café + bar) — not location entry.
+    # Feeds the 8-day ignore timer in new_day().
+    $ nora_last_seen_day = day
     if nora_affection >= 50:
         n "Hey, you. I was hoping you'd come in today."
     elif nora_affection >= 25:
@@ -746,4 +1433,54 @@ label kai_greet:
         kai "Hey! You're back. This beach has a way of pulling people in, right?"
     else:
         kai "Sup. You look like someone who doesn't come here enough."
+    return
+
+
+# ── Physical interaction wrappers ──────────────────────────────────────
+
+label do_hug_interaction(npc_id):
+    $ _hug_text = do_hug(npc_id)
+    "[_hug_text]"
+    return
+
+label do_kiss_interaction(npc_id):
+    $ (_kiss_outcome, _kiss_text) = do_kiss(npc_id)
+    if _kiss_outcome == "first_kiss":
+        $ _fk_label = "scene_first_kiss_" + npc_id
+        if renpy.has_label(_fk_label):
+            call expression _fk_label
+        else:
+            "[_kiss_text]"
+    else:
+        "[_kiss_text]"
+    return
+
+
+# ── First-kiss scene stubs (romanceable NPCs only) ─────────────────────
+# ponytail: placeholder labels — first-kiss scenes not yet written.
+#   Replace the stub line with actual scene scripting when content is ready.
+
+label scene_first_kiss_nora:
+    # ponytail: placeholder — first-kiss scene not yet written
+    n "..."
+    return
+
+label scene_first_kiss_elle:
+    # ponytail: placeholder — first-kiss scene not yet written
+    el "..."
+    return
+
+label scene_first_kiss_zoe:
+    # ponytail: placeholder — first-kiss scene not yet written
+    z "..."
+    return
+
+label scene_first_kiss_caroline:
+    # ponytail: placeholder — first-kiss scene not yet written
+    caro "..."
+    return
+
+label scene_first_kiss_lena:
+    # ponytail: placeholder — first-kiss scene not yet written
+    lena "..."
     return

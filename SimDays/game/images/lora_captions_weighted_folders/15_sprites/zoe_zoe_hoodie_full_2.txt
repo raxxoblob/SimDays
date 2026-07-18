@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, hoodie outfit/variant; full body pose.
-tags: sprite, character, zoe, hoodie, full_body, transparent, 450x1480
-character: zoe
-source: zoe/zoe_hoodie_full.webp

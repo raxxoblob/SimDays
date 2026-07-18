@@ -1,6 +1,42 @@
 # Phone - pure screen overlay. HUD uses Show("phone_home"); Close uses Hide.
 # No script Call() involved, so the phone never interrupts or re-triggers labels.
 
+init python:
+    _NPC_HI_REPLY = {
+        "zoe":     "Hey. You okay?",
+        "nora":    "Hi! Just got off a shift. What's up?",
+        "marcus":  "Yo. Good timing, I was just thinking about heading out.",
+        "elle":    "Oh hey! Was just reading. Everything good?",
+        "eli":     "Hey. Needed a break from the thesis anyway.",
+        "sam":     "Hey! What are you up to?",
+        "kai":     "Oh hey. Wasn't expecting to hear from you.",
+        "lena":    "Hi. I have maybe five minutes. What's going on?",
+        "caroline":"Hi. Is something wrong with the project?",
+        "martha":  "Hey there. How's your day going?",
+        "natalie": "Hey! Just saw your message. All good?",
+    }
+
+    def phone_say_hi(npc_id):
+        td = list(store.npc_texted_today)
+        if npc_id in td:
+            return
+        td.append(npc_id)
+        store.npc_texted_today = td
+        _apply_trust(npc_id, 1)
+        reply = _NPC_HI_REPLY.get(npc_id, "Hey.")
+        send_npc_message(npc_id, reply)
+        renpy.restart_interaction()
+
+    def phone_where_is(npc_id):
+        loc = npc_location_now(npc_id)
+        name = NPC_DATA[npc_id]["name"]
+        if loc:
+            place = LOCATION_NAMES.get(loc, loc.replace("location_", "").replace("_", " ").title())
+            renpy.notify("%s is at %s right now." % (name, place))
+        else:
+            renpy.notify("Not sure where %s is right now." % name)
+        renpy.restart_interaction()
+
 
 transform _phone_in():
     yoffset 700 alpha 0.0
@@ -79,6 +115,7 @@ screen _phone_app(label, act):
 
 
 screen phone_messages_scr():
+    on "show" action [Function(deliver_due_messages), Function(mark_all_messages_read)]
     modal True
     add "#000000aa"
     frame:
@@ -87,31 +124,132 @@ screen phone_messages_scr():
         xsize 380
         ysize 720
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (24, 22, 24, 22)
+        padding (24, 16, 24, 16)
         vbox:
-            spacing 10
-            text "Messages" font PROFILE_FONT size 28 color "#ffffff" xalign 0.5
-            null height 4
-            # ── City News (system events) ──────────────────────────────
-            if daily_events:
-                for _ev in daily_events:
-                    frame:
-                        xfill True
-                        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        padding (14, 10, 14, 10)
-                        vbox:
-                            spacing 2
-                            text _ev["from"] font PROFILE_FONT size 13 color "#5bcafa"
-                            text _ev["body"] font ACT_FONT size 14 color "#cfe0f5"
-            else:
-                text "No new messages today." font ACT_FONT size 15 color "#4a6080"
-            # ── NPC contacts ──────────────────────────────────────────
-            $ _known = [k for k in npc_contacts if k in NPC_DATA]
-            if _known:
-                null height 6
-                text "Contacts" font PROFILE_FONT size 17 color "#9fb6d6"
-                for _k in _known:
-                    use _phone_app(NPC_DATA[_k]["name"], [Hide("phone_messages_scr"), Show("phone_home")])
+            spacing 0
+            text "Messages" font PROFILE_FONT size 26 color "#ffffff" xalign 0.5
+            null height 8
+            viewport:
+                ysize 620
+                mousewheel True
+                vbox:
+                    spacing 8
+                    xsize 332
+                    # ── Upcoming commitments ──────────────────────────
+                    use commitments_list(compact=True)
+                    # ── Agenda: today + tomorrow ──────────────────────
+                    $ _today_c = today_commitments()
+                    $ _tmrw_c  = tomorrow_commitments()
+                    if _today_c or _tmrw_c:
+                        null height 4
+                        text "Agenda" font PROFILE_FONT size 15 color "#9fb6d6"
+                        null height 2
+                        for _ac in (_today_c + _tmrw_c):
+                            $ _ac_status = commitment_status_text(_ac)
+                            $ _ac_color  = "#5bcafa" if commitment_available(_ac["id"]) else ("#4a6080" if _ac_status in ("Completed","Missed","Cancelled") else "#9fb6d6")
+                            frame:
+                                xfill True
+                                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                                padding (10, 6, 10, 6)
+                                hbox:
+                                    xfill True
+                                    spacing 6
+                                    vbox:
+                                        xexpand True
+                                        spacing 1
+                                        text _ac["title"] font ACT_FONT size 13 color "#cfe0f5"
+                                        text ("%02d:00  ·  " % _ac["hour"] + _ac["location"]) font ACT_FONT size 11 color "#4a6080"
+                                    text _ac_status font ACT_FONT size 11 color _ac_color yalign 0.5
+                    # ── City News ─────────────────────────────────────
+                    if daily_events:
+                        for _ev in daily_events:
+                            frame:
+                                xfill True
+                                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                                padding (12, 8, 12, 8)
+                                vbox:
+                                    spacing 2
+                                    text _ev["from"] font PROFILE_FONT size 12 color "#5bcafa"
+                                    text _ev["body"] font ACT_FONT size 13 color "#cfe0f5"
+                    # ── NPC Inbox ────────────────────────────────────
+                    $ _inbox = delivered_messages()
+                    if _inbox:
+                        null height 4
+                        text "Messages" font PROFILE_FONT size 15 color "#9fb6d6"
+                        null height 2
+                        for _imsg in _inbox:
+                            frame:
+                                xfill True
+                                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                                padding (12, 8, 12, 8)
+                                vbox:
+                                    spacing 4
+                                    text _imsg["npc_name"] font PROFILE_FONT size 12 color ("#5bcafa" if not _imsg["read"] else "#3a5068")
+                                    text _imsg["text"] font ACT_FONT size 13 color ("#cfe0f5" if not _imsg["read"] else "#4a6080")
+                                    $ _has_r = bool(_imsg.get("responses")) and not _imsg.get("replied")
+                                    $ _is_r  = _imsg.get("replied", False)
+                                    if _has_r:
+                                        hbox:
+                                            spacing 6
+                                            for _rsp in _imsg["responses"]:
+                                                button:
+                                                    xysize (120, 30)
+                                                    background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
+                                                    hover_background Frame("images/ui/act_bar_hover.png", 16, 16, 16, 16)
+                                                    action [Function(mark_message_replied, _imsg, _rsp["id"]), Hide("phone_messages_scr"), Hide("phone_home"), Function(renpy.jump, _rsp["label"])]
+                                                    text _rsp["text"] font ACT_FONT size 12 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
+                                    elif _is_r and _imsg.get("replied_with"):
+                                        $ _rt = next((r["text"] for r in _imsg.get("responses", []) if r["id"] == _imsg.get("replied_with")), "")
+                                        if _rt:
+                                            text ("You: " + _rt) font ACT_FONT size 11 color "#4a7a9b"
+                    # ── NPC Contacts ──────────────────────────────────
+                    $ _known = [k for k in npc_contacts if k in NPC_DATA]
+                    if _known:
+                        null height 4
+                        text "Contacts" font PROFILE_FONT size 15 color "#9fb6d6"
+                        null height 2
+                        for _k in _known:
+                            $ _last  = npc_last_message(_k)
+                            $ _texted = _k in npc_texted_today
+                            $ _loc   = npc_location_now(_k)
+                            frame:
+                                xfill True
+                                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                                padding (12, 8, 12, 8)
+                                vbox:
+                                    spacing 4
+                                    hbox:
+                                        spacing 6
+                                        text NPC_DATA[_k]["name"] font PROFILE_FONT size 14 color "#cfe0f5" yalign 0.5
+                                        if _loc:
+                                            $ _pname = LOCATION_NAMES.get(_loc, "")
+                                            if _pname:
+                                                text ("@ " + _pname) font ACT_FONT size 11 color "#4a8a6a" yalign 0.5
+                                    if _last:
+                                        $ _msg_today = _last.get("delivered_on", _last.get("send_on_day", _last.get("day", -1))) == day
+                                        text _last["text"] font ACT_FONT size 12 color ("#9fb6d6" if _msg_today else "#3a5068")
+                                    $ _rmems = relationship_memories_for(_k)
+                                    if _rmems:
+                                        $ _recent_mems = _rmems[-2:]
+                                        for _rm in _recent_mems:
+                                            text ("• " + _rm["title"] + " — Day " + str(_rm["day"] + 1)) font ACT_FONT size 11 color "#3a5068"
+                                    hbox:
+                                        spacing 8
+                                        button:
+                                            xysize (120, 32)
+                                            sensitive not _texted
+                                            background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
+                                            hover_background Frame("images/ui/act_bar_hover.png", 20, 20, 20, 20)
+                                            action Function(phone_say_hi, _k)
+                                            text "Say hi" font ACT_FONT size 13 color ("#7a9ab8" if _texted else "#cfe0f5") hover_color "#ffffff" align (0.5, 0.5)
+                                        button:
+                                            xysize (130, 32)
+                                            background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
+                                            hover_background Frame("images/ui/act_bar_hover.png", 20, 20, 20, 20)
+                                            action Function(phone_where_is, _k)
+                                            text "Where are you?" font ACT_FONT size 11 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
+                    elif not daily_events:
+                        text "No messages." font ACT_FONT size 15 color "#4a6080"
             null height 6
             textbutton "Back" action [Hide("phone_messages_scr"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
@@ -214,7 +352,7 @@ screen phone_bank_scr():
             null height 6
             text "Balance:  $[money]" font PROFILE_FONT size 18 color "#39c07a"
             if loan > 0:
-                text "Loan:     $[loan]  (10%%/wk)" font PROFILE_FONT size 16 color "#e86a55"
+                text "Loan:     $[loan]  (5%%/wk)" font PROFILE_FONT size 16 color "#e86a55"
             if savings > 0:
                 text "Savings:  $[savings]  (2%%/wk)" font PROFILE_FONT size 16 color "#5bcafa"
             null height 8

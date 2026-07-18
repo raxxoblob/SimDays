@@ -1,4 +1,0 @@
-description: Reference/template image for Zoe.
-tags: sprite, character, zoe, reference, template, 1536x1024
-character: zoe
-source: zoe/zoe_template.jfif

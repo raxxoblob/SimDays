@@ -1,4 +1,0 @@
-description: Portrait reference sprite for Vera.
-tags: sprite, character, portrait, reference, vera, 512x512
-character: templates
-source: templates/portrait_vera.png

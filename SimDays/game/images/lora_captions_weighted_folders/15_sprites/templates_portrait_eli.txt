@@ -1,4 +1,0 @@
-description: Portrait reference sprite for Eli.
-tags: sprite, character, portrait, reference, eli, 512x512
-character: templates
-source: templates/portrait_eli.png

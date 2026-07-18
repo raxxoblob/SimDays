@@ -1,4 +1,0 @@
-description: Portrait reference sprite for Caroline.
-tags: sprite, character, portrait, reference, caroline, 512x512
-character: templates
-source: templates/portrait_caroline.png

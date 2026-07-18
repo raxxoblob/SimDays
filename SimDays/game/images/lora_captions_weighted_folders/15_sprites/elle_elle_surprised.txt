@@ -1,4 +1,0 @@
-description: Character sprite of Elle, surprised expression.
-tags: sprite, character, elle, surprised, transparent, 1024x1536
-character: elle
-source: elle/elle_surprised.png

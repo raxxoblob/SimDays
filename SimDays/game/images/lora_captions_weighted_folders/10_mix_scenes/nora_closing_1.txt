@@ -1,1 +1,0 @@
-cafe_night, Nora, closing_shift, cafe_counter, apron, empty_cafe, chairs_up, warm_lighting, night, coffee_shop, MC_foreground, anime_visual_novel_cg, detailed_background, 16:9

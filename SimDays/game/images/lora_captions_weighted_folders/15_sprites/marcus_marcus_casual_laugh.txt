@@ -1,4 +1,0 @@
-description: Character sprite of Marcus, casual outfit/variant; laughing expression.
-tags: sprite, character, marcus, casual, laughing, transparent, 1024x1536
-character: marcus
-source: marcus/marcus_casual_laugh.png

@@ -1,4 +1,0 @@
-description: Character sprite of Dr Lena, talking expression.
-tags: sprite, character, dr_lena, talking, transparent, 1024x1536
-character: dr_lena
-source: dr_lena/drlena_talk.png

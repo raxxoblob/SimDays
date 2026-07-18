@@ -1,4 +1,0 @@
-description: Character sprite of Eli, laughing expression.
-tags: sprite, character, eli, laughing, transparent, 588x1010
-character: eli
-source: eli/eli_laugh.png

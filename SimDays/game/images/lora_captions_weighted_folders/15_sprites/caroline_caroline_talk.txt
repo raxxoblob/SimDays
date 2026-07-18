@@ -1,4 +1,0 @@
-description: Character sprite of Caroline, talking expression.
-tags: sprite, character, caroline, talking, transparent, 1024x1536
-character: caroline
-source: caroline/caroline_talk.png

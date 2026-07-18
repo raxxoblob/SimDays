@@ -1,1 +1,0 @@
-basketball_court_day, MC, pov, missed_shot, hands_foreground, basketball_near_rim, Marcus_in_background, outdoor_basketball_court, hoop, backboard, city_skyline, sunny_day, sports_scene, anime_visual_novel_cg, detailed_background, 16:9

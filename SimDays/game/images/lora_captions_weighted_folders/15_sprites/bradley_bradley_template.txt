@@ -1,4 +1,0 @@
-description: Reference/template image for Bradley.
-tags: sprite, character, bradley, reference, template, 1536x1024
-character: bradley
-source: bradley/bradley_template.jfif

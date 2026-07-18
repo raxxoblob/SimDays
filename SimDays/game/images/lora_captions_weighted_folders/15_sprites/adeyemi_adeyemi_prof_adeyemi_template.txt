@@ -1,4 +1,0 @@
-description: Reference/template image for Professor Adeyemi.
-tags: sprite, character, adeyemi, reference, template, 1536x1024
-character: adeyemi
-source: adeyemi/prof_adeyemi_template.jfif

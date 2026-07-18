@@ -1,4 +1,0 @@
-description: Character sprite of Caroline, angry expression.
-tags: sprite, character, caroline, angry, transparent, 1024x1536
-character: caroline
-source: caroline/caroline_angry.png

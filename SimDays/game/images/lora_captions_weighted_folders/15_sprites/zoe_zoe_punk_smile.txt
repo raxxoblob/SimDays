@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, punk outfit/variant; smiling expression.
-tags: sprite, character, zoe, punk, smiling, backup_pre_rembg, transparent, 1086x1448
-character: zoe
-source: zoe/backup_pre_rembg/zoe_punk_smile.png

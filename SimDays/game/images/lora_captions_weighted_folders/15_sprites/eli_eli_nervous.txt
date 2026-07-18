@@ -1,4 +1,0 @@
-description: Character sprite of Eli, nervous expression.
-tags: sprite, character, eli, nervous, transparent, 558x1009
-character: eli
-source: eli/eli_nervous.png

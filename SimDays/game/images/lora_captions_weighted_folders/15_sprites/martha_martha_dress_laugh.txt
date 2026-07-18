@@ -1,4 +1,0 @@
-description: Character sprite of Martha, dress outfit/variant; laughing expression.
-tags: sprite, character, martha, dress, laughing, transparent, 1024x1536
-character: martha
-source: martha/martha_dress_laugh.png

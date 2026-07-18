@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, coat outfit/variant; full body pose.
-tags: sprite, character, zoe, coat, full_body, transparent, 496x1513
-character: zoe
-source: zoe/zoe_transparent_cleaned_pngs/zoe_coat_full_transparent.png

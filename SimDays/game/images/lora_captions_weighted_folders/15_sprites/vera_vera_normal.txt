@@ -1,4 +1,0 @@
-description: Character sprite of Vera, normal expression.
-tags: sprite, character, vera, normal, transparent, 1024x1536
-character: vera
-source: vera/vera_normal.png

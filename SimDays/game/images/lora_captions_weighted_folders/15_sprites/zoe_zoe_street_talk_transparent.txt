@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, street outfit/variant; talking expression.
-tags: sprite, character, zoe, street, talking, transparent, 1078x1440
-character: zoe
-source: zoe/zoe_transparent_cleaned_pngs/zoe_street_talk_transparent.png

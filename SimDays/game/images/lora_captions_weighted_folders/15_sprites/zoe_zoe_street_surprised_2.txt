@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, street outfit/variant; surprised expression.
-tags: sprite, character, zoe, street, surprised, transparent, 1001x1443
-character: zoe
-source: zoe/zoe_street_surprised.webp

@@ -1,1 +1,0 @@
-school_hallway, lockers, bulletin_boards, vending_machines, students, bright_daylight, polished_floor, campus_corridor, anime_visual_novel_background, detailed_background, 16:9

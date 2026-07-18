@@ -1,1 +1,0 @@
-Lena, hospital_lobby, hospital_reception, waiting_area, nurse_station, elevators, patients, night, warm_indoor_lighting, clean_modern_hospital, potted_plants, quiet_mood, anime_visual_novel_background, detailed_background, 16:9

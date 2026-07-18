@@ -1,4 +1,0 @@
-description: Reference/template image for Martha.
-tags: sprite, character, martha, reference, template, 1024x1535
-character: martha
-source: martha/ChatGPT Image Jul 7, 2026, 09_50_40 PM.png

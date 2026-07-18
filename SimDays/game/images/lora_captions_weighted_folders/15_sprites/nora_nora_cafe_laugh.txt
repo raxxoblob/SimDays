@@ -1,4 +1,0 @@
-description: Character sprite of Nora, cafe outfit/variant; laughing expression.
-tags: sprite, character, nora, cafe, laughing, transparent, 1024x1536
-character: nora
-source: nora/nora_cafe_laugh.png

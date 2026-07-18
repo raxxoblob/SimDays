@@ -1,1 +1,0 @@
-office_lobby, corporate_lobby, reception_desk, elevators, marble_floor, glass_walls, business_people, potted_plants, bright_daylight, luxury_building, anime_visual_novel_background, detailed_background, 16:9

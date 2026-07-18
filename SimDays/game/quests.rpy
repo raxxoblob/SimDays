@@ -72,10 +72,79 @@ init python:
            "Save $1,000 with no outstanding loan.",
            lambda: store.job_id is not None,
            lambda: store.money >= 1000 and store.loan == 0),
+
+        _q("attend_first_commitment",
+           "Keep Your Word",
+           "You accepted an invitation. Show up.",
+           # show when there is at least one real active commitment (npc_id in NPC_DATA filters test entries)
+           lambda: any(not c["completed"] and not c["missed"] and not c.get("cancelled")
+                       and c.get("npc_id") in NPC_DATA
+                       for c in store.player_commitments),
+           # done when a real NPC commitment (not a test stub) has been completed
+           lambda: any(c["completed"] and c.get("npc_id") in NPC_DATA
+                       for c in store.player_commitments)),
+
+        _q("buy_first_home_item",
+           "Make It Home",
+           "Buy something that makes your apartment feel less temporary.",
+           lambda: True,
+           lambda: any([store.own_guitar, store.own_bed, store.own_programming_kit, store.own_coffee_machine, store.own_kitchen_set])),
+
+        _q("recover_from_debt",
+           "Back in the Black",
+           "Pay off what you owe.",
+           lambda: store.loan > 0 or "recover_from_debt" in store.quests_completed,
+           lambda: store.loan == 0 and store.money >= 0),
+
+        _q("build_skill_to_3",
+           "Build a Specialisation",
+           "Develop a professional skill to level 3.",
+           lambda: True,
+           lambda: any(getattr(store, "skill_" + s, 0) >= 3 for s in ["med","prog","biz","cook","fit"])),
+
+        _q("reach_mentor_trust",
+           "Earn Their Trust",
+           "Build real trust with a career mentor (Trust 30).",
+           lambda: store.job_id is not None,
+           lambda: (
+               (store.martha_met and store.martha_trust >= 30) or
+               (store.eli_met    and store.eli_trust    >= 30) or
+               (store.lena_met   and store.lena_trust   >= 30) or
+               (store.kai_affection > 0 and store.kai_trust >= 30) or
+               (store.rena_met   and store.rena_trust   >= 30)
+           )),
+
+        _q("complete_preview_arc",
+           "Prove Yourself",
+           "Complete your career's preview arc.",
+           lambda: store.job_id in ["corporate","it","hospital","culinary","trainer"],
+           lambda: (career_arc_progress(store.job_id)[1] > 0 and
+                    career_arc_progress(store.job_id)[0] >= career_arc_progress(store.job_id)[1])),
+
+        _q("ready_for_promotion",
+           "Time for a Promotion",
+           "You're performing well. Push to 100 and request a review.",
+           # show early (80) as a heads-up; done when promotion actually happens (rank increases)
+           lambda: store.job_id is not None and store.job_performance >= 80,
+           lambda: store.job_rank > 0),
     ]
 
+    def _stamp_quest_if_done(q):
+        """Stamp a quest as completed the first time its done() lambda fires."""
+        if q["id"] not in store.quests_completed and q["done"]():
+            store.quests_completed = list(store.quests_completed) + [q["id"]]
+
     def active_quests():
-        return [q for q in QUESTS if q["show"]() and not q["done"]()]
+        result = []
+        for q in QUESTS:
+            if q["show"]():
+                _stamp_quest_if_done(q)
+                if q["id"] not in store.quests_completed:
+                    result.append(q)
+        return result
 
     def completed_quests():
-        return [q for q in QUESTS if q["show"]() and q["done"]()]
+        for q in QUESTS:
+            if q["show"]():
+                _stamp_quest_if_done(q)
+        return [q for q in QUESTS if q["show"]() and q["id"] in store.quests_completed]

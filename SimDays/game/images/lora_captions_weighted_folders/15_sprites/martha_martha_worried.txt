@@ -1,4 +1,0 @@
-description: Character sprite of Martha, worried expression.
-tags: sprite, character, martha, worried, transparent, 1024x1536
-character: martha
-source: martha/martha_worried.png

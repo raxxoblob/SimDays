@@ -1,4 +1,0 @@
-description: Character sprite of Elle, laughing expression.
-tags: sprite, character, elle, laughing, transparent, 1024x1536
-character: elle
-source: elle/elle_laugh.png

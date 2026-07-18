@@ -64,6 +64,88 @@ init python:
     # hospital rooftop (Lena scene bg)
     renpy.image("hospital_rooftop_night", Transform("images/locations/hospital_rooftop_night.png", size=(1920, 1080)))
 
+    # Nexus Tower extras
+    renpy.image("nexus_meeting_room", Transform("images/locations/nexus_meeting_room.png",  size=(1920, 1080)))
+    renpy.image("nexus_office_night", Transform("images/locations/nexus_office_night.png",  size=(1920, 1080)))
+    renpy.image("nexus_cafeteria_day", Transform("images/scenes/career_nexus/nexus_cafeteria_day.png", size=(1920, 1080)))
+
+    # hospital break room (career arc bg)
+    renpy.image("hospital_break_room", Transform("images/locations/hospital_break_room.png", size=(1920, 1080)))
+
+    # Hospital arc CGs (scenes/career_hospital/)
+    for _hn, _hf in [
+        ("cg_hosp_first_day", "hosp_first_day_ward_walk"),
+        ("cg_hosp_task_1",    "hosp_task_1_intake_desk"),
+        ("cg_hosp_npc1",      "hosp_npc1_rounds_lena"),
+        ("cg_hosp_npc2",      "hosp_npc2_break_room"),
+    ]:
+        renpy.image(_hn, Transform("images/scenes/career_hospital/%s.png" % _hf, size=(1920, 1080)))
+
+    # Corporate arc CGs (scenes/career_nexus/)
+    for _cn, _cf in [
+        ("cg_corp_first_day",       "corporate_caroline_over_desk"),
+        ("cg_corp_task_arrive",     "corporate_archive_arrival"),
+        ("cg_corp_task_files",      "corporate_archive_files"),
+        ("cg_corp_task_convo",      "corporate_archive_worker_conversation"),
+        ("cg_corp_review_report",   "corporate_caroline_marked_report"),
+        ("cg_corp_review_approval", "corporate_caroline_small_approval"),
+        ("cg_corp_client_call",     "corporate_client_call_meeting_room"),
+        ("cg_corp_client_handoff",  "corporate_client_call_martha_handoff"),
+        ("cg_corp_client_after",    "corporate_client_call_after"),
+        ("cg_corp_credit_lobby",    "corporate_credit_lobby_encounter"),
+        ("cg_corp_credit_martha",   "corporate_credit_martha_close"),
+        ("cg_corp_lunch_wide",      "corporate_lunch_table_wide"),
+        ("cg_corp_lunch_martha",    "corporate_lunch_martha_reaction"),
+        ("cg_corp_overtime_empty",  "corporate_overtime_empty_office"),
+        ("cg_corp_overtime_coffee", "corporate_overtime_coffee"),
+        ("cg_corp_overtime_martha", "corporate_overtime_martha_seen"),
+        ("cg_corp_martha1_desk",    "corporate_missing_number_martha_desk"),
+        ("cg_corp_close_screen",    "corporate_missing_number_close_screen"),
+    ]:
+        renpy.image(_cn, Transform("images/scenes/career_nexus/%s.png" % _cf, size=(1920, 1080)))
+
+    # Trainer arc CGs (scenes/career_gym/)
+    for _tn, _tf in [
+        ("cg_tr_first_day", "tr_first_day_shadow"),
+        ("cg_tr_task_1",    "tr_task_1_solo_session"),
+        ("cg_tr_npc1",      "tr_npc1_planning_session"),
+        ("cg_tr_npc2",      "tr_npc2_after_last_session"),
+    ]:
+        renpy.image(_tn, Transform("images/scenes/career_gym/%s.png" % _tf, size=(1920, 1080)))
+
+    # Nora rent sequence (scenes/nora_rent/) — branching 4a/4b and 5a/5b
+    for _nrf in ["nora_rent_1","nora_rent_2","nora_rent_3",
+                 "nora_rent_4a","nora_rent_4b","nora_rent_5a","nora_rent_5b"]:
+        renpy.image(_nrf, Transform("images/scenes/nora_rent/%s.png" % _nrf, size=(1920, 1080)))
+
+    # Sam gym sequence (scenes/sam_gym/) — branching 5a/5b and 6a
+    for _sgf in ["sam_gym_1","sam_gym_2","sam_gym_3","sam_gym_4",
+                 "sam_gym_5a","sam_gym_5b","sam_gym_6a"]:
+        renpy.image(_sgf, Transform("images/scenes/sam_gym/%s.png" % _sgf, size=(1920, 1080)))
+
+    # Zoe beach night sequence (scenes/zoe_beach_night/) — branching 2a/2b
+    for _zbnf in ["zoe_beach_night_1","zoe_beach_night_2a","zoe_beach_night_2b","zoe_beach_night_3"]:
+        renpy.image(_zbnf, Transform("images/scenes/zoe_beach_night/%s.png" % _zbnf, size=(1920, 1080)))
+
+    # eli_find sequence + martha_rooftop sequence
+    for _i in range(1, 6):
+        renpy.image("eli_find_%d" % _i,
+            Transform("images/scenes/eli_find/eli_find_%d.png" % _i, size=(1920, 1080)))
+    renpy.image("eli_find_ring_bonus",
+        Transform("images/scenes/eli_find/eli_find_ring_bonus.png", size=(1920, 1080)))
+    for _i in range(1, 7):
+        renpy.image("martha_rooftop_%d" % _i,
+            Transform("images/scenes/martha_rooftop/martha_rooftop_%d.png" % _i, size=(1920, 1080)))
+
+    # IT arc CGs (scenes/career_hub/)
+    for _in, _if in [
+        ("cg_it_first_day", "it_first_day_eli_intro"),
+        ("cg_it_task_1",    "it_task_1_bug_terminal"),
+        ("cg_it_npc1",      "it_npc1_pr_comments"),
+        ("cg_it_npc2",      "it_npc2_late_deploy"),
+    ]:
+        renpy.image(_in, Transform("images/scenes/career_hub/%s.png" % _if, size=(1920, 1080)))
+
     # Elle pier CGs (scenes/elle_pier/)
     for _i in range(1, 7):
         renpy.image("elle_pier_%d" % _i,
@@ -95,6 +177,15 @@ init python:
         ("cg_court_success",     "cg_player_court_shot_success"),
     ]:
         renpy.image(_nm, Transform("images/scenes/marcus_court/%s.png" % _fn, size=(1920, 1080)))
+
+    # Home-visit scene CGs (scenes/home/)
+    for _hn, _hf in [
+        ("cg_home_eli_desk",      "home_eli_side_project_desk"),
+        ("cg_home_nora_coffee",   "home_nora_coffee_machine"),
+        ("cg_home_dinner_table",  "home_dinner_guest_table"),
+        ("cg_home_zoe_guitar",    "home_zoe_guitar_session"),
+    ]:
+        renpy.image(_hn, Transform("images/scenes/home/%s.png" % _hf, size=(1920, 1080)))
 
     # Intro cinematic frames (pre-rendered POV, full-screen). 1672x941 -> 1920x1080.
     for _i, _f in enumerate(["intro_scene_1", "intro_scene2", "intro_scene3",
@@ -211,9 +302,50 @@ image martha_talk    = "images/characters/martha/martha_talk.png"
 image martha_smile   = "images/characters/martha/martha_smile.png"
 image martha_cold    = "images/characters/martha/martha_cold.png"
 image martha_worried = "images/characters/martha/martha_worried.png"
+# Martha evening / off-duty dress outfit (rooftop bar, social scenes)
+image martha_dress_normal = "images/characters/martha/martha_dress_normal.png"
+image martha_dress_talk   = "images/characters/martha/martha_dress_talk.png"
+image martha_dress_laugh  = "images/characters/martha/martha_dress_laugh.png"
+image martha_dress_angry  = "images/characters/martha/martha_dress_angry.png"
 
 # ── Kai (beach / weekends) ─────────────────────────────────────────────
 image kai_normal = "images/characters/kai/kai_normal.png"
 image kai_talk   = "images/characters/kai/kai_talk.png"
 image kai_laugh  = "images/characters/kai/kai_laugh.png"
 image kai_angry  = "images/characters/kai/kai_angry.png"
+# Kai gym outfit (trainer arc scenes)
+image kai_gym_normal = "images/characters/kai/kai_gym_normal.png"
+
+# ── Gameplay expansion scenes ──────────────────────────────────────────────────
+image cg_nora_feels_ignored        = "images/scenes/nora_feels_ignored/cg_nora_feels_ignored.png"
+image cg_marcus_missed             = "images/scenes/marcus_missed_commitment/cg_marcus_missed.png"
+image cg_wardrobe_martha           = "images/scenes/wardrobe_martha/cg_wardrobe_martha.png"
+image cg_zoe_guitar                = "images/scenes/guitar_zoe_busking/cg_zoe_guitar.png"
+image nexus_coffee_machine         = "images/locations/nexus_coffee_machine.png"
+image nora_bad_day_cheap           = "images/scenes/nora_bad_day/nora_bad_day_cheap.png"
+image nora_bad_day_good            = "images/scenes/nora_bad_day/nora_bad_day_good.png"
+image nora_bad_day_rich            = "images/scenes/nora_bad_day/nora_bad_day_rich.png"
+image cg_martha_gesture            = "images/scenes/martha_corridor_gesture/cg_martha_gesture.png"
+image cg_nora_hug_school           = "images/scenes/nora_hug_school/cg_nora_hug.png"
+image cg_eli_deploy_hug            = "images/scenes/eli_deploy_hug/cg_eli_hug.png"
+image cg_eli_hardware              = "images/scenes/programming_kit_eli/cg_eli_hardware.png"
+image cg_eli_zoe_collab            = "images/scenes/eli_meets_zoe/cg_eli_zoe.png"
+image cg_lena_shoulder             = "images/scenes/lena_shoulder_gesture/cg_lena_shoulder.png"
+image cg_nora_kai                  = "images/scenes/nora_kai_crossover/cg_nora_kai.png"
+image lena_dinner_good             = "images/scenes/kitchen_lena_extended/lena_dinner_good.png"
+image lena_dinner_rich             = "images/scenes/kitchen_lena_extended/lena_dinner_rich.png"
+image cg_martha_gift               = "images/scenes/martha_gift_accusation/cg_martha_gift.png"
+image car_interior_night           = "images/locations/car_interior_night.png"
+image car_marcus_night             = "images/scenes/car_marcus_drive/car_marcus_night.png"
+image car_interior_pov             = "images/scenes/car_marcus_drive/car_interior_pov.png"
+image cg_zoe_almost                = "images/scenes/zoe_spontaneous/cg_zoe_almost.png"
+image hospital_break_room_day      = "images/locations/hospital_break_room_day.png"
+image parkday_rain                 = "images/locations/parkday_rain.png"
+
+# ── Content Pack 2 CGs ─────────────────────────────────────────────────────────
+# NOTE: image files need generation — see docs/relationship_content_pack_2.md asset list.
+init python:
+    renpy.image("cg_elle_portugal_turn",
+        Transform("images/scenes/elle_portugal_payoff/cg_elle_portugal_turn.png", size=(1920, 1080)))
+    renpy.image("cg_sam_marcus_court",
+        Transform("images/scenes/sam_marcus_crossover/cg_sam_marcus_court.png", size=(1920, 1080)))

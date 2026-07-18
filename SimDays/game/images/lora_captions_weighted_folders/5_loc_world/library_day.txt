@@ -1,1 +1,0 @@
-library, bookshelves, reception_desk, study_tables, students, large_windows, daytime, sunlight, potted_plants, quiet_public_space, anime_visual_novel_background, detailed_background, 16:9

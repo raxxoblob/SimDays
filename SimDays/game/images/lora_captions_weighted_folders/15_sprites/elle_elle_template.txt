@@ -1,4 +1,0 @@
-description: Reference/template image for Elle.
-tags: sprite, character, elle, reference, template, 1536x1024
-character: elle
-source: elle/elle_template.jfif

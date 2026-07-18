@@ -1,4 +1,0 @@
-description: Portrait reference sprite for Bradley.
-tags: sprite, character, portrait, reference, bradley, 512x512
-character: templates
-source: templates/portrait_bradley.png

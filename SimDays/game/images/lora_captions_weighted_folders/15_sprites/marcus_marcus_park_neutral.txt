@@ -1,4 +1,0 @@
-description: Character sprite of Marcus, park outfit/variant; neutral expression.
-tags: sprite, character, marcus, park, neutral, transparent, 1024x1536
-character: marcus
-source: marcus/marcus_park_neutral.png

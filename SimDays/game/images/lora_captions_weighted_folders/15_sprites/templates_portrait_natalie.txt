@@ -1,4 +1,0 @@
-description: Portrait reference sprite for Natalie.
-tags: sprite, character, portrait, reference, natalie, 512x512
-character: templates
-source: templates/portrait_natalie.png

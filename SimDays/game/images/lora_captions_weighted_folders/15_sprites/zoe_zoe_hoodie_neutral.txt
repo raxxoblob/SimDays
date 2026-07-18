@@ -1,4 +1,0 @@
-description: Character sprite of Zoe, hoodie outfit/variant; neutral expression.
-tags: sprite, character, zoe, hoodie, neutral, raw, transparent, 1024x1536
-character: zoe
-source: zoe/raw/zoe_hoodie_neutral.png
