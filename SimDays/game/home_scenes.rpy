@@ -318,7 +318,7 @@ label home_dinner_scene_eli:
             $ _apply_aff("eli", 2)
             eli "Coming here felt easier. Which is probably the point."
             $ _apply_trust("eli", 2)
-        "[Wait and see if she says something unprompted.]":
+        "[[Wait and see if she says something unprompted.]]":
             "She does. Eventually."
             eli "I don't come to people's homes very often. This is — it's good. Thank you."
             "She says it to the table. Means it to you."

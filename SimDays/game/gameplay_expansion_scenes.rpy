@@ -707,7 +707,7 @@ label scene_zoe_rain_shelter:
         "\"Good shelter.\"":
             z "Best in the park. I've evaluated all of them."
             "She takes out the sketchbook. Starts working."
-        "[Lean against the post. Don't say anything.]":
+        "[[Lean against the post. Don't say anything.]]":
             "She glances. Goes back to drawing. After a beat:"
             z "You don't mind rain."
             menu:
@@ -729,7 +729,7 @@ label scene_zoe_rain_shelter:
             z "Roughly."
             "She takes it back."
             $ _apply_aff("zoe", 2)
-        "[Say nothing. Just look at it.]":
+        "[[Say nothing. Just look at it.]]":
             "She watches your face while you look. Then takes it back. \"Enough.\""
             $ _apply_trust("zoe", 2)
         "\"I don't know what to call it.\"":
@@ -737,9 +737,9 @@ label scene_zoe_rain_shelter:
             $ _apply_trust("zoe", 1)
     "The rain slows. Zoe taps the finished sketch twice."
     menu:
-        "[Leave first.]":
+        "[[Leave first.]]":
             z "Good rain."
-        "[Wait for her to leave.]":
+        "[[Wait for her to leave.]]":
             z "You know where the shelter is now."
             "She goes. Brief smile."
     $ spend_time(1.0)

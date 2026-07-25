@@ -2089,7 +2089,7 @@ label nora_closing_scene:
                 $ add_relationship_memory("nora", "nora_closing_direction_platonic", "Kept it easy after closing")
                 n "I'll be here."
                 "She says it lightly. The door is still open, in more ways than one."
-            "[Walk. Say nothing.]":
+            "[[Walk. Say nothing.]]":
                 $ add_romance_momentum("nora", 2)
                 $ _apply_trust("nora", 1)
                 $ add_relationship_memory("nora", "nora_closing_direction_withdrawal", "Walked in silence after closing")
@@ -2412,7 +2412,7 @@ label martha_rooftop_scene:
                 $ add_relationship_memory("martha", "martha_rooftop_direction_platonic", "Matched her register exactly")
                 ma "Good."
                 "She says it like a conclusion. Which it is."
-            "[Watch the city. Say nothing.]":
+            "[[Watch the city. Say nothing.]]":
                 $ _apply_trust("martha", 1)
                 $ add_romance_momentum("martha", 2)
                 $ add_relationship_memory("martha", "martha_rooftop_direction_withdrawal", "Let the question stay open")
