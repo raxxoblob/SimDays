@@ -155,7 +155,7 @@ screen phone_messages_scr():
                                     xfill True
                                     spacing 6
                                     vbox:
-                                        xexpand True
+                                        xfill True
                                         spacing 1
                                         text _ac["title"] font ACT_FONT size 13 color "#cfe0f5"
                                         text ("%02d:00  ·  " % _ac["hour"] + _ac["location"]) font ACT_FONT size 11 color "#4a6080"

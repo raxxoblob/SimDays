@@ -285,7 +285,7 @@ screen commitments_list(compact=False):
                         spacing 8
                         text "▸" font ACT_FONT size (14 if not compact else 12) color ("#5bcafa" if _ca else "#4a6080") yalign 0.5
                         vbox:
-                            xexpand True
+                            xfill True
                             spacing 2
                             text _cm["title"] font ACT_FONT size (16 if not compact else 13) color "#cfe0f5"
                             text (_day_str + "  ·  " + "%02d:00" % _cm["hour"] + "  ·  " + _cm["location"]) font ACT_FONT size (13 if not compact else 11) color "#4a6080"
