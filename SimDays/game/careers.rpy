@@ -96,7 +96,7 @@ init python:
             ],
         },
         "culinary": {
-            "name": "Kitchen - Eleven", "location": "location_restaurant",
+            "name": "Kitchen - Eleven", "location": "location_kitchen",
             "ranks": [
                 {"title": "Commis",     "req": {"skill_cook": 1, "stat_str": 20},              "pay": 85,  "hours": "evenings",  "flex": False},
                 {"title": "Line Cook",  "req": {"skill_cook": 3, "stat_str": 35},              "pay": 135, "hours": "evenings",  "flex": False},

@@ -244,21 +244,3 @@ label wev_hosp_overtime_call:
     return
 
 
-label wev_hosp_difficult_patient:
-    $ _mark_wev("hospital", "wev_hosp_difficult_patient")
-    scene hospital1
-    show screen hud
-    "The patient in bed three is refusing the scheduled procedure. Not because of pain — because they don't trust the process."
-    "The attending has spoken to them twice. Now they're asking you to try."
-    menu:
-        "Listen first, explain second.":
-            "You sit down. Ask what their specific concern is. They tell you — it's not what the chart suggested."
-            "Twenty minutes later they've agreed to a modified version of the procedure."
-            $ gain_skill("med", 5)
-            $ _work_perf(5)
-        "Explain the medical reasoning clearly.":
-            "You go through the clinical logic carefully. They follow it. They still say no."
-            "You document the refusal accurately and escalate. It was the right call — the outcome required more than explanation."
-            $ gain_skill("med", 3)
-            $ _work_perf(2)
-    return

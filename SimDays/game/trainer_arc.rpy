@@ -3,8 +3,6 @@
 # Sprites: kai_normal — may already exist (Kai is at gym_floor); verify before adding new define.
 # Defines _TR_POOL and work_event_trainer.
 
-define kai = Character("Kai", color="#f5a623")
-
 init python:
     _TR_POOL = ["wev_tr_challenging_client", "wev_tr_equipment_issue", "wev_tr_group_class"]
 

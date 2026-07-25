@@ -5,14 +5,6 @@
 # Eli's Character (`eli`) is defined once in characters.rpy — do not redefine here
 # (a second `define` with a different color makes the color load-order dependent).
 
-init 1 python:
-    _IT_ARC_EVENTS = ["wev_it_prod_bug", "wev_it_pr_review", "wev_it_scope_creep"]
-    try:
-        _IT_POOL.extend(_IT_ARC_EVENTS)
-    except NameError:
-        _IT_POOL = list(_IT_ARC_EVENTS)
-
-
 label it_first_day:
     $ eli_met = True
     scene cg_it_first_day

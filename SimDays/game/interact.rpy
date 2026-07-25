@@ -947,7 +947,6 @@ init python:
             "min_aff": 50, "min_trust": 50, "cooldown_days": 7,
             "romance_flag": None,
             "valid_contexts": ["location_bar"],
-            "first_kiss": "", "repeat": "", "warm": "",
             "too_soon": "She gives you a look that closes the topic.",
             "low_affection": "She turns back to her drink. You've been dismissed.",
             "low_trust": "A sharp glance. \"That's not something I'm interested in.\"",
@@ -964,8 +963,7 @@ init python:
             "aff_pen_low_aff": -7, "trust_pen_low_aff": -4,
             "aff_pen_low_trust": -4, "trust_pen_low_trust": -7,
             "aff_pen_romance_locked": -6, "trust_pen_romance_locked": -4,
-            "cooldown_days": 7, "warm_after_days": 21,
-            "valid_contexts": ["location_bar"],
+            "warm_after_days": 21,
         },
         "elle": {
             "min_aff": 40, "min_trust": 35, "cooldown_days": 3,

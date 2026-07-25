@@ -750,7 +750,7 @@ label location_office:
         "Go to work" if job_id == "corporate":
             if too_tired() or hour + 8 > DAY_END:
                 "You're too tired or it's too late to start a shift."
-                jump location_nexus
+                jump location_office
             $ _corp_owarn = _overlap_warning_text(8)
             if _corp_owarn:
                 menu:
@@ -2758,6 +2758,26 @@ label location_diner:
             jump location_diner
         "Leave":
             hide rena_casual_normal
+            jump location_nadbrzeze
+
+
+# ── LOMBARD (pawn shop, nadbrzeże) ────────────────────────────────────────────
+
+label location_lombard:
+    $ current_loc = "location_lombard"
+    $ activity_exit_jump = "location_nadbrzeze"
+    $ activity_exit_name = "Quayside"
+    if not venue_open("lombard"):
+        "The Lombard is closed."
+        jump location_nadbrzeze
+    scene lombard_day
+    show screen hud
+    menu (screen="activity"):
+        "Browse (1h)":
+            $ spend_time(1)
+            "Shelves of secondhand things. Someone else's history, priced to move."
+            jump location_lombard
+        "Leave":
             jump location_nadbrzeze
 
 
