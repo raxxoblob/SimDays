@@ -12,8 +12,10 @@ label home_eli_side_project_scene:
     show eli_normal at sprite_r
     "Eli arrives at seven with a laptop bag and no preamble."
     eli "Here's the scope: a small data pipeline. Processing is slow. I want a second read."
-    scene cg_home_eli_desk with dissolve
-    show screen hud
+    $ _cg = get_home_scene_cg("eli_side_project")
+    if _cg:
+        scene expression _cg with dissolve
+        show screen hud
     "You both pull up the repository. The problem is clear after ten minutes. The fix isn't."
     menu:
         "Work through it correctly. More time, cleaner result.":
@@ -44,12 +46,14 @@ label home_nora_coffee_scene:
     $ complete_commitment("nora_coffee_1")
     scene expression home_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_casual_normal at sprite_r   # off-duty, at your place — not the barista apron
     "Nora arrives exactly at ten. She walks straight to the machine."
     n "How long have you owned this and not adjusted the grind size?"
     "She doesn't wait for an answer."
-    scene cg_home_nora_coffee with dissolve
-    show screen hud
+    $ _cg = get_home_scene_cg("nora_coffee")
+    if _cg:
+        scene expression _cg with dissolve
+        show screen hud
     n "Okay. Here's what's actually happening between the bean and the cup."
     "She makes three espressos. Talks through each one."
     "The third is the best coffee you've had in your apartment."
@@ -65,7 +69,7 @@ label home_nora_coffee_scene:
             $ _apply_trust("nora", 2)
     "When she leaves, your apartment smells like a proper café."
     $ home_coffee_calibrated = True
-    hide nora_cafe_normal
+    hide nora_casual_normal
     return
 
 
@@ -78,8 +82,10 @@ label home_zoe_guitar_scene:
     show zoe_street_neutral at sprite_r
     "Zoe arrives with a sketchbook under one arm. She sits in the corner without being asked."
     z "Go on then. Prove it isn't furniture."
-    scene cg_home_zoe_guitar with dissolve
-    show screen hud
+    $ _cg = get_home_scene_cg("zoe_guitar")
+    if _cg:
+        scene expression _cg with dissolve
+        show screen hud
     "You pick up the guitar."
     if skill_music >= 5:
         "It comes out better than expected. A couple of wrong notes, then something that actually sounds like music."
@@ -153,7 +159,7 @@ label home_dinner_invite_menu:
 
 
 label home_dinner_scene_martha:
-    scene cg_home_dinner_table with dissolve
+    scene expression home_bg()
     show screen hud
     show martha_dress_normal at sprite_r
     "Martha arrives on time. She glances at the kitchen before she says hello."
@@ -174,9 +180,9 @@ label home_dinner_scene_martha:
 
 
 label home_dinner_scene_nora:
-    scene cg_home_dinner_table with dissolve
+    scene expression home_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_casual_normal at sprite_r   # dinner guest at your place, off-duty
     "Nora was a guest for exactly six minutes before she was in the kitchen."
     n "You were going to deglaze with water. I saw you reach for the tap."
     "You were."
@@ -191,12 +197,12 @@ label home_dinner_scene_nora:
             $ _apply_trust("nora", 3)
     "You eat at the counter because neither of you notices the table until it's too late."
     $ _apply_aff("nora", 3)
-    hide nora_cafe_normal
+    hide nora_casual_normal
     return
 
 
 label home_dinner_scene_zoe:
-    scene cg_home_dinner_table with dissolve
+    scene expression home_bg()
     show screen hud
     show zoe_street_neutral at sprite_r
     "Zoe shows up with a bottle of something obscure and a slightly suspicious expression."
@@ -217,7 +223,7 @@ label home_dinner_scene_zoe:
 
 
 label home_dinner_scene_marcus:
-    scene cg_home_dinner_table with dissolve
+    scene expression home_bg()
     show screen hud
     show marcus_casual_normal at sprite_r
     "Marcus looks around when he comes in."
@@ -237,7 +243,7 @@ label home_dinner_scene_marcus:
 
 
 label home_dinner_scene_lena:
-    scene cg_home_dinner_table with dissolve
+    scene expression home_bg()
     show screen hud
     show drlena_normal at sprite_r
     "Lena arrives directly from a shift. She looks tired in a way she doesn't mention."
@@ -261,9 +267,9 @@ label home_dinner_scene_lena:
 
 
 label home_dinner_scene_kai:
-    scene cg_home_dinner_table with dissolve
+    scene expression home_bg()
     show screen hud
-    show kai_gym_normal at sprite_r
+    show kai_normal at sprite_r   # home dinner — casual, not gym kit
     "Kai checks the portion size before she sits down."
     kai "Okay, this is a real amount of food. I was worried."
     menu:
@@ -278,47 +284,98 @@ label home_dinner_scene_kai:
     "She eats quickly and with focus. It's somehow a compliment to the food."
     kai "Same time next week?"
     $ _apply_aff("kai", 3)
-    hide kai_gym_normal
+    hide kai_normal
     return
 
 
 # ── Eli: dinner ───────────────────────────────────────────────────────────────
 
 label home_dinner_scene_eli:
-    scene cg_home_dinner_table with dissolve
+    scene expression home_bg()
     show screen hud
     show eli_normal at sprite_r
-    "Eli arrives at exactly the time you agreed. He has brought a packet of jasmine rice."
-    "He looks at the table, looks at the rice, looks at you."
+    "Eli arrives at exactly the time you agreed. She has brought a packet of jasmine rice."
+    "She looks at the table, looks at the rice, looks at you."
     eli "I didn't think that through."
-    "He says it calmly. Like a bug he's just spotted."
+    "She says it calmly. Like a bug she's just spotted."
+    $ _cg = get_home_scene_cg("eli_dinner")
+    if _cg:
+        scene expression _cg with dissolve
+        show screen hud
     "The meal is fine — whatever you made. Eli eats with careful attention."
-    "Halfway through, he notices something about your setup — the way the monitor is positioned, the cable routing on your desk, a book left out at an odd angle. He tilts his head slightly."
+    "Halfway through, she notices something about your setup — the way the monitor is positioned, the cable routing on your desk, a book left out at an odd angle. She tilts her head slightly."
     eli "You put the router there on purpose."
     "It's not a question."
     menu:
         "\"You notice a lot.\"":
             eli "I notice most things. It's not always useful."
             $ _apply_trust("eli", 3)
-            "A pause. He looks back at the rice, still on the counter."
+            "A pause. She looks back at the rice, still on the counter."
             eli "Here it is. The rice was a mistake."
-            "He seems genuinely pleased with this conclusion."
-        "Ask what he's been working on.":
+            "She seems genuinely pleased with this conclusion."
+        "Ask what she's been working on.":
             eli "The thesis chapter I've been avoiding for six weeks. I finally opened it this morning."
             $ _apply_aff("eli", 2)
             eli "Coming here felt easier. Which is probably the point."
             $ _apply_trust("eli", 2)
-        "[Wait and see if he says something unprompted.]":
-            "He does. Eventually."
+        "[Wait and see if she says something unprompted.]":
+            "She does. Eventually."
             eli "I don't come to people's homes very often. This is — it's good. Thank you."
-            "He says it to the table. Means it to you."
+            "She says it to the table. Means it to you."
             $ _apply_aff("eli", 3)
             $ _apply_trust("eli", 2)
     "Near the end of the meal the intellectual scaffolding drops for one sentence."
     eli "I like it here."
-    "He doesn't follow it up. The jasmine rice is still on the counter."
+    "She doesn't follow it up. The jasmine rice is still on the counter."
     $ _apply_aff("eli", 3)
     $ add_relationship_memory("eli", "eli_home_dinner", "Home dinner — the rice")
     $ eli_dinner_done = True
     hide eli_normal
+    return
+
+
+# ── Nora: cheap-home cooking ──────────────────────────────────────────────────
+# Only available when apartment_tier == 1; guard enforced by phone-queue condition.
+# Prerequisite: home_coffee_calibrated (set by home_nora_coffee_scene).
+# State: nora_cooking_state (none|offered|pending|done); cooldown via nora_cooking_declined_day.
+
+label scene_nora_cheap_home_cooking:
+    $ complete_commitment("nora_cheap_home_cooking_1")
+    if apartment_tier != 1:
+        # Commitment fired after player moved out of the cheap home. The cheap-hob
+        # lesson was specific to that kitchen; moving ends the opportunity permanently.
+        scene expression home_bg()
+        show screen hud
+        show nora_casual_normal at sprite_r
+        n "I had this all planned out. The hob, the timing — built around that kitchen."
+        n "Not this one. That was a cheap-hob lesson. It doesn't translate."
+        hide nora_casual_normal
+        $ nora_cooking_state = "done"
+        return
+    scene expression home_bg()
+    show screen hud
+    show nora_casual_normal at sprite_r
+    "Nora arrives at six, looks at your kitchen once, and starts rearranging the worktop without asking."
+    n "The hob's uneven. You've been compensating for the left burner without noticing."
+    "She's right. You have been."
+    scene cg_nora_cooking_cheap with dissolve
+    show screen hud
+    n "Okay. Limited equipment, limited space. You work with what's there."
+    "She moves quickly, no wasted motion. The kitchen stops looking like a problem."
+    menu:
+        "Help where she lets you.":
+            n "Hold this. Don't stir — just hold."
+            "You hold. You don't stir."
+            $ _apply_aff("nora", 4)
+            $ _apply_trust("nora", 2)
+        "Stay out of the way and watch.":
+            "You stay out of the way. It's genuinely faster."
+            n "See? The kitchen's not the problem."
+            $ _apply_aff("nora", 3)
+            $ _apply_trust("nora", 3)
+    "The result is better than anything you've managed in here on your own."
+    n "It's a bad kitchen. But it's workable if you stop fighting it."
+    $ _apply_aff("nora", 2)
+    $ nora_cooking_state = "done"
+    hide nora_casual_normal
     return

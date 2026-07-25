@@ -40,6 +40,7 @@ init python:
         "nora": {
             "name": "Nora", "portrait": "portrait_nora", "sprite": "nora_cafe_normal", "say": "n",
             "aff": "nora_affection", "trust": "nora_trust", "greet": "nora_greet",
+            "sprites": {"work": "nora_cafe_normal", "casual": "nora_casual_normal"},
             "world": True,
             "sched": [
                 (MON_FRI, (7,  16), "location_cafe"),
@@ -61,6 +62,7 @@ init python:
         "marcus": {
             "name": "Marcus", "portrait": "portrait_marcus", "sprite": "marcus_casual_normal", "say": "m",
             "aff": "marcus_affection", "trust": "marcus_trust", "greet": "marcus_greet",
+            "sprites": {"casual": "marcus_casual_normal", "evening": "marcus_bar_normal", "sport": "marcus_park_neutral"},
             "world": True, "sched": [
                 (None, (6,  10), "location_park"),
                 (None, (17, 24), "location_bar"),
@@ -105,6 +107,7 @@ init python:
         "martha": {
             "name": "Martha", "portrait": "portrait_martha", "sprite": "martha_neutral", "say": "ma",
             "aff": "martha_affection", "trust": "martha_trust", "greet": "martha_greet",
+            "sprites": {"work": "martha_neutral", "evening": "martha_dress_normal"},
             "met": "martha_met", "story_gate": "caroline_met", "sched": [
                 (MON_FRI, (9,  18), "location_office"),
                 ({3},     (19, 23), "location_bar"),
@@ -179,6 +182,7 @@ init python:
         "kai": {
             "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_gym_normal", "say": "kai",
             "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
+            "sprites": {"sport": "kai_gym_normal", "casual": "kai_normal"},
             "world": True, "sched": [
                 ({1, 3}, (10, 14), "location_cafe"),
                 (WKD,    (10, 14), "location_gym"),
@@ -188,10 +192,35 @@ init python:
             ],
             "likes": ["sports", "music", "nightlife"], "dislikes": ["work"],
         },
+        # Chef Rena — career mentor, off-duty at the nadbrzeze diner Mon/Wed nights.
+        # aff/trust move only via culinary_arc scenes; no_decay exempts her from
+        # the 7-day ignore decay (she's never in the world NPC interaction pool).
+        "rena": {
+            "name": "Chef Rena", "say": "rena",
+            "sprite": "rena_casual_normal",
+            "sprites": {"casual": "rena_casual_normal"},
+            "aff": "rena_affection", "trust": "rena_trust",
+            "met": "rena_met", "no_decay": True,
+            "sched": [({0, 2}, (21, 26), "location_diner")],
+        },
     }
 
     def npc_aff(npc_id):   return getattr(store, NPC_DATA[npc_id]["aff"])
     def npc_trust(npc_id): return getattr(store, NPC_DATA[npc_id]["trust"])
+
+    def npc_sprite(npc_id, context=None):
+        """Context-appropriate base ('normal') sprite for an NPC, so scenes can
+        request an outfit by situation instead of hardcoding a filename that may
+        be wrong for the setting (e.g. Nora's barista apron at home).
+
+        `context` keys (e.g. "work", "casual", "evening", "sport") come from the
+        NPC's optional "sprites" map in NPC_DATA. Falls back to the default
+        "sprite" when the NPC has no outfit set or the context isn't defined.
+        Only NPCs with real alternate art carry a "sprites" map; the rest just
+        return their single sprite. Expression swaps within a scene still use
+        explicit names — this picks the entry outfit."""
+        d = NPC_DATA.get(npc_id, {})
+        return d.get("sprites", {}).get(context, d["sprite"])
 
     def npc_here(npc_id):
         sched = NPC_DATA[npc_id].get("sched")
@@ -409,14 +438,19 @@ init python:
         return store.need_hygiene < 30 or store.npc_anger.get(npc_id, 0) > 0
 
     def check_jealousy(active_npc_id):
-        """NPCs with aff >= 60 at the same location react when player gets intimate.
-        Only called on date/hug/invite actions, not on greeting."""
+        """NPCs in an active romance with the player (interested/dating/committed)
+        react when they see the player get intimate with someone else here.
+        Only called on date/hug/kiss actions, not on greeting.
+
+        Gated on romance state, not raw affection: a close platonic friend
+        (e.g. Marcus at high affection) is NOT a jealous partner. The active NPC
+        is skipped, and so is anyone the player is only romancing on paper but
+        who isn't present."""
         jealous_names = []
         for nid, d in NPC_DATA.items():
             if nid == active_npc_id:
                 continue
-            aff = getattr(store, d["aff"], 0)
-            if aff >= 60 and npc_here(nid):
+            if romance_is_open(nid) and npc_here(nid):
                 _apply_aff(nid, -5)
                 _a = dict(store.npc_anger)
                 _a[nid] = min(10, _a.get(nid, 0) + 3)
@@ -696,9 +730,14 @@ init python:
             store.physical_boundary_lockout = _lb
 
     def do_hug(npc_id):
-        """Execute a hug interaction. Returns display text, applies stat effects."""
+        """Execute a hug interaction. Returns display text, applies stat effects.
+        Side channel: sets store._last_hug_accepted so callers (e.g. the CG
+        wrapper) can tell an accepted hug from a rejection/cooldown without
+        changing the string return that ~15 tests + 2 scenes rely on."""
+        store._last_hug_accepted = False
         hp = HUG_PROFILES.get(npc_id)
         if not hp or npc_id not in NPC_DATA:
+            store._last_hug_accepted = True
             return "You share a brief hug."
         aff   = npc_aff(npc_id)
         trust = npc_trust(npc_id)
@@ -724,6 +763,7 @@ init python:
             _apply_aff(npc_id, hp.get("repeat_gain", 0))
             return hp["too_soon"]
         # Accepted — reset failure counter
+        store._last_hug_accepted = True
         _fa = dict(store.failed_physical_attempts)
         _fa[(npc_id, "hug")] = 0
         store.failed_physical_attempts = _fa
@@ -748,6 +788,65 @@ init python:
                 return hp["warm"]
             return hp["repeat"]
 
+    def record_forced_hug(npc_id, aff=None, trust=None):
+        """A story-initiated hug (the NPC hugs the player as part of a scripted
+        scene). Records the first-hug memory, cooldown, and stat gains WITHOUT
+        re-running the consent gate — otherwise a scene that narrates the hug
+        could immediately follow it with a rejection line. Defaults to the
+        profile's first-hug gains when aff/trust are not given."""
+        hp = HUG_PROFILES.get(npc_id, {})
+        _d = dict(store.npc_last_hug_day)
+        _d[npc_id] = store.day
+        store.npc_last_hug_day = _d
+        _fa = dict(store.failed_physical_attempts)
+        _fa[(npc_id, "hug")] = 0
+        store.failed_physical_attempts = _fa
+        if npc_id in NPC_DATA:
+            _apply_aff(npc_id, aff if aff is not None else hp.get("aff_gain", 4))
+            _apply_trust(npc_id, trust if trust is not None else hp.get("trust_gain", 3))
+        if not relationship_memory_exists(npc_id, "first_hug_" + npc_id):
+            add_relationship_memory(npc_id, "first_hug_" + npc_id, "First hug")
+
+    # ── Dates / outings (v2) ──────────────────────────────────────────────
+    # Rewards scale down when you (a) repeat the same venue and (b) go out again
+    # inside the cooldown, and scale up/down by whether the NPC likes the venue.
+    # This stops the old "same three venues, flat +6/+3 forever" farm.
+    DATE_COOLDOWN_DAYS = 4
+    DATE_BASE_AFF   = 6
+    DATE_BASE_TRUST = 3
+    # venue → the NPC "likes"/"dislikes" tag it maps onto
+    DATE_VENUE_TAG  = {"dinner": "food", "rooftop": "nightlife", "beach": "travel"}
+
+    def date_outing_rewards(npc_id, venue):
+        """(aff_gain, trust_gain, preference) for a date/outing.
+        preference in {"preferred","neutral","disliked"} from NPC likes/dislikes.
+        Diminishing returns per (npc, venue) repetition; flattened further when
+        another outing happens inside DATE_COOLDOWN_DAYS."""
+        d = NPC_DATA.get(npc_id, {})
+        tag = DATE_VENUE_TAG.get(venue)
+        if tag in d.get("likes", []):
+            pref, mult = "preferred", 1.5
+        elif tag in d.get("dislikes", []):
+            pref, mult = "disliked", 0.5
+        else:
+            pref, mult = "neutral", 1.0
+        n = store.npc_date_venue_count.get("%s|%s" % (npc_id, venue), 0)
+        rep = 1.0 if n == 0 else (0.5 if n == 1 else 0.2)
+        since = store.day - store.npc_last_date_day.get(npc_id, -999)
+        cd = 0.4 if since < DATE_COOLDOWN_DAYS else 1.0
+        aff = max(1, int(round(DATE_BASE_AFF   * mult * rep * cd)))
+        tr  = max(0, int(round(DATE_BASE_TRUST * mult * rep * cd)))
+        return aff, tr, pref
+
+    def record_date_outing(npc_id, venue):
+        key = "%s|%s" % (npc_id, venue)
+        _c = dict(store.npc_date_venue_count)
+        _c[key] = _c.get(key, 0) + 1
+        store.npc_date_venue_count = _c
+        _dd = dict(store.npc_last_date_day)
+        _dd[npc_id] = store.day
+        store.npc_last_date_day = _dd
+
     # ── Kiss profiles ─────────────────────────────────────────────────────
     # romance_flag: None = non-romanceable (kiss always romance_locked).
     # valid_contexts: locations where a kiss is contextually appropriate.
@@ -766,7 +865,11 @@ init python:
             "too_soon": "She laughs softly. \"Give it a minute.\"",
             "low_affection": "She blinks. \"Whoa. We're not there yet.\" Not unkind — just honest.",
             "low_trust": "She steps back slightly, expression careful. \"Let's slow down.\"",
-            "romance_locked": "She tilts her head. \"What are you doing?\" There's a wall behind her eyes.",
+            "romance_locked":   "She tilts her head. \"What are you doing?\" There's a wall behind her eyes.",
+            "romance_unopened": "She tilts her head. \"What are you doing?\" There's a wall behind her eyes.",
+            "romance_friends":  "She shakes her head gently. \"We said we'd keep this simple. I haven't forgotten.\"",
+            "romance_paused":   "She meets your eyes. \"Give it time. Okay?\"",
+            "romance_closed":   "She steps back. Quietly. She doesn't reopen it.",
             "wrong_context": "She glances around. \"Not here. Not like this.\"",
             "aff_gain": 6, "trust_gain": 4, "repeat_gain": 2,
         },
@@ -778,7 +881,8 @@ init python:
             "too_soon": "\"Easy there.\"",
             "low_affection": "He raises both eyebrows. \"Okay, where did that come from?\"",
             "low_trust": "He steps back, hands up. \"Nah, we're not doing that.\"",
-            "romance_locked": "Marcus gives you a look. \"Come on. Not like that.\"",
+            "romance_locked":     "Marcus gives you a look. \"Come on. Not like that.\"",
+            "romance_unavailable": "He looks at you for a second. \"Not right now.\" No door closed, just not open.",
             "wrong_context": "\"Maybe not here, yeah?\"",
             "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
         },
@@ -793,7 +897,11 @@ init python:
             "too_soon": "\"Patience.\" She doesn't elaborate.",
             "low_affection": "She gives you a look that could strip paint. \"Bold. Ill-advised.\"",
             "low_trust": "\"No.\" Flat. Final. No anger — just a closed door.",
-            "romance_locked": "She looks at you steadily. \"We work together. Pick your next words carefully.\"",
+            "romance_locked":   "She looks at you steadily. \"We work together. Pick your next words carefully.\"",
+            "romance_unopened": "She looks at you steadily. \"We work together. Pick your next words carefully.\"",
+            "romance_friends":  "\"We established what this is.\" She doesn't raise her voice. She doesn't need to.",
+            "romance_paused":   "A brief glance. \"Not at the moment. Don't push it.\"",
+            "romance_closed":   "She doesn't break eye contact. \"This conversation ends here.\"",
             "wrong_context": "She glances pointedly at the surroundings. \"Not at work. Are you serious?\"",
             "aff_gain": 7, "trust_gain": 5, "repeat_gain": 2,
             "aff_pen_low_aff": -8, "trust_pen_low_aff": -5,
@@ -811,7 +919,11 @@ init python:
             "too_soon": "\"I'm still catching my breath from last time.\" A small smile.",
             "low_affection": "She takes a measured step back. \"I think we're moving too fast.\"",
             "low_trust": "Her expression doesn't change but her posture does. \"Not yet. I'm sorry.\"",
-            "romance_locked": "\"I like you. But not like that. Not right now.\" Clean, kind, and closed.",
+            "romance_locked":   "\"I like you. But not like that. Not right now.\" Clean, kind, and closed.",
+            "romance_unopened": "\"I like you. But not like that. Not right now.\" Clean, kind, and closed.",
+            "romance_friends":  "\"I thought we were clear on where things stand.\" Not harsh — just steady.",
+            "romance_paused":   "\"I need a bit more space right now.\" She says it without breaking off the friendship.",
+            "romance_closed":   "She's quiet for a moment. \"This is where it stays. I'm sorry.\"",
             "wrong_context": "She glances at the corridor. \"Not here. I'm still on shift.\"",
             "aff_gain": 6, "trust_gain": 5, "repeat_gain": 2,
             "aff_pen_low_aff": -7, "trust_pen_low_aff": -4,
@@ -839,11 +951,21 @@ init python:
             "too_soon": "She gives you a look that closes the topic.",
             "low_affection": "She turns back to her drink. You've been dismissed.",
             "low_trust": "A sharp glance. \"That's not something I'm interested in.\"",
-            "romance_locked": "\"Ambitious,\" she says. \"Wrong direction entirely.\"",
+            "romance_locked":   "\"Ambitious,\" she says. \"Wrong direction entirely.\"",
+            "romance_unopened": "She looks at you. Then looks away. \"Not appropriate.\" Said without heat — just a line she's drawn.",
+            "romance_friends":  "\"We've established where this stands.\" She says it precisely. No trace of anger.",
+            "romance_paused":   "A brief measured look. \"Not now.\"",
+            "romance_closed":   "She doesn't react beyond a slight stillness. \"This conversation ends here.\"",
+            "first_kiss": "She goes very still. Not startled — processing. Then, carefully: \"That was a deliberate choice.\" A pause. \"So was this.\" She doesn't step away.",
+            "repeat": "Brief and controlled. She initiates. Neither of you mentions it.",
+            "warm": "She's the one who moves first this time. When she steps back: \"Don't read too much into the pattern.\" She sounds like she knows you will anyway.",
             "wrong_context": "\"At the office? Really?\" Said with the tone she reserves for very bad proposals.",
-            "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
+            "aff_gain": 6, "trust_gain": 5, "repeat_gain": 1,
             "aff_pen_low_aff": -7, "trust_pen_low_aff": -4,
             "aff_pen_low_trust": -4, "trust_pen_low_trust": -7,
+            "aff_pen_romance_locked": -6, "trust_pen_romance_locked": -4,
+            "cooldown_days": 7, "warm_after_days": 21,
+            "valid_contexts": ["location_bar"],
         },
         "elle": {
             "min_aff": 40, "min_trust": 35, "cooldown_days": 3,
@@ -856,7 +978,11 @@ init python:
             "too_soon": "She laughs. \"You're very eager today.\"",
             "low_affection": "She smiles carefully. \"Oh — I don't think so. Not yet.\"",
             "low_trust": "She shakes her head gently. \"I really like you. But not yet.\"",
-            "romance_locked": "\"Hey.\" She takes a small step back. \"Can we just be this for now?\"",
+            "romance_locked":   "\"Hey.\" She takes a small step back. \"Can we just be this for now?\"",
+            "romance_unopened": "\"Hey.\" She takes a small step back. \"Can we just be this for now?\"",
+            "romance_friends":  "She shakes her head. \"I like us the way we are. Let's not complicate it.\"",
+            "romance_paused":   "She smiles, but it doesn't quite reach. \"Not yet. I need a bit more time.\"",
+            "romance_closed":   "She looks at you kindly. \"We're better as friends. I mean it.\"",
             "wrong_context": "She looks around, amused. \"Maybe somewhere a bit less... here?\"",
             "aff_gain": 6, "trust_gain": 4, "repeat_gain": 2,
         },
@@ -871,7 +997,11 @@ init python:
             "too_soon": "\"You just kissed me, like, three days ago.\" She doesn't sound upset. Just noting it.",
             "low_affection": "She gives you a flat look. \"Hm. No.\"",
             "low_trust": "She takes a step back. Just one. Says nothing.",
-            "romance_locked": "She looks at you for a moment. Then away. \"I don't — we're not doing that.\"",
+            "romance_locked":   "She looks at you for a moment. Then away. \"I don't — we're not doing that.\"",
+            "romance_unopened": "She looks at you for a moment. Then away. \"I don't — we're not doing that.\"",
+            "romance_friends":  "She tilts her chin. \"We talked about this. I said where we are.\"",
+            "romance_paused":   "She puts two fingers on your shoulder. Stops you. Says nothing.",
+            "romance_closed":   "\"I need you to hear me. We're not going there.\" She's not angry. It's just closed.",
             "wrong_context": "She glances around. \"Not exactly the vibe, is it.\"",
             "aff_gain": 6, "trust_gain": 5, "repeat_gain": 2,
             "aff_pen_low_aff": -7, "trust_pen_low_aff": -4,
@@ -885,7 +1015,8 @@ init python:
             "too_soon": "She steps back, eyebrows up. \"Whoa, hey.\"",
             "low_affection": "She blinks. \"Oh — no, we're not — no. Sorry.\"",
             "low_trust": "She puts a hand on your arm. Stops you. \"We're friends. Okay?\"",
-            "romance_locked": "\"I don't think of you that way. Sorry.\" Genuinely kind about it.",
+            "romance_locked":     "\"I don't think of you that way. Sorry.\" Genuinely kind about it.",
+            "romance_unavailable": "She tilts her head. \"I don't know what that was, but not yet.\" Not a no.",
             "wrong_context": "\"Not at the gym, please.\" She laughs a little.",
             "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
         },
@@ -909,16 +1040,163 @@ init python:
             "too_soon": "She puts a hand on your chest. Stops you. Shakes her head.",
             "low_affection": "She tilts her head back. \"Huh. No.\"",
             "low_trust": "\"Not happening.\" Friendly, but final.",
-            "romance_locked": "\"Hey, you're great. But this?\" She shakes her head. \"Not what we are.\"",
+            "romance_locked":     "\"Hey, you're great. But this?\" She shakes her head. \"Not what we are.\"",
+            "romance_unavailable": "She goes quiet for a moment. \"Maybe another version of this. Not right now.\"",
             "wrong_context": "She looks around. \"There's a whole beach. Pick your moment better.\"",
             "aff_gain": 0, "trust_gain": 0, "repeat_gain": 0,
         },
     }
 
+    # ── Romance state architecture ─────────────────────────────────────────
+    # Valid states: unopened | friends | interested | dating | committed | paused | closed
+    # Non-romanceable NPCs are not in ROMANCE_PROFILES; do_kiss always returns romance_locked for them.
+
+    ROMANCE_PROFILES = {
+        "nora": {
+            "min_aff_open": 45, "min_trust_open": 40, "momentum_to_reopen": 30,
+            "legacy_flag": "nora_romance_unlocked",
+        },
+        "elle": {
+            "min_aff_open": 40, "min_trust_open": 35, "momentum_to_reopen": 25,
+            "legacy_flag": "elle_romance_unlocked",
+        },
+        "zoe": {
+            "min_aff_open": 50, "min_trust_open": 45, "momentum_to_reopen": 35,
+            "legacy_flag": "zoe_romance_unlocked",
+        },
+        "caroline": {
+            "min_aff_open": 65, "min_trust_open": 60, "momentum_to_reopen": 40,
+            "legacy_flag": "caroline_romance_unlocked",
+        },
+        "lena": {
+            "min_aff_open": 55, "min_trust_open": 55, "momentum_to_reopen": 35,
+            "legacy_flag": "lena_romance_unlocked",
+        },
+        "martha": {
+            "min_aff_open": 65, "min_trust_open": 65, "momentum_to_reopen": 45,
+            # no legacy_flag — Martha was never in the old boolean system
+        },
+    }
+
+    # Which non-romanceable NPCs are intentionally disabled vs. planned future content.
+    # Does not affect gameplay — documents design intent so kiss text can be written accordingly.
+    ROMANCE_AVAILABILITY = {
+        "marcus":  "planned",
+        "kai":     "planned",
+        "sam":     "planned",
+        "eli":     "disabled",
+        "natalie": "disabled",
+    }
+
+    _VALID_ROMANCE_STATES = frozenset(
+        ("unopened", "friends", "interested", "dating", "committed", "paused", "closed")
+    )
+
+    def get_romance_state(npc_id):
+        return store.romance_states.get(npc_id, "unopened")
+
+    def set_romance_state(npc_id, state, source=None):
+        if state not in _VALID_ROMANCE_STATES:
+            renpy.log("set_romance_state: invalid state %r for %s — ignored" % (state, npc_id))
+            return
+        _prev = get_romance_state(npc_id)
+        _rs = dict(store.romance_states)
+        _rs[npc_id] = state
+        store.romance_states = _rs
+        if source is not None:
+            _rc = dict(store.romance_previous_choice)
+            _rc[npc_id] = source
+            store.romance_previous_choice = _rc
+            _rd = dict(store.romance_last_choice_day)
+            _rd[npc_id] = store.day
+            store.romance_last_choice_day = _rd
+            _rm = dict(store.romance_route_memories)
+            _rm[npc_id] = list(_rm.get(npc_id, [])) + [
+                {"from": _prev, "to": state, "source": source, "day": store.day}
+            ]
+            store.romance_route_memories = _rm
+
+    def get_romance_momentum(npc_id):
+        return store.romance_momentum.get(npc_id, 0)
+
+    def add_romance_momentum(npc_id, amount, source=None):
+        _m = dict(store.romance_momentum)
+        _m[npc_id] = max(0, min(100, _m.get(npc_id, 0) + amount))
+        store.romance_momentum = _m
+
+    def romance_is_open(npc_id):
+        return get_romance_state(npc_id) in ("interested", "dating", "committed")
+
+    def romance_can_be_reopened(npc_id):
+        _s = get_romance_state(npc_id)
+        if _s == "closed":
+            return False
+        if _s == "paused":
+            return store.day > store.romance_pause_until_day.get(npc_id, -1)
+        return True
+
+    def pause_romance(npc_id, days, source=None):
+        set_romance_state(npc_id, "paused", source=source)
+        _rp = dict(store.romance_pause_until_day)
+        _rp[npc_id] = store.day + days
+        store.romance_pause_until_day = _rp
+
+    def refresh_romance_pause(npc_id):
+        if get_romance_state(npc_id) != "paused":
+            return
+        if store.day <= store.romance_pause_until_day.get(npc_id, -1):
+            return
+        # Recover to the pre-pause state (friends or unopened); never auto-recover to interested+
+        _prev = "unopened"
+        for _entry in reversed(store.romance_route_memories.get(npc_id, [])):
+            if _entry.get("to") == "paused" and _entry.get("from") in ("unopened", "friends"):
+                _prev = _entry["from"]
+                break
+        _rs = dict(store.romance_states)
+        _rs[npc_id] = _prev
+        store.romance_states = _rs
+
+    def permanently_close_romance(npc_id, source=None):
+        set_romance_state(npc_id, "closed", source=source)
+        _rpc = dict(store.romance_permanent_closed)
+        _rpc[npc_id] = True
+        store.romance_permanent_closed = _rpc
+
+    def can_offer_romance_reopen(npc_id):
+        if not romance_can_be_reopened(npc_id):
+            return False
+        if get_romance_state(npc_id) not in ("unopened", "friends"):
+            return False
+        rp = ROMANCE_PROFILES.get(npc_id)
+        if not rp:
+            return False
+        return (get_romance_momentum(npc_id) >= rp["momentum_to_reopen"]
+                and npc_aff(npc_id) >= rp["min_aff_open"]
+                and npc_trust(npc_id) >= rp["min_trust_open"])
+
+    def legacy_romance_unlocked(npc_id):
+        rp = ROMANCE_PROFILES.get(npc_id)
+        if not rp:
+            return False
+        flag = rp.get("legacy_flag")
+        if not flag:
+            return False
+        return getattr(store, flag, False)
+
+    def sync_legacy_romance_flags(npc_id):
+        """Lazy migration: if the old bool is True and no new state exists, set 'interested'."""
+        if npc_id in store.romance_states:
+            return
+        if legacy_romance_unlocked(npc_id):
+            _rs = dict(store.romance_states)
+            _rs[npc_id] = "interested"
+            store.romance_states = _rs
+
     def do_kiss(npc_id):
         """Execute a kiss attempt. Returns (outcome_key, display_text).
-        outcome_key: low_affection | low_trust | romance_locked | wrong_context
-                     | too_soon | first_kiss | repeat | warm"""
+        outcome_key: low_affection | low_trust | romance_locked | romance_unopened
+                     | romance_friends | romance_paused | romance_closed
+                     | wrong_context | too_soon | first_kiss | repeat | warm"""
         kp = KISS_PROFILES.get(npc_id)
         if not kp:
             return ("low_affection", "This doesn't feel right.")
@@ -940,13 +1218,49 @@ init python:
                 kp.get("aff_pen_low_trust", -4),
                 kp.get("trust_pen_low_trust", -6))
             return ("low_trust", kp.get("low_trust", "She pulls back."))
-        # Romance gate: None = non-romanceable (always locked)
-        romance_flag = kp.get("romance_flag")
-        if romance_flag is None or not getattr(store, romance_flag, False):
+        # Romance gate — ROMANCE_PROFILES is the single source of romanceability
+        if npc_id not in ROMANCE_PROFILES:
+            _avail = ROMANCE_AVAILABILITY.get(npc_id, "disabled")
+            if _avail == "planned":
+                # Content not yet written — zero penalties, no escalation, no momentum change
+                return ("romance_unavailable", kp.get("romance_unavailable", "That moment isn't there yet."))
+            # disabled — permanent, apply full escalation
             _apply_escalation(npc_id, "kiss",
                 kp.get("aff_pen_romance_locked", -4),
                 kp.get("trust_pen_romance_locked", -3))
             return ("romance_locked", kp.get("romance_locked", "That's not where this is going."))
+        # Romanceable NPC — use state architecture (lazy-migrate legacy bool first)
+        sync_legacy_romance_flags(npc_id)
+        refresh_romance_pause(npc_id)
+        _rs = get_romance_state(npc_id)
+        if _rs == "closed":
+            return ("romance_closed", kp.get("romance_closed", "That's not something that can happen."))
+        if _rs == "paused":
+            return ("romance_paused", kp.get("romance_paused", kp.get("too_soon", "Not right now.")))
+        if not romance_is_open(npc_id):
+            if _rs == "friends":
+                # Graduated escalation — friendship route must stay reopenable, but repeated violations escalate
+                # ponytail: O(n) dict read; upgrade to persistent counter if tracking > 10 NPCs becomes expensive
+                _fc = store.failed_physical_attempts.get((npc_id, "kiss"), 0)
+                if _fc == 0:
+                    _apply_aff(npc_id, kp.get("aff_pen_romance_friends", -1))
+                elif _fc == 1:
+                    _apply_aff(npc_id, -2)
+                    _apply_trust(npc_id, -1)
+                else:
+                    _apply_aff(npc_id, -3)
+                    _apply_trust(npc_id, -3)
+                    pause_romance(npc_id, 14, source="boundary_violation_friends")
+                _fa2 = dict(store.failed_physical_attempts)
+                _fa2[(npc_id, "kiss")] = _fc + 1
+                store.failed_physical_attempts = _fa2
+                return ("romance_friends", kp.get("romance_friends", kp.get("romance_locked", "That's not where this is going.")))
+            # unopened: light escalation + drain momentum
+            _apply_escalation(npc_id, "kiss",
+                kp.get("aff_pen_romance_unopened", -2),
+                kp.get("trust_pen_romance_unopened", -1))
+            add_romance_momentum(npc_id, -5, source="kiss_too_early")
+            return ("romance_unopened", kp.get("romance_unopened", kp.get("romance_locked", "That's not where this is going.")))
         # Context gate (no failure escalation — just a light nudge)
         valid_contexts = kp.get("valid_contexts", [])
         if valid_contexts and store.current_loc not in valid_contexts:
@@ -971,6 +1285,10 @@ init python:
             add_relationship_memory(npc_id, "first_kiss_" + npc_id, "First kiss")
             _apply_aff(npc_id, kp.get("aff_gain", 5))
             _apply_trust(npc_id, kp.get("trust_gain", 3))
+            # State progression: a first kiss moves an open romance from
+            # "interested" to "dating". "dating"/"committed" stay as-is (no demotion).
+            if get_romance_state(npc_id) == "interested":
+                set_romance_state(npc_id, "dating", source="first_kiss")
             return ("first_kiss", kp.get("first_kiss", "A first kiss."))
         # Repeat / warm
         days_since = store.day - last_kiss_day
@@ -1142,7 +1460,7 @@ screen npc_actions(npc_id):
                         ("act_talk",   "Talk",                    "talk",   True),
                         ("act_gift",   "Gift (%d)" % sum(gifts.values()),  "gift",   _gift_ok),
                         ("act_hug",    "Hug",                     "hug",    not _angry),
-                        ("act_hug",    "Kiss",                    "kiss",   not _angry),
+                        ("act_kiss",   "Kiss",                    "kiss",   not _angry),
                         ("act_invite", "Invite",                  "date",   _date_ok and not _angry),
                         ("act_phone",  "Get #",                   "number", _num_ok and not _angry),
                         ("act_leave",  "Leave",                   "leave",  True)]:
@@ -1298,18 +1616,27 @@ label npc_interact(npc_id):
     return
 
 
-# ── Dates (works for everyone; unlocks at affection 30) ────────────────
+# ── Dates / outings v2 (works for everyone; unlocks at affection 30) ───
+# Romanceable NPCs go on a "date"; everyone else gets a framed-as-friends
+# "outing". Rewards are venue-preference- and repetition-aware (see
+# date_outing_rewards) and the closing beat reflects the romance state.
 label npc_date(npc_id):
     $ _nm = NPC_DATA[npc_id]["name"]
     $ _spr = NPC_DATA[npc_id]["sprite"]
     $ _c = getattr(store, NPC_DATA[npc_id]["say"])
+    $ _romanceable = npc_id in ROMANCE_PROFILES
+    $ _date_prompt = ("Take %s out — where?" % _nm) if _romanceable else ("Hang out with %s — where?" % _nm)
+    $ _venue = None
     menu:
-        "Take [_nm] where?"
+        "[_date_prompt]"
         "Dinner out (3h)":
+            $ _venue = "dinner"
             scene restaurantnight
         "Rooftop drinks (3h)":
+            $ _venue = "rooftop"
             scene bar_rooftop_night
         "A walk on the beach (3h)":
+            $ _venue = "beach"
             scene beachnight
         "Actually, never mind":
             return
@@ -1324,9 +1651,24 @@ label npc_date(npc_id):
             "Go back":
                 return
     $ spend_time(3)
-    $ _apply_aff(npc_id, 6)
-    $ setattr(store, NPC_DATA[npc_id]["trust"], npc_trust(npc_id) + 3)
-    $ renpy.say(_c, "This was... really nice. Let's do it again sometime.")
+    python:
+        _aff_gain, _tr_gain, _date_pref = date_outing_rewards(npc_id, _venue)
+        _apply_aff(npc_id, _aff_gain)
+        _apply_trust(npc_id, _tr_gain)          # clamped path, not raw setattr
+        record_date_outing(npc_id, _venue)
+        _date_rs = get_romance_state(npc_id)
+    # Preference flavour
+    if _date_pref == "preferred":
+        "[_nm] lights up — this is exactly their kind of evening."
+    elif _date_pref == "disliked":
+        "[_nm] is a good sport about it, but you can tell it isn't quite their scene."
+    # Closing beat scales with the relationship
+    if _romanceable and _date_rs in ("dating", "committed"):
+        $ renpy.say(_c, "I needed this. Just us, no noise.")
+    elif _romanceable and _date_rs == "interested":
+        $ renpy.say(_c, "That felt like a little more than two friends killing an evening. I liked it.")
+    else:
+        $ renpy.say(_c, "That was fun. We should do it again sometime.")
     hide npcsprite
     hide npcsprite2
     return
@@ -1440,7 +1782,16 @@ label kai_greet:
 
 label do_hug_interaction(npc_id):
     $ _hug_text = do_hug(npc_id)
-    "[_hug_text]"
+    $ _hug_cg_name = "cg_" + npc_id + "_hug"
+    # Only show the embrace CG when the hug was actually accepted — otherwise the
+    # image (a full hug) would contradict a rejection/cooldown line.
+    if store._last_hug_accepted and renpy.has_image(_hug_cg_name):
+        show expression _hug_cg_name as interaction_cg with dissolve
+        show screen hud
+        "[_hug_text]"
+        hide interaction_cg with dissolve
+    else:
+        "[_hug_text]"
     return
 
 label do_kiss_interaction(npc_id):
@@ -1456,31 +1807,53 @@ label do_kiss_interaction(npc_id):
     return
 
 
-# ── First-kiss scene stubs (romanceable NPCs only) ─────────────────────
-# ponytail: placeholder labels — first-kiss scenes not yet written.
-#   Replace the stub line with actual scene scripting when content is ready.
+# ── First-kiss scenes (romanceable NPCs) ───────────────────────────────
+# Each: hides relbar → full-screen CG dissolve → narration → ends the interaction.
 
 label scene_first_kiss_nora:
-    # ponytail: placeholder — first-kiss scene not yet written
-    n "..."
+    hide screen npc_relbar
+    scene cg_nora_kiss with dissolve
+    show screen hud
+    "[_kiss_text]"
+    $ _act = "leave"
     return
 
 label scene_first_kiss_elle:
-    # ponytail: placeholder — first-kiss scene not yet written
-    el "..."
+    hide screen npc_relbar
+    scene cg_elle_kiss with dissolve
+    show screen hud
+    "[_kiss_text]"
+    $ _act = "leave"
     return
 
 label scene_first_kiss_zoe:
-    # ponytail: placeholder — first-kiss scene not yet written
-    z "..."
+    hide screen npc_relbar
+    scene cg_zoe_kiss with dissolve
+    show screen hud
+    "[_kiss_text]"
+    $ _act = "leave"
     return
 
 label scene_first_kiss_caroline:
-    # ponytail: placeholder — first-kiss scene not yet written
-    caro "..."
+    hide screen npc_relbar
+    scene cg_caroline_kiss with dissolve
+    show screen hud
+    "[_kiss_text]"
+    $ _act = "leave"
     return
 
 label scene_first_kiss_lena:
-    # ponytail: placeholder — first-kiss scene not yet written
-    lena "..."
+    hide screen npc_relbar
+    scene cg_lena_kiss with dissolve
+    show screen hud
+    "[_kiss_text]"
+    $ _act = "leave"
+    return
+
+label scene_first_kiss_martha:
+    hide screen npc_relbar
+    scene cg_martha_kiss with dissolve
+    show screen hud
+    "[_kiss_text]"
+    $ _act = "leave"
     return

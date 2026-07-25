@@ -239,11 +239,11 @@ label arc_eli_work_2:
     menu:
         "It still matters that you tried."
             eli "I hope so."
-            "They sound like they almost believe it."
+            "She sounds like she almost believes it."
             $ _apply_trust("eli", 2)
         "So what's the alternative — give up?"
             eli "No. But sometimes I'd like to be angry about it without also having to be hopeful."
-            "They're quiet for a second, then nod once."
+            "She's quiet for a second, then nods once."
             $ _apply_trust("eli", 3)
     $ complete_arc("eli_work_2")
     $ mark_topic_today("eli", "work")

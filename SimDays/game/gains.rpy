@@ -58,19 +58,48 @@ init python:
                        icon=icon_path, value=pct,
                        fill="images/ui/bar_fill_%s.png" % fillkey)
 
+    def try_spend(amount, category="discretionary", toast=True):
+        """Single front door for money sinks. Attempts to spend `amount` (a
+        positive cost). Returns True and deducts on success; returns False and
+        deducts nothing when blocked by debt or insufficient funds.
+
+        Callers should gate the purchase on the return value:
+            if try_spend(150):
+                own_guitar = True
+        Enforcing the debt rule and the no-negative-balance invariant here (in
+        one place) means a single missed check can't produce a free purchase or
+        drive the balance below zero.
+        `category` is advisory for now (future: per-category budgets/tracking)."""
+        amount = int(amount)
+        if amount <= 0:
+            return True   # nothing to charge
+        if store.loan > 0:
+            if toast:
+                _push_gain(kind="money", text="Card declined", color="#e86a55",
+                           icon="images/ui/icons/stat_money.png")
+            return False
+        if store.money < amount:
+            if toast:
+                _push_gain(kind="money", text="Insufficient funds", color="#e86a55",
+                           icon="images/ui/icons/stat_money.png")
+            return False
+        store.money -= amount
+        if toast:
+            _push_gain(kind="money", text="-$%d" % amount, color="#e86a55",
+                       icon="images/ui/icons/stat_money.png")
+        return True
+
     def gain_money(amt):
-        """Change money. Spending (negative) is blocked while in debt — card declined."""
-        if amt < 0 and store.loan > 0:
-            _push_gain(kind="money", text="Card declined", color="#e86a55",
-                       icon="images/ui/icons/stat_money.png")
-            return
+        """Change money. Income (positive) is added directly; spending (negative)
+        is routed through try_spend so the debt rule and no-negative-balance
+        invariant hold for every legacy `gain_money(-cost)` call site too.
+        Returns True on success, False if a spend was refused."""
+        if amt < 0:
+            return try_spend(-amt)
         store.money += amt
-        if amt >= 0:
-            _push_gain(kind="money", text="+$%d" % amt, color="#39c07a",
-                       icon="images/ui/icons/stat_money.png")
-        else:
-            _push_gain(kind="money", text="-$%d" % (-amt), color="#e86a55",
-                       icon="images/ui/icons/stat_money.png")
+        _push_gain(kind="money", text="+$%d" % amt, color="#39c07a",
+                   icon="images/ui/icons/stat_money.png")
+        return True
 
     def gain_aff(npc_name, delta):
         pass  # bar animates in npc_relbar; no toast needed

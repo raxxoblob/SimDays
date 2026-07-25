@@ -60,6 +60,7 @@ init python:
         renpy.image(_pn2, Transform("images/locations/%s.png" % _pn2, size=(1920, 1080)))
     renpy.image("nadbrzeze_day",   Transform("images/locations/quayside_day.png",   size=(1920, 1080)))
     renpy.image("nadbrzeze_night", Transform("images/locations/quayside_night.png", size=(1920, 1080)))
+    renpy.image("diner_night",     Transform("images/locations/diner_night.png",     size=(1920, 1080)))
 
     # hospital rooftop (Lena scene bg)
     renpy.image("hospital_rooftop_night", Transform("images/locations/hospital_rooftop_night.png", size=(1920, 1080)))
@@ -103,6 +104,33 @@ init python:
         ("cg_corp_close_screen",    "corporate_missing_number_close_screen"),
     ]:
         renpy.image(_cn, Transform("images/scenes/career_nexus/%s.png" % _cf, size=(1920, 1080)))
+
+    # Culinary crisis CGs (scenes/rena_crisis/) — all 1672x941, scaled to 1920x1080.
+    # cg_cul_crisis_problem: declared but not placed in the sequence —
+    # visually too similar to pressure; reserved as fallback or montage asset.
+    for _rn in [
+        # Common sequence
+        "cg_cul_crisis_rush", "cg_cul_crisis_pressure", "cg_cul_crisis_problem",
+        "cg_cul_crisis_sauce_closeup", "cg_cul_crisis_table_waiting",
+        "cg_cul_crisis_rena_notices",
+        # Branch A — tell Rena
+        "cg_cul_crisis_admit", "cg_cul_crisis_guided_recovery",
+        "cg_cul_crisis_clean_send",
+        # Branch B — solo attempt
+        "cg_cul_crisis_solo_attempt", "cg_cul_crisis_solo_success",
+        "cg_cul_crisis_solo_failure",
+        # Branch C — stop the dishes
+        "cg_cul_crisis_stop_pass", "cg_cul_crisis_resequence",
+        "cg_cul_crisis_delayed_send",
+        # Branch D — send anyway
+        "cg_cul_crisis_send_anyway", "cg_cul_crisis_dining_consequence",
+        "cg_cul_crisis_returned_plate",
+        # Ending
+        "cg_cul_crisis_last_ticket",
+        "cg_cul_crisis_after_good", "cg_cul_crisis_after_mixed",
+        "cg_cul_crisis_after_bad",
+    ]:
+        renpy.image(_rn, Transform("images/scenes/rena_crisis/%s.png" % _rn, size=(1920, 1080)))
 
     # Trainer arc CGs (scenes/career_gym/)
     for _tn, _tf in [
@@ -178,14 +206,28 @@ init python:
     ]:
         renpy.image(_nm, Transform("images/scenes/marcus_court/%s.png" % _fn, size=(1920, 1080)))
 
-    # Home-visit scene CGs (scenes/home/)
-    for _hn, _hf in [
-        ("cg_home_eli_desk",      "home_eli_side_project_desk"),
-        ("cg_home_nora_coffee",   "home_nora_coffee_machine"),
-        ("cg_home_dinner_table",  "home_dinner_guest_table"),
-        ("cg_home_zoe_guitar",    "home_zoe_guitar_session"),
+    # Home-visit scene CGs — per-apartment-tier variants (apartment_tier 1/2/3)
+    for _hn, _hpath in [
+        # eli_dinner
+        ("cg_eli_home_dinner_cheap",  "home/eli_dinner/cg_eli_home_dinner_cheap.png"),
+        ("cg_eli_home_dinner_good",   "home/eli_dinner/cg_eli_home_dinner_good.png"),
+        ("cg_eli_home_dinner_rich",   "home/eli_dinner/cg_eli_home_dinner_rich.png"),
+        # eli_side_project
+        ("cg_eli_side_project_cheap", "home/eli_side_project/cheaphome_eli_side_project_desk.png"),
+        ("cg_eli_side_project_good",  "home/eli_side_project/goodhome_eli_side_project_desk.png"),
+        ("cg_eli_side_project_rich",  "home/eli_side_project/richhome_eli_side_project_desk.png"),
+        # nora_coffee
+        ("cg_nora_coffee_cheap",      "home/nora_coffee/cheaphome_nora_coffee_machine.png"),
+        ("cg_nora_coffee_good",       "home/nora_coffee/goodhome_nora_coffee_machine.png"),
+        ("cg_nora_coffee_rich",       "home/nora_coffee/richhome_nora_coffee_machine.png"),
+        # zoe_guitar
+        ("cg_zoe_guitar_cheap",       "home/zoe_guitar/cheaphome_zoe_guitar_session.png"),
+        ("cg_zoe_guitar_good",        "home/zoe_guitar/goodhome_zoe_guitar_session.png"),
+        ("cg_zoe_guitar_rich",        "home/zoe_guitar/richhome_zoe_guitar_session.png"),
+        # nora_cooking (cheap-home only — no other tiers were generated)
+        ("cg_nora_cooking_cheap",     "home/nora_cooking/cheaphome_nora_cook.png"),
     ]:
-        renpy.image(_hn, Transform("images/scenes/home/%s.png" % _hf, size=(1920, 1080)))
+        renpy.image(_hn, Transform("images/scenes/%s" % _hpath, size=(1920, 1080)))
 
     # Intro cinematic frames (pre-rendered POV, full-screen). 1672x941 -> 1920x1080.
     for _i, _f in enumerate(["intro_scene_1", "intro_scene2", "intro_scene3",
@@ -225,6 +267,56 @@ transform sprite_l:
     xalign 0.18
     yalign 1.0
     yoffset 96
+
+# ── Sprite micro-animation transforms ────────────────────────────────────
+# Compose with a position transform: show sprite at sprite_r, react_bounce
+# Each animation starts and ends at the base yoffset (96) or xoffset (0) so
+# no permanent offset accumulates across repeated show statements or rollback.
+# Only yoffset/xoffset are touched — xalign/yalign/xysize/fit come from
+# the position transform (sprite_r/l/c) and are never overridden here.
+#
+# ponytail: yoffset-based transforms hard-code the base value (96) that
+# sprite_r/l/c all share. If that base ever changes, every transform below
+# needs updating or the sprite will jump one frame on entry. Upgrade path:
+# define a named constant and reference it, or switch to OffsetMatrix.
+
+transform react_bounce:
+    # Quick upward pop and settle — cheerful reactions, surprise, emphasis
+    yoffset 96
+    ease 0.09 yoffset 84
+    ease 0.14 yoffset 96
+
+transform react_shake:
+    # Small horizontal rattle — irritation, disbelief, awkward refusal
+    xoffset 0
+    linear 0.06 xoffset 7
+    linear 0.06 xoffset -6
+    linear 0.07 xoffset 4
+    linear 0.07 xoffset 0
+
+transform react_step_back:
+    # Brief downward sink and return — surprise, discomfort, boundary rejection
+    yoffset 96
+    ease 0.10 yoffset 106
+    ease 0.16 yoffset 96
+
+transform react_lean_in:
+    # Small upward rise and return — warm attention, teasing, romantic tension
+    yoffset 96
+    ease 0.12 yoffset 87
+    ease 0.16 yoffset 96
+
+transform react_nod:
+    # Tiny downward dip and return — controlled acknowledgement (Martha, Lena)
+    yoffset 96
+    ease 0.08 yoffset 103
+    ease 0.10 yoffset 96
+
+transform react_sigh:
+    # Slow downward settle and return — tiredness, resignation, release
+    yoffset 96
+    ease 0.16 yoffset 105
+    ease 0.22 yoffset 96
 
 # ── Zoe sprites (plain files; positioned via the transforms above) ─────
 image zoe_street_neutral   = "images/characters/zoe/zoe_street_neutral.webp"
@@ -286,6 +378,21 @@ image marcus_park_talk      = "images/characters/marcus/marcus_park_talk.png"
 image marcus_park_laugh     = "images/characters/marcus/marcus_park_laugh.png"
 image marcus_park_sad       = "images/characters/marcus/marcus_park_sad.png"
 
+# ── Rena sprites (kitchen; charcoal jacket) ────────────────────────────
+# angry = controlled assessing/displeased; happy = restrained approval.
+image rena_normal = "images/characters/rena/rena_normal.png"
+image rena_talk   = "images/characters/rena/rena_talk.png"
+image rena_happy  = "images/characters/rena/rena_happy.png"
+image rena_angry  = "images/characters/rena/rena_angry.png"
+image rena_sad    = "images/characters/rena/rena_sad.png"
+
+# ── Rena sprites (casual; off-duty) ────────────────────────────────────
+image rena_casual_normal = "images/characters/rena/rena_casual_normal.png"
+image rena_casual_talk   = "images/characters/rena/rena_casual_talk.png"
+image rena_casual_happy  = "images/characters/rena/rena_casual_happy.png"
+image rena_casual_angry  = "images/characters/rena/rena_casual_angry.png"
+image rena_casual_sad    = "images/characters/rena/rena_casual_sad.png"
+
 # ── Sam (park, world) + Eli (library, world) ───────────────────────────
 image sam_normal     = "images/characters/sam/sam_normal.png"
 image sam_talk       = "images/characters/sam/sam_talk.png"
@@ -342,8 +449,23 @@ image cg_zoe_almost                = "images/scenes/zoe_spontaneous/cg_zoe_almos
 image hospital_break_room_day      = "images/locations/hospital_break_room_day.png"
 image parkday_rain                 = "images/locations/parkday_rain.png"
 
+# ── Interaction CGs (kiss / hug per character) ────────────────────────────────
+image cg_nora_kiss      = "images/characters/nora/nora_kiss.png"
+image cg_nora_hug       = "images/characters/nora/nora_hug.png"
+image cg_caroline_kiss  = "images/characters/caroline/caroline_kiss.png"
+image cg_caroline_hug   = "images/characters/caroline/caroline_hug.png"
+image cg_lena_kiss      = "images/characters/dr_lena/drlena_kiss.png"
+image cg_lena_hug       = "images/characters/dr_lena/drlena_hug.png"
+image cg_elle_kiss      = "images/characters/elle/elle_kiss.png"
+image cg_elle_hug       = "images/characters/elle/elle_hug.png"
+image cg_zoe_kiss       = "images/characters/zoe/zoe_kiss.png"
+image cg_zoe_hug        = "images/characters/zoe/zoe_hug.png"
+image cg_martha_kiss    = "images/characters/martha/martha_kiss.png"
+image cg_martha_hug     = "images/characters/martha/martha_hug.png"
+image cg_sam_hug        = "images/characters/sam/sam_hug.png"
+image cg_eli_hug        = "images/characters/eli/eli_hug.png"
+
 # ── Content Pack 2 CGs ─────────────────────────────────────────────────────────
-# NOTE: image files need generation — see docs/relationship_content_pack_2.md asset list.
 init python:
     renpy.image("cg_elle_portugal_turn",
         Transform("images/scenes/elle_portugal_payoff/cg_elle_portugal_turn.png", size=(1920, 1080)))

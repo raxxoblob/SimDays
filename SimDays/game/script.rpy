@@ -157,9 +157,11 @@ label marcus_intro_hallway:
     jump location_hallway
 
 
-# Marcus's place (14). Knock -> unified interaction hub (see interact.rpy).
+# Marcus's place (14). Routes to full home location when access is granted.
 label marcus_talk:
     scene expression ("marcus_home_night" if (hour >= 20 or hour < 6) else "marcus_home_day")
     show screen hud
+    if marcus_home_state != "locked" and marcus_is_home():
+        jump location_marcus_home
     call npc_interact("marcus")
     jump location_hallway

@@ -84,7 +84,8 @@ default natalie_met   = False
 default eli_met       = False
 default kai_met       = False
 default sam_met       = False
-default rena_met      = False
+default rena_met           = False
+default rena_diner_first_done = False
 default cafe_shift_done = False   # so the "first shift" line only plays once
 default nora_closing_done = False
 default elle_pier_done = False
@@ -144,16 +145,31 @@ default player_commitments = []  # list of {id, npc_id, title, day, hour, locati
 # Relationship memory + threshold tracking
 default relationship_memories = {}         # {npc_id: [{id, title, day}]}
 default relationship_thresholds_seen = {}  # {"nora_aff_25": True, ...}
+default npc_last_date_day = {}             # {npc_id: day_of_last_date/outing}
+default npc_date_venue_count = {}          # {"npc|venue": times_visited} — diminishing returns
 default npc_last_hug_day = {}              # {npc_id: day_of_last_hug}
 default npc_last_kiss_day = {}             # {npc_id: day_of_last_kiss}
 default failed_physical_attempts = {}     # {(npc_id, action): consecutive_fail_count}
+default _last_hug_accepted = False         # side channel: was the most recent do_hug() accepted?
 default physical_boundary_lockout = {}    # {(npc_id, action): day_lockout_expires}
-# Romance progression flags — set by content when relationship crosses into romance
+# Romance progression flags — legacy booleans kept for save compatibility; do not set directly
 default nora_romance_unlocked     = False
 default elle_romance_unlocked     = False
 default zoe_romance_unlocked      = False
 default caroline_romance_unlocked = False
 default lena_romance_unlocked     = False
+# Romance state architecture — reversible, player-driven
+# Valid states: unopened | friends | interested | dating | committed | paused | closed
+default romance_states           = {}  # {npc_id: state}
+default romance_momentum         = {}  # {npc_id: 0–100}
+default romance_last_choice_day  = {}  # {npc_id: day}
+default romance_previous_choice  = {}  # {npc_id: source_string}
+default romance_pause_until_day  = {}  # {npc_id: day_pause_expires}
+default romance_permanent_closed = {}  # {npc_id: True} — only after explicit confirmation
+default romance_route_memories   = {}  # {npc_id: [{from, to, source, day}]}
+default nora_reopen_done         = False
+default zoe_reopen_done          = False
+default martha_reopen_done       = False
 
 # Activity anti-repetition tracking (FIX 8: single bounded structure)
 default activity_daily_uses = {}           # {activity_id: {"day": N, "count": K}}
@@ -223,6 +239,7 @@ default nora_ignored_pending      = False
 default nora_ignored_response     = ""
 default nora_bad_day_done         = False
 default nora_bad_day_pending      = False
+default last_day_worn_out         = False   # was the player worn out at the end of yesterday?
 default nora_touched_arm          = False
 default marcus_missed_done        = False
 default marcus_missed_pending     = None   # None or {trigger_day, commitment_id, title, location, hour, variant}
@@ -268,6 +285,12 @@ default major_scene_last_day      = -1
 default caroline_bar_done             = False
 default caroline_bar_pending          = False
 default caroline_bar_pending_day      = -1
+# Romance-opening scenes for the three NPCs that previously had no entry point.
+default caroline_romance_open_done    = False
+default lena_romance_open_done        = False
+default elle_romance_open_done        = False
+default nora_cooking_state            = "none"  # "none" | "offered" | "pending" | "done"
+default nora_cooking_declined_day     = -1      # day of last decline; -1 = never declined
 default natalie_bar_scene_done        = False
 default natalie_bar_scene_pending     = False
 default natalie_bar_scene_pending_day = -1
@@ -312,6 +335,13 @@ default cul_npc1_done      = False
 default cul_npc2_done      = False
 default cul_review_done    = False
 default cul_shifts         = 0
+default scene_cul_service_crisis_done = False
+default cul_crisis_branch             = ""     # honest / solo_success / solo_fail / stop / send
+default cul_crisis_rena_informed      = False
+default cul_crisis_bad_plate          = False
+default cul_crisis_technical          = ""     # saved / delayed / failed / ruined
+default cul_crisis_aftermath          = ""     # good / mixed / bad
+default cul_crisis_aftermath_pending  = False
 
 # Trainer arc (Assistant Trainer)
 default tr_first_day_done  = False
@@ -326,6 +356,29 @@ default zoe_grant_discussed   = False
 default zoe_exhibition_invited = False
 default nora_school_revealed  = False
 default elle_abroad_revealed  = False
+
+# ── World Event Director ──────────────────────────────────────────────
+default wed_personal_fired_day    = -1    # day when last personal WED event fired
+default wed_ambient_fired         = {}    # {location_id: True} per current day
+default wed_ambient_today         = {}    # pre-rolled: {location_id: event_id or None}
+default wed_event_last_day        = {}    # {event_id: last day fired}
+default wed_resolved              = []    # [event_id] for once=True events that have fired
+default wed_callbacks             = []    # [{label, fires_day}] scheduled callbacks
+default wed_ready_callbacks       = []    # callbacks whose fires_day has passed
+
+# Marcus loan state machine
+default wed_marcus_loan_state         = "none"   # none|offered|pending_repay|pending_practical|pending_solved|resolved_*
+default wed_marcus_loan_callback_day  = -1       # day on which to promote callback to ready
+default wed_marcus_loan_callback_ready = False   # True when callback should fire at next visit
+
+# Sam off-routine
+default sam_off_routine_done          = False
+default sam_off_routine_greet_done    = False
+
+# Marcus home access
+default marcus_home_state             = "locked"  # locked|invited_once|welcome
+default marcus_home_invite_day        = -1
+default marcus_chili_last_day         = -1
 
 # Job / career. job_id = career key in CAREERS (None = unemployed); the rest is
 # derived from CAREERS[job_id]["ranks"][job_rank] via _sync_job() in careers.rpy.
@@ -385,6 +438,11 @@ init python:
         notify_available_commitments()
 
     def new_day():
+        # Capture how depleted the player was at the END of the previous day,
+        # BEFORE sleep restores energy — scenes that react to a hard day (e.g.
+        # nora_bad_day) must read this, not worn_out(), which post-sleep is
+        # almost always False on the energy axis.
+        store.last_day_worn_out = worn_out()
         store.day  += 1
         store.hour  = DAY_START + 1.0   # wake up 8 AM
         base_energy = 100 if store.own_bed else 95
@@ -414,6 +472,7 @@ init python:
         deliver_due_messages()
         stocks_step()
         roll_daily_events()
+        wed_preroll_day()
         # Monday: rent + car (direct debit, bypasses debt block) + interest
         if store.day % 7 == 0:
             RENT = {1: 220, 2: 550, 3: 1300}
@@ -433,6 +492,8 @@ init python:
             # Ignore decay: -2 affection for each NPC not seen in the last 7 days
             # (NPC_DATA defined in interact.rpy, accessible at runtime)
             for _nid, _d in NPC_DATA.items():
+                if _d.get("no_decay"):
+                    continue   # mentor NPCs (e.g. Rena) aren't "seen" via the menu
                 _aff_var = _d["aff"]
                 _aff = getattr(store, _aff_var, 0)
                 _last = store.npc_last_seen.get(_nid, store.day)
@@ -464,7 +525,7 @@ init python:
                 and store.nora_affection >= 30 and store.nora_trust >= 20
                 and store.nora_closing_done
                 and "nora" in store.npc_contacts
-                and worn_out()):
+                and store.last_day_worn_out):
             store.nora_bad_day_pending = True
             queue_phone_message("nora",
                 "You had the look today. I'm off at seven. I'm bringing bread. You don't have to talk, you just have to let me in.",
@@ -589,6 +650,36 @@ init python:
             store.sam_marcus_scene_pending = True
             store.sam_marcus_scene_pending_day = store.day
 
+        # Marcus home invite: queued once when relationship is established.
+        if (store.marcus_home_state == "locked"
+                and store.marcus_met
+                and store.marcus_affection >= 30
+                and store.marcus_trust >= 35
+                and store.day >= 15
+                and not message_already_queued("marcus_home_invite")):
+            store.marcus_home_state = "invited_once"
+            queue_phone_message(
+                "marcus",
+                "You free this week? Stop by whenever. 14 Crane Street, top floor.",
+                store.day + 1, "marcus_home_invite")
+
+        # Marcus loan callback: promote to ready when the scheduled day arrives.
+        if (store.wed_marcus_loan_state in ("pending_repay", "pending_practical", "pending_solved")
+                and store.wed_marcus_loan_callback_day > 0
+                and store.day >= store.wed_marcus_loan_callback_day
+                and not store.wed_marcus_loan_callback_ready):
+            store.wed_marcus_loan_callback_ready = True
+            store.wed_marcus_loan_callback_day   = -1
+
+        # Respectful-refusal callback: Marcus mentions he sorted it.
+        if (store.wed_marcus_loan_state == "resolved_refused"
+                and store.wed_marcus_loan_callback_day > 0
+                and store.day >= store.wed_marcus_loan_callback_day
+                and not store.wed_marcus_loan_callback_ready):
+            store.wed_marcus_loan_state          = "pending_solved"
+            store.wed_marcus_loan_callback_ready = True
+            store.wed_marcus_loan_callback_day   = -1
+
     def cosmetic_days_left():
         return max(0, store.cosmetic_boost_until - store.day)
 
@@ -639,6 +730,21 @@ init python:
             return "goodhomenight"    if is_night else "goodhomeday"
         else:
             return "richhomenight"    if is_night else "richhomeday"
+
+    # apartment_tier: 1=cheap, 2=good/mid, 3=rich
+    # Returns the declared image name for the current home variant of a home scene CG.
+    # Returns None for any unrecognised future tier — caller must fall back to home_bg() + sprite.
+    _HOME_SCENE_CG = {
+        "eli_dinner":       {1: "cg_eli_home_dinner_cheap",   2: "cg_eli_home_dinner_good",   3: "cg_eli_home_dinner_rich"},
+        "eli_side_project": {1: "cg_eli_side_project_cheap",  2: "cg_eli_side_project_good",  3: "cg_eli_side_project_rich"},
+        "nora_coffee":      {1: "cg_nora_coffee_cheap",       2: "cg_nora_coffee_good",       3: "cg_nora_coffee_rich"},
+        "zoe_guitar":       {1: "cg_zoe_guitar_cheap",        2: "cg_zoe_guitar_good",        3: "cg_zoe_guitar_rich"},
+    }
+    def get_home_scene_cg(scene_id):
+        variants = _HOME_SCENE_CG.get(scene_id)
+        if variants is None:
+            return None
+        return variants.get(store.apartment_tier)   # None for unknown future tiers
 
     def cafe_bg():
         is_night = store.hour >= 19

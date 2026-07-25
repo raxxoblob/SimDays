@@ -1,9 +1,9 @@
 # it_arc.rpy — IT career preview arc (Junior Dev → Mid Dev)
-# NPC: Eli (they/them) — senior developer, dry, precise, good teacher
+# NPC: Eli (she/her) — senior developer, dry, precise, good teacher
 # Work events are appended to _IT_POOL on init so they fire via the existing work_event_it label.
 # Sprites: eli_normal, eli_focused — add to images.rpy when art is ready.
-
-define eli = Character("Eli", color="#4a9eff")
+# Eli's Character (`eli`) is defined once in characters.rpy — do not redefine here
+# (a second `define` with a different color makes the color load-order dependent).
 
 init 1 python:
     _IT_ARC_EVENTS = ["wev_it_prod_bug", "wev_it_pr_review", "wev_it_scope_creep"]
@@ -34,7 +34,7 @@ label it_first_day:
             $ _work_perf(2)
         "\"Happy to be here.\"":
             eli "Sure."
-            "They're already turned back to their monitor."
+            "She's already turned back to her monitor."
     eli "Standup's at nine. Don't be late for standup."
     $ _apply_trust("eli", 2)
     return
@@ -71,7 +71,7 @@ label it_task_1:
             $ _it_t1v = "git"
         "Ask Eli for help.":
             eli "What have you already tried?"
-            "You walk them through it. They stop you twice to ask why you ruled something out."
+            "You walk her through it. She stops you twice to ask why you ruled something out."
             eli "The race condition is in session refresh. Go fix it."
             "The guidance saves two hours. Being guided feels useful and slightly uncomfortable."
             $ gain_skill("prog", 3)
@@ -114,7 +114,7 @@ label it_npc1_eli:
             $ _it_n1v = "passive"
         "\"I'd push back on the error handling comment.\"":
             eli "Go on."
-            "You explain. They listen without interrupting."
+            "You explain. She listens without interrupting."
             eli "You're not wrong. But you're optimising for now, not six months from now. The extra branch costs three lines and saves whoever maintains this from guessing."
             eli "You can still push back. Know why you're doing it."
             $ gain_skill("prog", 6)
@@ -149,7 +149,7 @@ label it_npc2_eli:
             $ _apply_aff("eli", 2)
             $ _it_n2v = "curious"
         "Stay quiet. Let the silence run.":
-            "Eli glances at you once. Something shifts slightly in how they're sitting."
+            "Eli glances at you once. Something shifts slightly in how she's sitting."
             eli "This team has had three re-orgs in four years. Everyone who stayed did it for the same reason — the work itself."
             eli "Don't tell the new hires. It ruins the mystique."
             $ _apply_aff("eli", 3)

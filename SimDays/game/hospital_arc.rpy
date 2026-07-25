@@ -1,10 +1,8 @@
 # hospital_arc.rpy — Hospital career preview arc (Clinical Assistant → Resident)
 # NPC: Dr. Lena — warm, medically precise, carries the weight of the work
-# Lena's sprite drlena_normal exists. Character object may be defined elsewhere;
-# this define is a safe fallback.
+# Lena's Character (`lena`) is defined once in characters.rpy — do not redefine
+# here; a second `define` with a different color makes the color load-order dependent.
 # Work events are appended to _HOSP_POOL on init.
-
-define lena = Character("Dr. Lena", color="#6cc4a1")
 
 init 1 python:
     _HOSP_ARC_EVENTS = ["wev_hosp_case_presentation", "wev_hosp_overtime_call"]

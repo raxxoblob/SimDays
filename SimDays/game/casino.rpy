@@ -33,7 +33,8 @@ init python:
             self.deck   = _bj_new_deck()
             self.player = []
             self.dealer = []
-            self.bet    = 25
+            self.bet      = 25   # selected wager — set by the +/- buttons, persists across hands
+            self.hand_bet = 25   # this hand's actual wager — double_down mutates this, not self.bet
             self.phase  = "betting"   # betting | playing | result
             self.msg    = ""
 
@@ -44,16 +45,21 @@ init python:
             self.dealer = []
             self.phase  = "betting"
             self.msg    = ""
+            # self.bet (the selected wager) intentionally persists; hand_bet is
+            # re-synced to it here AND on the next deal, so a prior double never sticks.
+            self.hand_bet = self.bet
 
         def deal(self):
-            if self.bet > store.money:
-                self.msg = "Not enough money."; return
-            store.money -= self.bet
+            # Wager goes through the shared spend path (respects debt + funds).
+            if not try_spend(self.bet, category="gambling", toast=False):
+                self.msg = "Not enough money."; return False
+            self.hand_bet = self.bet
             self.player = [self.deck.pop(), self.deck.pop()]
             self.dealer = [self.deck.pop(), self.deck.pop()]
             self.phase  = "playing"
             if _bj_total(self.player) == 21:
                 self._finish()
+            return True
 
         def hit(self):
             self.player.append(self.deck.pop())
@@ -66,10 +72,9 @@ init python:
             self._finish()
 
         def double_down(self):
-            if self.bet > store.money:
+            if not try_spend(self.hand_bet, category="gambling", toast=False):
                 self.msg = "Not enough to double."; return
-            store.money -= self.bet
-            self.bet    *= 2
+            self.hand_bet *= 2
             self.player.append(self.deck.pop())
             if _bj_total(self.player) > 21:
                 self.msg = "Bust after double!"; self.phase = "result"
@@ -81,16 +86,16 @@ init python:
             dt  = _bj_total(self.dealer)
             nat = (pt == 21 and len(self.player) == 2)
             if pt > 21:
-                self.msg = "Bust. Lost $%d." % self.bet
+                self.msg = "Bust. Lost $%d." % self.hand_bet
             elif dt > 21 or pt > dt:
-                gain = int(self.bet * 1.5) if nat else self.bet
-                store.money += self.bet + gain
+                gain = int(self.hand_bet * 1.5) if nat else self.hand_bet
+                store.money += self.hand_bet + gain
                 self.msg = ("Blackjack! +$%d" if nat else "You win! +$%d") % gain
             elif pt == dt:
-                store.money += self.bet
+                store.money += self.hand_bet
                 self.msg = "Push — bet returned."
             else:
-                self.msg = "Dealer wins. Lost $%d." % self.bet
+                self.msg = "Dealer wins. Lost $%d." % self.hand_bet
             self.phase = "result"
 
     class _Rou:
@@ -104,13 +109,13 @@ init python:
             self._pending = 0           # drawn number, revealed after animation
 
         def start_spin(self):
-            if self.bet_amt > store.money:
-                self.msg = "Not enough money."; return
-            store.money -= self.bet_amt
+            if not try_spend(self.bet_amt, category="gambling", toast=False):
+                self.msg = "Not enough money."; return False
             self._pending = renpy.random.randint(0, 36)
             self.result   = None
             self.msg      = ""
             self.phase    = "spinning"
+            return True
 
         def finish_spin(self):
             n   = self._pending
@@ -176,8 +181,8 @@ label casino_blackjack_loop:
     elif _return == "bet_down":
         $ bj_game.bet = max(5, bj_game.bet - 25)
     elif _return == "deal":
-        $ bj_game.deal()
-        $ spend_time(0.25)
+        if bj_game.deal():
+            $ spend_time(0.25)
     elif _return == "hit":
         $ bj_game.hit()
     elif _return == "stand":
@@ -208,8 +213,8 @@ label casino_roulette_loop:
     elif _return == "bet_down":
         $ rou_game.bet_amt = max(5, rou_game.bet_amt - 25)
     elif _return == "spin":
-        $ rou_game.start_spin()
-        $ spend_time(0.25)
+        if rou_game.start_spin():
+            $ spend_time(0.25)
     elif _return == "spin_done":
         $ rou_game.finish_spin()
     elif _return == "reset":
@@ -293,7 +298,7 @@ screen casino_blackjack():
             hbox xalign 0.5 ypos 530 spacing 28:
                 textbutton "HIT"   action Return("hit")   text_size 22
                 textbutton "STAND" action Return("stand") text_size 22
-                if money >= bj_game.bet and len(bj_game.player) == 2:
+                if money >= bj_game.hand_bet and len(bj_game.player) == 2:
                     textbutton "DOUBLE" action Return("double") text_size 22 text_color "#f0d060"
 
         elif bj_game.phase == "result":

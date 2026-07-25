@@ -12,6 +12,11 @@ label location_home:
     if (own_guitar and skill_music >= 1 and zoe_affection >= 25
             and zoe_met and not message_already_queued("zoe_guitar_invite")):
         $ queue_phone_message("zoe", "You own a guitar? Either prove it or stop pretending it counts as furniture.", day, "zoe_guitar_invite", responses=_ZOE_GUITAR_RESP)
+    if (apartment_tier == 1 and home_coffee_calibrated and nora_met
+            and nora_cooking_state == "none"
+            and (nora_cooking_declined_day < 0 or day >= nora_cooking_declined_day + 14)):
+        $ queue_phone_message("nora", "That kitchen of yours is depressing. Come on — I'll show you what you can do with a bad hob and the right method.", day, "nora_cheap_home_cooking_invite", responses=_NORA_CHEAP_COOK_RESP)
+        $ nora_cooking_state = "offered"
     scene expression home_bg()
     show screen hud
     jump location_home_actions
@@ -33,6 +38,16 @@ label location_home_actions:
         jump location_home_actions
     if commitment_available("nora_bad_day_1"):
         call scene_nora_bad_day
+        jump location_home_actions
+    if (nora_cooking_state == "pending"
+            and not commitment_available("nora_cheap_home_cooking_1")
+            and any(c["id"] == "nora_cheap_home_cooking_1"
+                    and not c.get("completed") and not c.get("cancelled")
+                    for c in player_commitments)):
+        $ nora_cooking_state = "none"
+        $ nora_cooking_declined_day = day
+    if commitment_available("nora_cheap_home_cooking_1"):
+        call scene_nora_cheap_home_cooking
         jump location_home_actions
 
     menu (screen="activity"):
@@ -203,6 +218,16 @@ label use_computer:
 label location_cafe:
     $ current_loc = "location_cafe"
     # nora_last_seen_day is set in nora_greet (on actual interaction), not on location entry
+    # After-hours commitment (Nora closing) fires at/after close — exempt from the
+    # open-check below, since it is by design an out-of-hours meeting.
+    if commitment_available("nora_closing_1"):
+        call phone_nora_closing_scene
+        jump take_metro
+    # Venue-open gate FIRST: no ambient scene should stage in a closed café
+    # (a scene playing, then "the café is closed" afterwards, is the bug this fixes).
+    if not venue_open("coffee_shop"):
+        "The café is closed. Come back between 07:00–19:00."
+        jump take_metro
     # Priority 2: pending conflict/repair scenes (minor)
     if nora_ignored_pending and nora_met:
         call scene_nora_feels_ignored
@@ -216,12 +241,6 @@ label location_cafe:
     # Priority 5: Kai café quiet (defers when nora_kai_pending has priority)
     if kai_cafe_quiet_pending and npc_here("kai") and not nora_kai_pending:
         call scene_kai_cafe_quiet
-    if commitment_available("nora_closing_1"):
-        call phone_nora_closing_scene
-        jump take_metro
-    if not venue_open("coffee_shop"):
-        "The café is closed. Come back between 07:00–19:00."
-        jump take_metro
     scene expression cafe_bg()
     show screen hud
     if not nora_met:
@@ -257,6 +276,11 @@ label cafe_actions:
         jump nora_closing_scene
     if nora_trust >= 30 and nora_affection >= 30 and not nora_rent_done and nora_closing_done:
         jump nora_rent_scene
+    # Romance reopen — offered once, after the closing scene, if the player let it
+    # go ambiguous/platonic and later rebuilt momentum (see can_offer_romance_reopen).
+    if (nora_closing_done and not nora_reopen_done and major_scene_last_day != day
+            and can_offer_romance_reopen("nora") and hour >= 19):
+        call scene_nora_romance_reopen
     if hour >= 19:
         "The café lights are going off. Time to head out."
         jump take_metro
@@ -271,6 +295,10 @@ label cafe_actions:
         show expression _vis[1][1] as npcsprite2 at sprite_l
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
+    # World Event Director: personal events at café (sam_off_routine)
+    $ _wed_per = wed_poll_personal("location_cafe")
+    if _wed_per:
+        call expression _wed_per
     menu (screen="activity"):
         "Join [_group_lbl] →" if _group:
             call group_interact(_group[0], _group[1])
@@ -400,6 +428,10 @@ label gym_floor:
         show expression _vis[0][1] as npcsprite at sprite_r
     if len(_vis) >= 2:
         show expression _vis[1][1] as npcsprite2 at sprite_l
+    # World Event Director: personal events at gym (sam_off_routine when off her schedule)
+    $ _wed_per = wed_poll_personal("location_gym")
+    if _wed_per:
+        call expression _wed_per
     menu (screen="activity"):
         "Work a shift (8h)" if job_id == "trainer":
             if hour + 8 > DAY_END:
@@ -591,6 +623,16 @@ label location_bar:
     # Priority 2b: Caroline off-work (Thursday 19-22; bypasses npc_here — no bar schedule)
     if caroline_bar_pending and day % 7 == 3 and 19 <= hour < 22:
         call scene_caroline_thursday_bar
+    # Caroline romance-opening beat (Thursday, after the first off-work drink)
+    if (caroline_bar_done and not caroline_romance_open_done and major_scene_last_day != day
+            and caroline_affection >= 65 and caroline_trust >= 60
+            and day % 7 == 3 and 19 <= hour < 22):
+        call scene_caroline_romance_open
+    # Lena romance-opening beat (bar, off shift, after the shoulder-gesture scene)
+    if (lena_shoulder_done and not lena_romance_open_done and npc_here("lena")
+            and major_scene_last_day != day
+            and lena_affection >= 55 and lena_trust >= 55):
+        call scene_lena_romance_open
     # Priority 3: major scenes — one per day, late night only
     if major_scene_last_day != day:
         if not car_marcus_drive_done and marcus_affection >= 30 and marcus_trust >= 20 and car_tier >= 1 and hour >= 22:
@@ -600,6 +642,11 @@ label location_bar:
     # Priority 4: Natalie humanisation (weekend bar schedule, npc_here check)
     if natalie_bar_scene_pending and npc_here("natalie"):
         call scene_natalie_bar_offduty
+    # Priority 4b: Martha romance reopen — after the rooftop, at the bar (Wed eve),
+    # if the player let it stay ambiguous/platonic and rebuilt momentum.
+    if (martha_rooftop_done and not martha_reopen_done and npc_here("martha")
+            and major_scene_last_day != day and can_offer_romance_reopen("martha")):
+        call scene_martha_romance_reopen
     # Priority 5: Marcus basketball invite — fires once at bar when Marcus is present
     if marcus_basketball_invite_pending and marcus_met and npc_here("marcus"):
         $ marcus_basketball_invite_pending = False
@@ -611,6 +658,13 @@ label location_bar:
                 m "Good. Don't be late."
             "Maybe another time.":
                 m "Your loss."
+    # World Event Director
+    $ _wed_amb = wed_poll_ambient("location_bar")
+    if _wed_amb:
+        call expression _wed_amb
+    $ _wed_per = wed_poll_personal("location_bar")
+    if _wed_per:
+        call expression _wed_per
     $ _vis = location_sprites()
     if len(_vis) >= 1:
         show expression _vis[0][1] as npcsprite at sprite_r
@@ -662,6 +716,15 @@ label location_bar:
 # ── OFFICE (corporate career) ─────────────────────────────────────────
 label location_office:
     $ current_loc = "location_office"
+    # Venue-open gate FIRST: no Martha scene should stage when Nexus Tower is
+    # closed (weekend/night) — previously the scene played, then the closed
+    # message appeared afterwards.
+    if not venue_open("office_exec"):
+        if day % 7 >= 5:
+            "Nexus Tower is dark on weekends. The corporate world takes Saturdays off."
+        else:
+            "Nexus Tower is locked up for the night."
+        jump take_metro
     # Priority 2: pending conflict scenes
     if martha_gift_scene_pending and martha_met and hour >= 9 and hour < 18:
         call scene_martha_gift_accusation
@@ -674,12 +737,6 @@ label location_office:
         call scene_wardrobe_martha
     if hour < 10 and martha_affection >= 20 and martha_met and not martha_coffee_machine_done:
         call scene_martha_office_coffee
-    if not venue_open("office_exec"):
-        if day % 7 >= 5:
-            "Nexus Tower is dark on weekends. The corporate world takes Saturdays off."
-        else:
-            "Nexus Tower is locked up for the night."
-        jump take_metro
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene goodoffice1
@@ -965,7 +1022,9 @@ label location_kitchen:
                 call cul_npc1_rena
             elif cul_npc1_done and not cul_npc2_done and cul_shifts >= 7 and job_rank == 0:
                 call cul_npc2_rena
-            elif cul_npc2_done and not cul_review_done and job_performance >= 100 and can_promote() and job_rank == 0:
+            elif cul_npc2_done and not scene_cul_service_crisis_done and cul_shifts >= 10 and job_rank == 0:
+                call scene_cul_service_crisis
+            elif cul_npc2_done and scene_cul_service_crisis_done and not cul_review_done and job_performance >= 100 and can_promote() and job_rank == 0:
                 call cul_review_commis
             else:
                 if _tired:
@@ -1006,6 +1065,11 @@ label location_nightclub:
     if (zoe_moment_deflected_pending and major_scene_last_day != day
             and hour >= 21 and zoe_met):
         call scene_zoe_spontaneous
+    # Romance reopen — after the deflected moment, once momentum/aff/trust rebuild.
+    if (zoe_moment_deflected_done and not zoe_reopen_done and zoe_met
+            and hour >= 21 and major_scene_last_day != day
+            and can_offer_romance_reopen("zoe")):
+        call scene_zoe_romance_reopen
     scene nightclub
     show screen hud
     $ _vis = location_sprites()
@@ -1135,6 +1199,13 @@ label location_park:
         show expression _vis[1][1] as npcsprite2 at sprite_l
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
+    # World Event Director
+    $ _wed_amb = wed_poll_ambient("location_park")
+    if _wed_amb:
+        call expression _wed_amb
+    $ _wed_per = wed_poll_personal("location_park")
+    if _wed_per:
+        call expression _wed_per
     menu (screen="activity"):
         "Join [_group_lbl] →" if _group and not _sam_marcus_fired:
             call group_interact(_group[0], _group[1])
@@ -1206,6 +1277,11 @@ label location_beach:
     # Elle Portugal payoff: fires after pier + decision message received
     if elle_decision_pending and npc_talkable("elle"):
         call scene_elle_portugal_payoff
+    # Elle romance-opening beat (beach, after the pier scene)
+    if (elle_pier_done and not elle_romance_open_done and npc_talkable("elle")
+            and major_scene_last_day != day
+            and elle_affection >= 40 and elle_trust >= 35):
+        call scene_elle_romance_open
     $ _vis = location_sprites()
     if len(_vis) >= 1:
         show expression _vis[0][1] as npcsprite at sprite_r
@@ -1500,6 +1576,9 @@ label location_hospital:
             call scene_lena_shoulder_gesture
     scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
     show screen hud
+    $ _wed_amb = wed_poll_ambient("location_hospital")
+    if _wed_amb:
+        call expression _wed_amb
     $ _vis = location_sprites()
     if len(_vis) >= 1:
         show expression _vis[0][1] as npcsprite at sprite_r
@@ -1623,6 +1702,9 @@ label location_hub:
             call scene_eli_deploy_hug
     scene expression ("hub_night" if (hour >= 20 or hour < 6) else "hub_day")
     show screen hud
+    $ _wed_amb = wed_poll_ambient("location_hub")
+    if _wed_amb:
+        call expression _wed_amb
     menu (screen="activity"):
         "Work a shift (8h)" if job_id == "it":
             $ _it_h = 6 if skill_prog >= 5 else 8
@@ -1992,6 +2074,26 @@ label nora_closing_scene:
     show screen hud
     n "Don't tell Henry I gave away his last coffee."
     "The café lights go off as you step outside."
+    if get_romance_state("nora") in ("unopened", "friends"):
+        menu:
+            "\"Next time — not as a customer.\"" if nora_affection >= 50:
+                $ set_romance_state("nora", "interested", source="nora_closing_scene")
+                $ add_romance_momentum("nora", 15)
+                $ add_relationship_memory("nora", "nora_closing_direction_romance", "Said it outside the café after hours")
+                "She stops walking. Just for a second."
+                n "That's a thing to say in the dark."
+                "She doesn't walk it back."
+            "\"Same time next week?\"":
+                $ set_romance_state("nora", "friends", source="nora_closing_scene")
+                $ add_romance_momentum("nora", 5)
+                $ add_relationship_memory("nora", "nora_closing_direction_platonic", "Kept it easy after closing")
+                n "I'll be here."
+                "She says it lightly. The door is still open, in more ways than one."
+            "[Walk. Say nothing.]":
+                $ add_romance_momentum("nora", 2)
+                $ _apply_trust("nora", 1)
+                $ add_relationship_memory("nora", "nora_closing_direction_withdrawal", "Walked in silence after closing")
+                "She doesn't try to fill it. Neither do you."
     jump take_metro
 
 # ── ELLE - BEST SPOT PAST THE PIER ────────────────────────────────────
@@ -2202,7 +2304,7 @@ label martha_rooftop_scene:
     scene martha_rooftop_1 with dissolve
     show screen hud
     "She's already there. Different from the office — not looser exactly. Less constructed."
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal at sprite_r, react_nod
     ma "You found it."
     "She says it like she wasn't entirely sure you would."
     menu:
@@ -2228,6 +2330,7 @@ label martha_rooftop_scene:
             $ _apply_trust("martha", 2)
         "\"Thank you.\"":
             "She looks briefly uncomfortable with the gratitude."
+            show martha_dress_normal at sprite_r, react_step_back
             ma "Don't. Just — don't let it happen to the next person."
             $ _apply_aff("martha", 3)
     scene martha_rooftop_3 with dissolve
@@ -2244,6 +2347,7 @@ label martha_rooftop_scene:
             $ _apply_aff("martha", 2)
             $ _apply_trust("martha", 2)
         "\"Is that a bad thing?\"":
+            show martha_dress_laugh at sprite_r, react_nod
             ma "Ask me in another nine years."
             "Something almost like a smile."
             $ _apply_aff("martha", 3)
@@ -2256,7 +2360,7 @@ label martha_rooftop_scene:
     show screen hud
     hide martha_dress_normal
     "She pours the last of the bottle into your glass before her own. You notice."
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal at sprite_r, react_lean_in
     ma "What do you actually want from this? Not the title. Not the review scores."
     "The question is specific enough that you believe she wants an actual answer."
     menu:
@@ -2290,6 +2394,30 @@ label martha_rooftop_scene:
     show martha_dress_normal at sprite_r
     ma "Same time next quarter."
     "She doesn't frame it as a question."
+    if get_romance_state("martha") in ("unopened", "friends") and martha_affection >= 55:
+        menu:
+            "\"Same time. Somewhere different.\"":
+                $ set_romance_state("martha", "interested", source="martha_rooftop_scene")
+                $ add_romance_momentum("martha", 15)
+                $ add_relationship_memory("martha", "martha_rooftop_direction_romance", "Said something intentional on the rooftop")
+                "She's quiet for a moment."
+                show martha_dress_normal at sprite_r, react_step_back
+                ma "Is that what this was."
+                "Not a question. She's filing it."
+                ma "I'll note that."
+                "She walks toward the stairs without elaborating."
+            "\"Same time next quarter.\"":
+                $ set_romance_state("martha", "friends", source="martha_rooftop_scene")
+                $ add_romance_momentum("martha", 5)
+                $ add_relationship_memory("martha", "martha_rooftop_direction_platonic", "Matched her register exactly")
+                ma "Good."
+                "She says it like a conclusion. Which it is."
+            "[Watch the city. Say nothing.]":
+                $ _apply_trust("martha", 1)
+                $ add_romance_momentum("martha", 2)
+                $ add_relationship_memory("martha", "martha_rooftop_direction_withdrawal", "Let the question stay open")
+                "She follows your gaze for a moment."
+                "The silence doesn't need filling. She knows that."
     hide martha_dress_normal
     $ add_relationship_memory("martha", "martha_rooftop", "The rooftop conversation")
     jump take_metro
@@ -2585,3 +2713,99 @@ label location_terrace:
             $ gain_stat("int", 12)
             "A chapter in the open air. The light's good."
             jump location_terrace
+
+
+# ── LATE-NIGHT DINER (nadbrzeże) ──────────────────────────────────────────────
+
+label location_diner:
+    $ current_loc = "location_diner"
+    $ activity_exit_jump = "location_nadbrzeze"
+    $ activity_exit_name = "Quayside"
+    if not venue_open("diner"):
+        "The diner is closed. It opens at 8pm."
+        jump location_nadbrzeze
+    scene diner_night
+    show screen hud
+    if (rena_met and cul_npc1_done and not rena_diner_first_done
+            and npc_here("rena") and major_scene_last_day != day):
+        call scene_rena_diner_first
+    if npc_here("rena"):
+        show rena_casual_normal at sprite_r
+    menu (screen="activity"):
+        "Order coffee ($3, 0.5h)":
+            if try_spend(3):
+                $ spend_time(0.5)
+                $ need_energy = min(100, need_energy + 8)
+                "Late-night filter. Bitter and exactly right."
+            else:
+                "Not enough cash."
+            jump location_diner
+        "Order a meal ($8, 1h)":
+            if try_spend(8):
+                $ spend_time(1)
+                $ need_hunger = min(100, need_hunger + 40)
+                "The menu is short. Whatever it is, it's done well enough."
+            else:
+                "Not enough cash."
+            jump location_diner
+        "Sit for a while (1h)":
+            $ spend_time(1)
+            $ need_energy = min(100, need_energy + 5)
+            "The noise of the night softens here. You don't need to be anywhere."
+            jump location_diner
+        "Talk to Rena" if npc_here("rena"):
+            call rena_diner_talk
+            jump location_diner
+        "Leave":
+            hide rena_casual_normal
+            jump location_nadbrzeze
+
+
+label scene_rena_diner_first:
+    $ rena_diner_first_done = True
+    $ add_relationship_memory("rena", "diner_first", "Saw Rena off duty")
+    "A booth near the back. Rena, in a dark sweater, a paperback open on the table."
+    "She looks up when you come in. Recognition crosses her face without surprise."
+    show rena_casual_normal at sprite_r
+    rena "Commis."
+    "It's not unfriendly. It's just accurate."
+    menu:
+        "\"Didn't expect to see you here.\"":
+            rena "I eat here most weeks. It's someone else's kitchen."
+            "She says it like that explains everything. It does."
+            $ _apply_aff("rena", 2)
+        "\"Good book?\"":
+            rena "Third time through. The killer's obvious but the geography is right."
+            "She marks her page without being asked. You haven't been dismissed."
+            $ _apply_aff("rena", 2)
+        "Order something and sit nearby — don't interrupt her.":
+            "You don't say anything. Neither does she."
+            "After a while she turns a page. The silence is comfortable in the way that silences in kitchens never are."
+            $ _apply_trust("rena", 3)
+    return
+
+
+label rena_diner_talk:
+    show rena_casual_talk at sprite_r
+    rena "Still here."
+    menu:
+        "Ask about the book she's reading.":
+            rena "Crime. Eastern European procedurals — the geography holds up better than the plots."
+            rena "The detectives are always tired. I find that credible."
+            show rena_casual_normal at sprite_r
+            $ _apply_aff("rena", 1)
+        "Ask if she ever switches off completely.":
+            show rena_casual_normal at sprite_r
+            rena "I'm here, aren't I?"
+            "She orders from someone else's menu without looking at the specials."
+            rena "That's switching off."
+            $ _apply_aff("rena", 1)
+        "Talk about the kitchen.":
+            show rena_casual_normal at sprite_r
+            rena "Not tonight."
+            "It's not harsh. It's a boundary she keeps cleanly."
+        "Just check in — nothing specific.":
+            show rena_casual_normal at sprite_r
+            rena "Still here."
+            "She means it as an answer. You let it be one."
+    return

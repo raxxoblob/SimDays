@@ -45,6 +45,10 @@ init python:
         {"id": "prove",   "text": "Come over and judge.", "label": "phone_reply_zoe_guitar_invite"},
         {"id": "decline", "text": "It's decorative.",     "label": "phone_reply_zoe_guitar_decline"},
     ]
+    _NORA_CHEAP_COOK_RESP = [
+        {"id": "invite",  "text": "Come over, I'll have the kitchen ready.", "label": "phone_reply_nora_cheap_cook_invite"},
+        {"id": "decline", "text": "Maybe another time.",                      "label": "phone_reply_nora_cheap_cook_decline"},
+    ]
 
 
 # ── Martha coffee ──────────────────────────────────────────────────────────────
@@ -262,6 +266,27 @@ label phone_reply_nora_coffee_invite:
 
 label phone_reply_nora_coffee_decline:
     $ queue_phone_message("nora", "Your loss. The machine will suffer.", day, "nora_coffee_declined")
+    return
+
+
+# ── Nora cheap-home cooking ───────────────────────────────────────────────────
+
+label phone_reply_nora_cheap_cook_invite:
+    $ _day_nck = day + 1
+    $ _cf = has_conflict(_day_nck, 18)
+    if _cf:
+        $ queue_phone_message("nora", "I'll be there at six. Don't pre-season anything.", day, "nora_cheap_cook_confirm")
+        $ queue_phone_message("nora", "(Note: overlaps with %s at %02d:00)" % (_cf["title"], _cf["hour"]), day, "nora_cheap_cook_conflict")
+    else:
+        $ queue_phone_message("nora", "I'll be there at six. Don't pre-season anything.", day, "nora_cheap_cook_confirm")
+    $ add_commitment("nora_cheap_home_cooking_1", "nora", "Nora cooks at yours", _day_nck, 18, "Your apartment", "scene_nora_cheap_home_cooking")
+    $ nora_cooking_state = "pending"
+    return
+
+label phone_reply_nora_cheap_cook_decline:
+    $ nora_cooking_declined_day = day
+    $ nora_cooking_state = "none"
+    $ queue_phone_message("nora", "Fine. Suffer through it on your own.", day, "nora_cheap_cook_declined")
     return
 
 

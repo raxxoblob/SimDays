@@ -93,9 +93,11 @@ label scene_marcus_missed_commitment:
     show marcus_casual_normal at sprite_r
     if _mc_days <= 3:
         m "I was at [_missed_loc]. [_missed_title]. You didn't show."
+        show marcus_casual_worried at sprite_r, react_nod
         "He says it flat. No performance."
     else:
         m "We still haven't talked about [_mc_title]."
+        show marcus_casual_worried at sprite_r, react_nod
         "He doesn't look angry. Just direct."
     # cg_marcus_missed: close-up CG, neutral background — used for both park and bar staging.
     scene cg_marcus_missed with dissolve
@@ -104,9 +106,11 @@ label scene_marcus_missed_commitment:
         "\"You're right. I should have called.\"":
             $ _apply_trust("marcus", 2)
             m "Yeah. You should have."
+            show marcus_casual_normal at sprite_r, react_nod
             m "But you're here now, so."
         "\"Something came up I couldn't move.\"":
             $ _apply_trust("marcus", -1)
+            show marcus_casual_worried at sprite_r, react_shake
             m "There's always something. That's not the point."
             "He leaves it there."
         "[[Leave without saying anything.]]":
@@ -432,14 +436,15 @@ label scene_eli_deploy_hug:
     show eli_normal at sprite_r
     "Eli is standing over the dashboard. Something just went green."
     eli "It's live."
-    "They say it like they can't believe it yet."
+    "She says it like she can't believe it yet."
     scene cg_eli_deploy_hug with dissolve
     show screen hud
-    "You lean over to look at the screen. Your shoulder meets theirs."
+    "You lean over to look at the screen. Your shoulder meets hers."
     "A half-second of stillness."
-    "Then Eli hugs you. Briefly, slightly surprised at themselves."
-    $ _hug_text = do_hug("eli")
-    "[_hug_text]"
+    "Then Eli hugs you. Briefly, slightly surprised at herself."
+    # Scene-initiated hug — Eli chose this. Don't re-run the consent gate (which
+    # could return a rejection line and contradict the narration above).
+    $ record_forced_hug("eli")
     $ spend_time(0.5)
     hide eli_normal
     scene hub_pov
@@ -457,7 +462,7 @@ label scene_lena_shoulder_gesture:
     $ major_scene_last_day = day
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal at sprite_r, react_lean_in
     "She finds you in the corridor. Doesn't say why."
     "She puts a hand on your shoulder. Steady, deliberate."
     scene cg_lena_shoulder with dissolve
@@ -754,7 +759,7 @@ label scene_zoe_spontaneous:
     $ major_scene_last_day = day
     scene nightclub    # bg: nightclub
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral at sprite_r, react_lean_in
     "They've been in the corner for the last hour. Zoe has been good company — the kind where you don't notice time."
     "She says something. Not loud enough to be a statement, but specific."
     if zoe_rain_done:
@@ -766,46 +771,55 @@ label scene_zoe_spontaneous:
     "She looks at her drink. \"Anyway.\" She gestures at the room. \"I should—\""
     "She doesn't finish the sentence."
     hide zoe_street_neutral
-    scene cg_zoe_almost    # CG: the moment before — proximity, unspoken
+    scene nightclub
     show screen hud
     menu:
-        "[Let her redirect. Talk about something else.]":
-            scene nightclub
-            show screen hud
-            show zoe_street_neutral at sprite_r
-            "She relaxes into it. The cover works."
-            "She glances at you once more before the scene ends."
-            $ _apply_trust("zoe", 3)
         "\"You don't have to do that.\"":
+            # Romantic direction — call the deflection out directly
+            scene cg_zoe_almost
+            show screen hud
             scene nightclub
             show screen hud
             show zoe_street_neutral at sprite_r
             z "Do what?"
             "\"The thing where you walk it back.\""
-            "Long pause."
-            z "I'm not walking anything back. I just said a thing."
+            "Long pause. She's working out whether to be annoyed or impressed."
+            show zoe_street_talk at sprite_r
+            z "I wasn't walking anything back."
+            show zoe_street_smile at sprite_r, react_bounce
             "\"I know.\""
-            "She nods once."
-            $ _apply_trust("zoe", 2)
-            $ _apply_aff("zoe", 3)
-        "[Say exactly what she said, once, quietly. Then change the subject yourself.]":
-            scene nightclub
-            show screen hud
-            show zoe_street_neutral at sprite_r
-            "She actually smiles. Not the careful one."
-            "You change the subject. She lets you."
+            "She looks at you for a long moment. The nightclub keeps going around both of you."
+            show zoe_street_neutral at sprite_r, react_nod
+            z "Okay."
+            "Just that. But she doesn't change the subject."
+            if get_romance_state("zoe") in ("unopened", "friends"):
+                $ set_romance_state("zoe", "interested", source="scene_zoe_spontaneous")
+                $ add_romance_momentum("zoe", 15)
+                $ add_relationship_memory("zoe", "zoe_spontaneous_direction_romance", "Called her deflection at the nightclub")
+            $ _apply_trust("zoe", 3)
             $ _apply_aff("zoe", 4)
-        "\"I feel the same way.\" [Move toward her.]":
+        "[Say what she said, once, quietly. Then change the subject yourself.]":
+            # Platonic close-friend direction — mirror her, then close the moment on your terms
             scene nightclub
             show screen hud
-            show zoe_street_neutral at sprite_r
-            z "I didn't say anything."
-            "Flat. Not cruel."
-            menu:
-                "[Recognise the misread. Pull back.] \"Sorry.\"":
-                    z "It's fine."
-                "[Push.]":
-                    $ _apply_aff("zoe", -2)
+            show zoe_street_smile at sprite_r, react_bounce
+            "She actually smiles. Not the careful one."
+            "You change the subject. She lets you. Properly lets you — like it was agreed."
+            if get_romance_state("zoe") in ("unopened", "friends"):
+                $ set_romance_state("zoe", "friends", source="scene_zoe_spontaneous")
+                $ add_romance_momentum("zoe", 5)
+                $ add_relationship_memory("zoe", "zoe_spontaneous_direction_platonic", "Mirrored her and closed the moment together")
+            $ _apply_aff("zoe", 4)
+            $ _apply_trust("zoe", 3)
+        "[Let her redirect. Talk about something else.]":
+            # Withdrawal — give her the exit she was already reaching for
+            scene nightclub
+            show screen hud
+            show zoe_street_neutral at sprite_r, react_sigh
+            "She visibly relaxes. The cover works."
+            "She glances at you once — brief — before the conversation shifts."
+            $ add_romance_momentum("zoe", 2)
+            $ _apply_trust("zoe", 2)
     hide zoe_street_neutral
     scene nightclub
     show screen hud
@@ -815,7 +829,264 @@ label scene_zoe_spontaneous:
     $ spend_time(1.0)
     $ zoe_moment_deflected_done = True
     $ zoe_moment_deflected_pending = False
-    $ add_relationship_memory("zoe", "zoe_almost_moment", "The moment that didn't happen")
+    $ add_relationship_memory("zoe", "zoe_almost_moment", "The moment at the nightclub")
+    return
+
+
+# ── scene_nora_romance_reopen ─────────────────────────────────────────────────
+# Triggered after player chose platonic/withdrawal at nora_closing_scene and
+# momentum later crosses threshold. Nora references the prior choice explicitly.
+label scene_nora_romance_reopen:
+    $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
+    $ _nora_prior_state = get_romance_state("nora")
+    scene expression cafe_bg()
+    show screen hud
+    show nora_cafe_normal at sprite_r
+    "It's quieter than usual. Last customer left ten minutes ago."
+    "She's wiping down the counter. Not rushing."
+    n "You said next week. I wasn't sure what you meant by that."
+    if _nora_prior_state == "friends":
+        n "The 'same time next week' version. The regular version."
+    else:
+        n "Or maybe you didn't mean anything. You walked off before I could ask."
+    "You consider your answer."
+    menu:
+        "\"I meant something different. I think you know that.\"" if nora_affection >= 50 and nora_trust >= 45:
+            show nora_cafe_laugh at sprite_r
+            n "Yeah. I know."
+            "A beat. Then she sets the cloth down."
+            n "Same time. Somewhere different. Deal?"
+            $ set_romance_state("nora", "interested", source="scene_nora_romance_reopen")
+            $ add_romance_momentum("nora", 20)
+            $ add_relationship_memory("nora", "nora_reopen_romance", "Cleared the ambiguity after the closing scene")
+            $ _apply_trust("nora", 3)
+            $ _apply_aff("nora", 4)
+        "\"Same time, same place. I like the coffee.\"":
+            n "That's a terrible reason."
+            n "But okay."
+            $ set_romance_state("nora", "friends", source="scene_nora_romance_reopen")
+            $ add_romance_momentum("nora", 8)
+            $ add_relationship_memory("nora", "nora_reopen_platonic", "Settled back into regulars after ambiguity")
+            $ _apply_aff("nora", 2)
+        "[Change the subject. Let it stay ambiguous.]":
+            "She lets you change it."
+            "But she watches you leave."
+            $ add_romance_momentum("nora", 5)
+            $ _apply_trust("nora", 1)
+    hide nora_cafe_normal
+    hide nora_cafe_laugh
+    $ nora_reopen_done = True
+    $ spend_time(0.5)
+    return
+
+
+# ── scene_zoe_romance_reopen ──────────────────────────────────────────────────
+# Triggered after player chose platonic/withdrawal at scene_zoe_spontaneous and
+# momentum later crosses threshold.
+label scene_zoe_romance_reopen:
+    $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
+    $ _zoe_prior_state = get_romance_state("zoe")
+    scene nightclub
+    show screen hud
+    show zoe_street_neutral at sprite_r
+    "She finds you at the bar. Leans against it instead of sitting."
+    z "So are we still pretending that moment didn't happen?"
+    if _zoe_prior_state == "friends":
+        z "You mirrored me. Neat move. But it was still a moment."
+    else:
+        z "You gave me the exit. I used it. That's not the same as it not existing."
+    menu:
+        "\"No. We're not.\"" if zoe_affection >= 50 and zoe_trust >= 45:
+            z "Okay. Good."
+            "She doesn't make it bigger than that. But she doesn't move away either."
+            $ set_romance_state("zoe", "interested", source="scene_zoe_romance_reopen")
+            $ add_romance_momentum("zoe", 20)
+            $ add_relationship_memory("zoe", "zoe_reopen_romance", "Stopped pretending after the nightclub moment")
+            $ _apply_trust("zoe", 3)
+            $ _apply_aff("zoe", 4)
+        "\"I think we handled it fine.\"":
+            z "That's a very diplomatic answer."
+            "She almost smiles."
+            $ set_romance_state("zoe", "friends", source="scene_zoe_romance_reopen")
+            $ add_romance_momentum("zoe", 8)
+            $ add_relationship_memory("zoe", "zoe_reopen_platonic", "Agreed it was handled — closed the loop")
+            $ _apply_aff("zoe", 2)
+        "[Shrug. Order another drink.]":
+            "She watches you for a second."
+            z "Fair enough."
+            "She orders the same."
+            $ add_romance_momentum("zoe", 5)
+            $ _apply_trust("zoe", 1)
+    hide zoe_street_neutral
+    $ zoe_reopen_done = True
+    $ spend_time(1.0)
+    return
+
+
+# ── scene_martha_romance_reopen ───────────────────────────────────────────────
+# Triggered after player chose platonic/withdrawal at martha_rooftop_scene and
+# momentum later crosses threshold.
+label scene_martha_romance_reopen:
+    $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
+    $ _martha_prior_state = get_romance_state("martha")
+    scene bar
+    show screen hud
+    show martha_dress_normal at sprite_r
+    "She's already at the table when you arrive. Two glasses, not one."
+    ma "Your behaviour since that conversation has been inconsistent with your answer."
+    "No preamble. That's Martha."
+    if _martha_prior_state == "friends":
+        ma "You said same time, same quarter. Then you rearranged twice and showed up early both times."
+    else:
+        ma "You didn't say anything. Then you've been — attentive. More than professionally necessary."
+    "You sit down."
+    menu:
+        "\"You're right. My answer was incomplete.\"" if martha_affection >= 65 and martha_trust >= 60:
+            "Something shifts in her posture. Not much. Enough."
+            ma "I appreciate the correction."
+            "She lifts her glass. A small gesture. An acknowledgement."
+            $ set_romance_state("martha", "interested", source="scene_martha_romance_reopen")
+            $ add_romance_momentum("martha", 20)
+            $ add_relationship_memory("martha", "martha_reopen_romance", "Corrected the rooftop answer in the bar")
+            $ _apply_trust("martha", 4)
+            $ _apply_aff("martha", 4)
+        "\"I've been consistent. You're reading into it.\"":
+            "Long pause."
+            ma "Perhaps."
+            "She doesn't sound convinced, but she accepts it."
+            $ set_romance_state("martha", "friends", source="scene_martha_romance_reopen")
+            $ add_romance_momentum("martha", 8)
+            $ add_relationship_memory("martha", "martha_reopen_platonic", "Held the professional frame after the rooftop")
+            $ _apply_aff("martha", 2)
+        "[Let the silence sit. See what she does with it.]":
+            "She lets it sit too."
+            "Eventually she moves on to the agenda."
+            "But she poured two glasses."
+            $ add_romance_momentum("martha", 6)
+            $ _apply_trust("martha", 2)
+    hide martha_dress_normal
+    $ martha_reopen_done = True
+    $ spend_time(1.0)
+    return
+
+
+# ══ Romance-opening scenes (Caroline / Lena / Elle) ═══════════════════════════
+# These NPCs have romance profiles + kiss content but, unlike Nora/Zoe/Martha,
+# had no scene that ever set state to "interested" — so the kiss was unreachable.
+# Each fires once, at the NPC's venue, after their closeness scene and once aff/
+# trust clear the profile's opening thresholds. The romantic option opens romance
+# ("interested"); the platonic option settles to "friends" (still reopenable later
+# via the can_offer_romance_reopen path). Mirrors nora_closing_scene's structure.
+
+label scene_caroline_romance_open:
+    $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
+    scene bar
+    show screen hud
+    show caroline_normal at sprite_r
+    "She's at the same corner table. She doesn't look surprised to see you — she rarely does."
+    caro "You keep turning up where I am. I've stopped calling it coincidence."
+    "She turns the glass a quarter-turn on the table. Precise, like everything she does."
+    caro "So. Are we colleagues who happen to drink in the same places, or is this something you're doing on purpose?"
+    "It isn't a trap. It's a genuine question, asked the way she asks everything — as if the answer is data she intends to use."
+    menu:
+        "\"On purpose. I think you already knew that.\"" if caroline_affection >= 65 and caroline_trust >= 60:
+            caro "I suspected. I don't act on suspicion."
+            "A pause. Then, evenly:"
+            caro "Now I have confirmation. That changes the calculation."
+            "She doesn't smile, exactly. But something in her posture opens by a degree."
+            $ set_romance_state("caroline", "interested", source="scene_caroline_romance_open")
+            $ add_romance_momentum("caroline", 20)
+            $ add_relationship_memory("caroline", "caroline_romance_open", "Told her it was on purpose")
+            $ _apply_trust("caroline", 4)
+            $ _apply_aff("caroline", 4)
+        "\"Colleagues who drink well. Nothing more.\"":
+            caro "Sensible. Probably correct."
+            "She accepts it without visible disappointment. Whether that's genuine or discipline, you can't tell."
+            $ set_romance_state("caroline", "friends", source="scene_caroline_romance_open")
+            $ add_romance_momentum("caroline", 6)
+            $ add_relationship_memory("caroline", "caroline_romance_declined", "Kept it to colleagues")
+            $ _apply_aff("caroline", 2)
+        "[Let the question hang. Order a drink instead.]":
+            "You signal the bartender rather than answer."
+            caro "That's an answer too. Just a slower one."
+            $ add_romance_momentum("caroline", 4)
+            $ _apply_trust("caroline", 1)
+    hide caroline_normal
+    $ caroline_romance_open_done = True
+    $ spend_time(1.0)
+    return
+
+
+label scene_lena_romance_open:
+    $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
+    scene bar
+    show screen hud
+    show drlena_normal at sprite_r
+    "She's off shift — you can tell because she's not scanning the room for the next emergency."
+    lena "Can I ask you something without it turning weird?"
+    "She doesn't wait long for permission. She's decided to say it either way."
+    lena "I look forward to this. Whatever this is. I wanted to know if I'm the only one holding it that way."
+    menu:
+        "\"You're not. I've been holding it the same way.\"" if lena_affection >= 55 and lena_trust >= 55:
+            "She lets out a breath she was clearly holding."
+            lena "Okay. Good. Then I'm glad I said it."
+            "She's steady again almost at once — but warmer now, like a decision has been filed and she's at peace with it."
+            $ set_romance_state("lena", "interested", source="scene_lena_romance_open")
+            $ add_romance_momentum("lena", 20)
+            $ add_relationship_memory("lena", "lena_romance_open", "Said it back, at the bar")
+            $ _apply_trust("lena", 4)
+            $ _apply_aff("lena", 4)
+        "\"I value this. As a friendship.\"":
+            lena "That's — yes. That's a good thing to be clear about."
+            "If there's a flicker of something else, she folds it away with the same care she gives everything."
+            $ set_romance_state("lena", "friends", source="scene_lena_romance_open")
+            $ add_romance_momentum("lena", 6)
+            $ add_relationship_memory("lena", "lena_romance_declined", "Named it as friendship")
+            $ _apply_aff("lena", 2)
+        "[Answer honestly, but don't commit.]":
+            "You give her something true and incomplete."
+            lena "That's fair. I asked a big question at a small table."
+            $ add_romance_momentum("lena", 4)
+            $ _apply_trust("lena", 2)
+    hide drlena_normal
+    $ lena_romance_open_done = True
+    $ spend_time(1.0)
+    return
+
+
+label scene_elle_romance_open:
+    $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
+    scene expression ("beachnight" if hour >= 19 else "beachday")
+    show screen hud
+    show elle_sundress_normal at sprite_r
+    "She's got her feet in the sand and her eyes on the water, the way she is when she's decided to stop performing for a bit."
+    el "Can I say a thing? And you don't have to match it, I just want it out loud."
+    "She glances over, half a laugh already in her voice, covering for the fact that she means it."
+    el "I like when it's you. More than the beach-friends version. I've been sitting on that for a while."
+    menu:
+        "\"Then let's not do the beach-friends version.\"" if elle_affection >= 40 and elle_trust >= 35:
+            show elle_sundress_normal at sprite_r
+            "She grins, properly this time, and looks back at the water like she needs a second."
+            el "Okay. Okay, good. I was ninety percent sure and ten percent about to feel very silly."
+            $ set_romance_state("elle", "interested", source="scene_elle_romance_open")
+            $ add_romance_momentum("elle", 20)
+            $ add_relationship_memory("elle", "elle_romance_open", "Said it back on the beach")
+            $ _apply_trust("elle", 4)
+            $ _apply_aff("elle", 4)
+        "\"I like the beach-friends version. A lot.\"":
+            el "Yeah? Good. That's — yeah, that works too."
+            "She means it, mostly. She's good at meaning things mostly."
+            $ set_romance_state("elle", "friends", source="scene_elle_romance_open")
+            $ add_romance_momentum("elle", 6)
+            $ add_relationship_memory("elle", "elle_romance_declined", "Kept it to beach friends")
+            $ _apply_aff("elle", 2)
+        "[Smile. Let the water fill the gap.]":
+            "You don't answer with words. She lets it go, but she noticed you didn't say no."
+            $ add_romance_momentum("elle", 4)
+            $ _apply_trust("elle", 1)
+    hide elle_sundress_normal
+    $ elle_romance_open_done = True
+    $ spend_time(1.0)
     return
 
 
@@ -829,6 +1100,7 @@ label scene_zoe_spontaneous:
 # No CG (the dissonance of seeing her out of context is the point).
 
 label scene_caroline_thursday_bar:
+    $ major_scene_last_day = day   # counts as the day's major scene (blocks same-visit chaining into romance-open)
     scene bar
     show screen hud
     show caroline_normal at sprite_r
@@ -875,6 +1147,7 @@ label scene_caroline_thursday_bar:
 # No CG.
 
 label scene_natalie_bar_offduty:
+    $ major_scene_last_day = day   # counts as the day's major scene (blocks same-visit chaining into romance-reopen)
     scene bar
     show screen hud
     show natalie_normal at sprite_r
@@ -970,6 +1243,7 @@ label scene_kai_cafe_quiet:
 # Branches on elle_travel_2_response stored during arc_elle_travel_2.
 
 label scene_elle_portugal_payoff:
+    $ major_scene_last_day = day   # counts as the day's major scene (blocks same-visit chaining into romance-open)
     scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
     show elle_sundress_normal at sprite_r
@@ -978,7 +1252,6 @@ label scene_elle_portugal_payoff:
     el "I was starting to think you weren't going to come."
     scene cg_elle_portugal_turn with dissolve
     show screen hud
-    # ponytail: cg_elle_portugal_turn.png needs generation — see docs/relationship_content_pack_2.md.
     # Branch on the player's earlier response in arc_elle_travel_2.
     if elle_travel_2_response == "take_it":
         el "You made it sound obvious. I think you were right."
@@ -1049,7 +1322,6 @@ label scene_sam_marcus_park:
     m "Tiebreaker. Come on."
     scene cg_sam_marcus_court with dissolve
     show screen hud
-    # ponytail: cg_sam_marcus_court.png needs generation — see docs/relationship_content_pack_2.md.
     $ _sam_leads = sam_affection >= marcus_affection
     if _sam_leads:
         menu:

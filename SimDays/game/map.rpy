@@ -81,6 +81,7 @@ init python:
         "terrace":     (12, 22),
         "casino":      (20, 28),  # 8pm-4am
         "lombard":     (10, 20),
+        "diner":       (20, 28),  # 8pm-4am
     }
 
     _WEEKDAY_ONLY = {"office_exec", "university"}  # closed Sat-Sun (day%7 >= 5)
@@ -165,10 +166,11 @@ screen centrum_hub():
 
 define NADBRZEZE_VENUES = [
     # (venue_key for venue_open/hours, icon filename, label, jump target)
-    ("bar",     "anchor",  "The Anchor", "location_anchor"),
-    ("terrace", "terrace", "Terrace",    "location_terrace"),
-    ("casino",  "casino",  "Casino",     "location_casino"),
-    ("lombard", "lombard", "Lombard",    "location_lombard"),
+    ("bar",     "anchor",     "The Anchor",     "location_anchor"),
+    ("terrace", "terrace",    "Terrace",         "location_terrace"),
+    ("casino",  "casino",     "Casino",          "location_casino"),
+    ("lombard", "lombard",    "Lombard",         "location_lombard"),
+    ("diner",   "restaurant", "Late-Night Diner", "location_diner"),
 ]
 
 screen nadbrzeze_hub():
