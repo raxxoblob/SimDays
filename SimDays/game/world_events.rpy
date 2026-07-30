@@ -712,7 +712,10 @@ init python:
         """
         if store.wed_ambient_fired.get(location):
             return None
-        return store.wed_ambient_today.get(location) or None
+        eid = store.wed_ambient_today.get(location)
+        if not eid:
+            return None
+        return WED_REGISTRY.get(eid, {}).get("label")
 
     # ── Pre-roll: called from new_day() ──────────────────────────────────
 

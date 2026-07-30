@@ -121,7 +121,7 @@ screen hallway_hub():
                     action Jump("location_home")
                 text "Your Place" xalign 0.5 size 16 color "#ffffff"
             # Marcus's door
-            if marcus_met and npc_here("marcus"):
+            if marcus_met and (not move_in_complete or npc_here("marcus")):
                 vbox:
                     xsize 150
                     spacing 4
