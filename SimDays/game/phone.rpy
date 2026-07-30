@@ -107,6 +107,16 @@ transform _phone_in():
     yoffset 700 alpha 0.0
     easein 0.28 yoffset 0 alpha 1.0
 
+screen phone_frame():
+    zorder 150
+    modal True
+    add "#000000aa"
+    fixed:
+        xpos 1460
+        ypos 390
+        xysize (460, 690)
+        add Transform("images/ui/phone.png", size=(460, 690))
+
 screen phone_home():
     modal True
     add "#000000aa"
@@ -140,14 +150,14 @@ screen phone_home():
                 null height 18
 
                 $ _apps = [
-                    ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_messages_scr")]),
-                    ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_messages_scr")]),
+                    ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_frame"), Show("phone_messages_scr")]),
+                    ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_frame"), Show("phone_messages_scr")]),
                     ("app_map",       "Map",        Hide("phone_home")),
                     ("app_jobs",      "Jobs",       Hide("phone_home")),
-                    ("app_bank",      "Bank",       [Hide("phone_home"), Show("phone_bank_scr")]),
+                    ("app_bank",      "Bank",       [Hide("phone_home"), Show("phone_frame"), Show("phone_bank_scr")]),
                     ("app_stocks",    "Stocks",     [Hide("phone_home"), Show("stock_market")]),
-                    ("app_tips",      "Goals",      [Hide("phone_home"), Show("phone_goals_scr")]),
-                    ("app_settings",  "Settings",   [Hide("phone_home"), Show("phone_settings")]),
+                    ("app_tips",      "Goals",      [Hide("phone_home"), Show("phone_frame"), Show("phone_goals_scr")]),
+                    ("app_settings",  "Settings",   [Hide("phone_home"), Show("phone_frame"), Show("phone_settings")]),
                 ]
                 vpgrid:
                     cols 3
@@ -203,13 +213,11 @@ screen _phone_app(label, act):
 
 screen phone_messages_scr():
     on "show" action [Function(deliver_due_messages), Function(mark_all_messages_read)]
-    modal True
-    add "#000000aa"
     frame:
-        xalign 0.985
-        yalign 0.5
-        xsize 380
-        ysize 720
+        xpos 1462
+        ypos 392
+        xsize 456
+        ysize 682
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (24, 16, 24, 16)
         vbox:
@@ -217,11 +225,11 @@ screen phone_messages_scr():
             text "Messages" font PROFILE_FONT size 26 color "#ffffff" xalign 0.5
             null height 8
             viewport:
-                ysize 620
+                ysize 540
                 mousewheel True
                 vbox:
                     spacing 8
-                    xsize 332
+                    xfill True
                     # ── Upcoming commitments ──────────────────────────
                     use commitments_list(compact=True)
                     # ── Agenda: today + tomorrow ──────────────────────
@@ -290,7 +298,7 @@ screen phone_messages_scr():
                                                         xysize (120, 30)
                                                         background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
                                                         hover_background Frame("images/ui/act_bar_hover.png", 16, 16, 16, 16)
-                                                        action [Function(mark_message_replied, _imsg, _rsp["id"]), Hide("phone_messages_scr"), Hide("phone_home"), Function(renpy.jump, _rsp["label"])]
+                                                        action [Function(mark_message_replied, _imsg, _rsp["id"]), Hide("phone_messages_scr"), Hide("phone_frame"), Hide("phone_home"), Function(renpy.jump, _rsp["label"])]
                                                         text _rsp["text"] font ACT_FONT size 12 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
                             if _is_r and _rt:
                                 null height 2
@@ -299,7 +307,7 @@ screen phone_messages_scr():
                                     spacing 8
                                     yalign 0.0
                                     frame:
-                                        xmaximum 232
+                                        xmaximum 280
                                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                                         padding (10, 7, 10, 7)
                                         text _rt font ACT_FONT size 11 color "#4a7a9b"
@@ -353,19 +361,17 @@ screen phone_messages_scr():
                     elif not daily_events:
                         text "No messages." font ACT_FONT size 15 color "#4a6080"
             null height 6
-            textbutton "Back" action [Hide("phone_messages_scr"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
+            textbutton "Back" action [Hide("phone_messages_scr"), Hide("phone_frame"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 
 screen phone_goals_scr():
     on "show" action Function(fs_refresh)
-    modal True
-    add "#000000aa"
     frame:
-        xalign 0.985
-        yalign 0.5
-        xsize 380
-        ysize 720
+        xpos 1462
+        ypos 392
+        xsize 456
+        ysize 682
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (24, 22, 24, 22)
         vbox:
@@ -375,11 +381,11 @@ screen phone_goals_scr():
             $ _active = active_quests()
             $ _done   = completed_quests()
             viewport:
-                ysize 550
+                ysize 520
                 mousewheel True
                 vbox:
                     spacing 8
-                    xsize 332
+                    xfill True
                     # ── First Steps card ─────────────────────────────
                     $ _fs_track = first_steps_track
                     $ _fs_data  = FIRST_STEPS.get(_fs_track, {}) if _fs_track else {}
@@ -443,17 +449,15 @@ screen phone_goals_scr():
                 spacing 10
                 xalign 0.5
                 textbutton "Help" action [Hide("phone_goals_scr"), Show("phone_help_scr")] text_font ACT_FONT text_size 16 text_color "#5bcafa" text_hover_color "#ffffff"
-                textbutton "Back" action [Hide("phone_goals_scr"), Show("phone_home")] text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
+                textbutton "Back" action [Hide("phone_goals_scr"), Hide("phone_frame"), Show("phone_home")] text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 screen phone_settings():
-    modal True
-    add "#000000aa"
     frame:
-        xalign 0.985
-        yalign 0.5
-        xsize 380
-        ysize 720
+        xpos 1462
+        ypos 392
+        xsize 456
+        ysize 682
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (26, 22, 26, 22)
         vbox:
@@ -470,17 +474,15 @@ screen phone_settings():
             textbutton "Auto-forward: toggle" action Preference("auto-forward", "toggle") text_font ACT_FONT text_size 18
             textbutton "Fullscreen: toggle" action Preference("display", "toggle") text_font ACT_FONT text_size 18
             null height 8
-            textbutton "Back" action [Hide("phone_settings"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
+            textbutton "Back" action [Hide("phone_settings"), Hide("phone_frame"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 screen phone_bank_scr():
-    modal True
-    add "#000000aa"
     frame:
-        xalign 0.985
-        yalign 0.5
-        xsize 380
-        ysize 720
+        xpos 1462
+        ypos 392
+        xsize 456
+        ysize 682
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (24, 22, 24, 22)
         vbox:
@@ -502,7 +504,7 @@ screen phone_bank_scr():
                         sensitive money < _amt * 2
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-                        action [SetVariable("loan", loan + _amt), SetVariable("money", money + _amt), Hide("phone_bank_scr"), Show("phone_home")]
+                        action [SetVariable("loan", loan + _amt), SetVariable("money", money + _amt), Hide("phone_bank_scr"), Hide("phone_frame"), Show("phone_home")]
                         text "Take $%d loan" % _amt font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             # ── Repay ────────────────────────────────────────────────
             if loan > 0:
@@ -515,14 +517,14 @@ screen phone_bank_scr():
                         xfill True ysize 56
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-                        action [SetVariable("money", money - _repay_full), SetVariable("loan", loan - _repay_full), Hide("phone_bank_scr"), Show("phone_home")]
+                        action [SetVariable("money", money - _repay_full), SetVariable("loan", loan - _repay_full), Hide("phone_bank_scr"), Hide("phone_frame"), Show("phone_home")]
                         text "Repay all  (-$%d)" % _repay_full font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
                 if _repay_half < _repay_full:
                     button:
                         xfill True ysize 56
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-                        action [SetVariable("money", money - _repay_half), SetVariable("loan", loan - _repay_half), Hide("phone_bank_scr"), Show("phone_home")]
+                        action [SetVariable("money", money - _repay_half), SetVariable("loan", loan - _repay_half), Hide("phone_bank_scr"), Hide("phone_frame"), Show("phone_home")]
                         text "Repay half  (-$%d)" % _repay_half font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             # ── Savings ──────────────────────────────────────────────
             if loan == 0:
@@ -534,14 +536,14 @@ screen phone_bank_scr():
                         sensitive money >= _dep
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-                        action [SetVariable("money", money - _dep), SetVariable("savings", savings + _dep), Hide("phone_bank_scr"), Show("phone_home")]
+                        action [SetVariable("money", money - _dep), SetVariable("savings", savings + _dep), Hide("phone_bank_scr"), Hide("phone_frame"), Show("phone_home")]
                         text "Deposit $%d" % _dep font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
                 if savings > 0:
                     button:
                         xfill True ysize 56
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
-                        action [SetVariable("money", money + savings), SetVariable("savings", 0), Hide("phone_bank_scr"), Show("phone_home")]
+                        action [SetVariable("money", money + savings), SetVariable("savings", 0), Hide("phone_bank_scr"), Hide("phone_frame"), Show("phone_home")]
                         text "Withdraw all  +$[savings]" font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             null height 8
-            textbutton "Back" action [Hide("phone_bank_scr"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
+            textbutton "Back" action [Hide("phone_bank_scr"), Hide("phone_frame"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"

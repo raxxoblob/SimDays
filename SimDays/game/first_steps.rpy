@@ -159,13 +159,11 @@ init python:
 
 
 screen phone_help_scr():
-    modal True
-    add "#000000aa"
     frame:
-        xalign 0.985
-        yalign 0.5
-        xsize 380
-        ysize 720
+        xpos 1462
+        ypos 392
+        xsize 456
+        ysize 682
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (24, 16, 24, 16)
         vbox:
@@ -173,11 +171,11 @@ screen phone_help_scr():
             text "Help" font PROFILE_FONT size 28 color "#ffffff" xalign 0.5
             null height 4
             viewport:
-                ysize 594
+                ysize 560
                 mousewheel True
                 vbox:
                     spacing 12
-                    xsize 332
+                    xfill True
                     for _hp in HELP_PAGES:
                         frame:
                             xfill True

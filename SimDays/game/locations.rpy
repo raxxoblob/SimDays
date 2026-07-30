@@ -2,12 +2,6 @@
 
 # ── HOME ──────────────────────────────────────────────────────────────
 label location_home:
-    if not move_in_complete:
-        $ move_in_complete = True
-        scene cheaphouse_day with fade
-        show screen hud
-        "You set your bag down inside apartment 12. Home — for now."
-        "The place came furnished — barely. A table, a chair, a mattress that could be worse."
     # Queue home-visit invitations the first time item + relationship conditions are met.
     if (own_programming_kit and eli_affection >= 25 and eli_trust >= 20
             and eli_met and not message_already_queued("eli_side_project_invite")):

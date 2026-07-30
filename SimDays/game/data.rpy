@@ -86,6 +86,11 @@ default kai_met       = False
 default sam_met       = False
 default rena_met           = False
 default rena_diner_first_done = False
+# Migration-safe encounter dict — tracks world NPCs met without an explicit met flag.
+default npc_encountered = {}
+# Transient dock state — need defaults so npc_interact_from_dock never reads None uninitialised.
+default _dock_npc    = None
+default _dock_return = None
 default cafe_shift_done = False   # so the "first shift" line only plays once
 default nora_closing_done = False
 default elle_pier_done = False
@@ -563,7 +568,7 @@ default onboarding_first_intent = None        # v1 intent flag   — LEGACY, rea
 
 # New-game onboarding (v2): city locked until player enters apartment.
 # Existing saves default to move_in_complete = True so city stays unlocked.
-default move_in_complete      = True    # False until player enters apt 12 for first time
+default move_in_complete      = True    # False until Marcus city-intro in apt 14 completes
 default first_steps_track     = None   # money|career|people|explore
 default first_steps_hidden    = False
 default first_steps_completed = False

@@ -672,6 +672,50 @@ init python:
         p = NPC_DATA[npc_id].get("portrait", "")
         return ("images/ui/icons/%s.png" % p) if p else None
 
+    def portrait_circle(npc_id, sz=100):
+        """Circular masked portrait displayable at sz×sz, or fallback silhouette."""
+        path = npc_avatar_path(npc_id)
+        mask = "images/ui/activity_dot.png"
+        if path and renpy.loadable(path):
+            return AlphaMask(Transform(path, size=(sz, sz)), Transform(mask, size=(sz, sz)))
+        return portrait_circle_fallback(sz)
+
+    def portrait_circle_fallback(sz=100):
+        """Gray circular silhouette for unknown/no-portrait NPCs."""
+        mask = "images/ui/activity_dot.png"
+        sil  = "images/ui/portrait_silhouette.png"
+        base = Transform(sil, size=(sz, sz)) if renpy.loadable(sil) else Solid("#3a3a5a", xysize=(sz, sz))
+        return AlphaMask(base, Transform(mask, size=(sz, sz)))
+
+    def npc_has_been_encountered(npc_id):
+        """True once MC has had a real interaction with npc_id (safe for all NPC types)."""
+        d = NPC_DATA.get(npc_id, {})
+        if not d.get("world"):
+            # Career/story NPCs: gated by their met flag
+            mv = d.get("met")
+            return bool(getattr(store, mv, False)) if mv else True
+        # World NPCs: explicit met flag in NPC_DATA
+        mv = d.get("met")
+        if mv and getattr(store, mv, False):
+            return True
+        # Convention met flag: {npc_id}_met  (nora_met, marcus_met, zoe_met, etc.)
+        if getattr(store, npc_id + "_met", False):
+            return True
+        # Phone contact = definitely met
+        if npc_id in store.npc_contacts:
+            return True
+        # Positive affection = previous successful conversation
+        aff_var = d.get("aff")
+        if aff_var and getattr(store, aff_var, 0) > 0:
+            return True
+        # Migration-safe encounter dict
+        return bool(store.npc_encountered.get(npc_id))
+
+    def mark_npc_encountered(npc_id):
+        enc = dict(store.npc_encountered)
+        enc[npc_id] = True
+        store.npc_encountered = enc
+
     def location_sprites():
         """All talkable NPCs at the current location, as (npc_id, sprite) pairs.
         Uses sprite_angry key if angry and available, else normal sprite."""
@@ -1741,7 +1785,7 @@ screen npc_relbar(npc_id):
             hbox:
                 spacing 16
                 if _has_portrait:
-                    add _portrait_path xysize (90, 90)
+                    add portrait_circle(npc_id, 90)
                 vbox:
                     spacing 4
                     yalign 0.5
@@ -1930,6 +1974,8 @@ label npc_interact(npc_id):
         hide npcsprite
         hide npcsprite2
         return
+    # Approach succeeded or NPC already known — record encounter now.
+    $ mark_npc_encountered(npc_id)
     if need_hygiene < 25:
         "[_nm] leans back a little, trying to be polite about it. You could really use a shower."
     call expression NPC_DATA[npc_id]["greet"]
@@ -2825,7 +2871,7 @@ label kai_gym_towel:
 
 label npc_interact_from_dock:
     $ _npc = _dock_npc
-    $ _return = _dock_return
+    $ _return = _dock_return or "location_centrum"
     $ _dock_npc = None
     $ _dock_return = None
     hide screen people_here_dock

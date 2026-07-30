@@ -76,38 +76,6 @@ label start:
 
     scene hallway with fade
     show screen hud
-    show marcus_casual_normal at sprite_r
-
-    m "Hey — before you disappear inside."
-    m "Two minutes. Won't cost you anything."
-    m "Activities use time. Walking between places doesn't. That's the first thing people miss."
-    m "Watch the three bars up top. Hunger, energy, hygiene. Let any of them crash and your day falls apart fast."
-    m "If you need income first, Grounds is the easy door — café downtown. Low barrier, enough to cover the basics."
-    m "The real careers ask more. Medicine, programming, business, cooking, fitness. Some need a degree further down the line."
-    m "People here have their own schedules. If someone isn't where you expected, they're somewhere else."
-    m "Phone keeps your messages, contacts and commitments. You don't have to come back here to use it."
-    m "So. What do you need first?"
-
-    menu:
-        "Money.":
-            $ first_steps_track = "money"
-            mc "Money."
-            m "Grounds. Corner of the Centrum. Tell them you can carry a tray."
-        "A real career.":
-            $ first_steps_track = "career"
-            mc "A proper career."
-            m "Then check what it needs before you apply. Build the skill first."
-        "People.":
-            $ first_steps_track = "people"
-            mc "People."
-            m "Go somewhere because someone might actually be there."
-        "I want to look around.":
-            $ first_steps_track = "explore"
-            mc "I want to see the city."
-            m "Map's in the phone. Rest is up to you."
-
-    $ _fs_set_track_baseline()
-    hide marcus_casual_normal
     jump location_hallway
 
 
@@ -205,6 +173,36 @@ label marcus_intro_hallway:
 label marcus_talk:
     scene expression ("marcus_home_night" if (hour >= 20 or hour < 6) else "marcus_home_day")
     show screen hud
+    if not move_in_complete:
+        show marcus_casual_normal at sprite_c
+        m "Good — before you head back. Two minutes. Won't cost you anything."
+        m "Activities use time. Walking between places doesn't. That's the first thing people miss."
+        m "Watch the three bars up top. Hunger, energy, hygiene. Let any of them crash and your day falls apart fast."
+        m "If you need income first, Grounds is the easy door — café downtown. Low barrier, enough to cover the basics."
+        m "The real careers ask more. Medicine, programming, business, cooking, fitness. Some need a degree further down the line."
+        m "People here have their own schedules. If someone isn't where you expected, they're somewhere else."
+        m "Phone keeps your messages, contacts and commitments. You don't have to come back here to use it."
+        m "So. What do you need first?"
+        menu:
+            "Money.":
+                $ first_steps_track = "money"
+                mc "Money."
+                m "Grounds. Corner of the Centrum. Tell them you can carry a tray."
+            "A real career.":
+                $ first_steps_track = "career"
+                mc "A proper career."
+                m "Then check what it needs before you apply. Build the skill first."
+            "People.":
+                $ first_steps_track = "people"
+                mc "People."
+                m "Go somewhere because someone might actually be there."
+            "I want to look around.":
+                $ first_steps_track = "explore"
+                mc "I want to see the city."
+                m "Map's in the phone. Rest is up to you."
+        $ _fs_set_track_baseline()
+        $ move_in_complete = True
+        hide marcus_casual_normal
     if marcus_home_state != "locked" and marcus_is_home():
         jump location_marcus_home
     call npc_interact("marcus")

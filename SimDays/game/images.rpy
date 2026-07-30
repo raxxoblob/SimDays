@@ -249,42 +249,42 @@ init python:
 # shoes, which is fine for standing full-body sprites).
 transform sprite_c:
     fit "contain"
-    xysize (760, 1040)
+    xysize (660, 900)
     xalign 0.5
     yalign 1.0
     yoffset 96
 
 transform sprite_r:
     fit "contain"
-    xysize (760, 1040)
+    xysize (660, 900)
     xalign 0.82
     yalign 1.0
     yoffset 96
 
 transform sprite_l:
     fit "contain"
-    xysize (760, 1040)
+    xysize (660, 900)
     xalign 0.18
     yalign 1.0
     yoffset 96
 
 transform sprite_solo:
     fit "contain"
-    xysize (760, 1040)
+    xysize (660, 900)
     xalign 0.60
     yalign 1.0
     yoffset 96
 
 transform sprite_duo_r:
     fit "contain"
-    xysize (760, 1040)
+    xysize (660, 900)
     xalign 0.75
     yalign 1.0
     yoffset 96
 
 transform sprite_duo_l:
     fit "contain"
-    xysize (760, 1040)
+    xysize (660, 900)
     xalign 0.40
     yalign 1.0
     yoffset 96
