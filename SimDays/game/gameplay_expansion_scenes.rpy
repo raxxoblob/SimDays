@@ -423,6 +423,8 @@ label scene_nora_hug_school:
     $ nora_hug_school_done = True
     $ nora_hug_school_pending = False
     $ add_relationship_memory("nora", "nora_school_hug", "She said yes to the program")
+    $ nora_school_accepted_day = day
+    $ nora_school_start_day = day + 14
     return
 
 
@@ -1256,7 +1258,7 @@ label scene_elle_portugal_payoff:
     if elle_travel_2_response == "take_it":
         el "You made it sound obvious. I think you were right."
         "A beat."
-        el "I'm going. September. Eighteen months."
+        el "I'm going. Three weeks first. Then I decide whether the eighteen months is real."
         "She says it like it's settled. It is."
     elif elle_travel_2_response == "what_miss":
         el "I kept making that list. It got long."
@@ -1299,6 +1301,8 @@ label scene_elle_portugal_payoff:
     $ elle_decision_done = True
     $ elle_decision_pending = False
     $ add_relationship_memory("elle", "elle_portugal_moment", "She told me what she decided")
+    $ elle_decision_day = day
+    $ elle_life_state = "departure_pending" if elle_travel_2_response == "take_it" else ("staying" if elle_travel_2_response == "what_miss" else "deferred")
     hide elle_sundress_normal
     return
 

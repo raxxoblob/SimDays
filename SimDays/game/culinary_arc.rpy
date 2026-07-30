@@ -8,14 +8,19 @@ define srv  = Character("Server",  color="#a0a0a0")
 define wkr  = Character("Kitchen", color="#a0a0a0")
 
 init python:
-    _CUL_POOL = ["wev_cul_service_rush", "wev_cul_ingredient_shortage", "wev_cul_dish_criticism"]
+    _CUL_POOL = [
+        "wev_cul_service_rush", "wev_cul_ingredient_shortage", "wev_cul_dish_criticism",
+        "wev_cul_short_staffed", "wev_cul_taste_again", "wev_cul_station_ready",
+        "wev_cul_tired_compensation", "wev_cul_shift_texture",
+    ]
 
 
 label work_event_culinary:
     if cul_crisis_aftermath_pending:
         call cul_crisis_aftermath_callback
         return
-    $ _ev = _pick_wev("culinary", _CUL_POOL)
+    $ _pool = [e for e in _CUL_POOL if e != "wev_cul_tired_compensation" or need_energy <= 30]
+    $ _ev = _pick_wev("culinary", _pool)
     call expression _ev
     return
 
@@ -800,4 +805,141 @@ label wev_cul_dish_criticism:
             "You don't say anything."
             rena "Redo."
             $ _work_perf(-1)
+    return
+
+
+label wev_cul_short_staffed:
+    if wev_cul_short_staffed_count >= 2:
+        return
+    $ _mark_wev("culinary", "wev_cul_short_staffed")
+    $ wev_cul_short_staffed_count += 1
+    scene kitchen
+    show screen hud
+    show rena_normal at sprite_r
+    rena "We're one person short."
+    mc "How bad?"
+    rena "That depends on whether you ask me again in an hour."
+    menu:
+        "Where do you need me?":
+            if not talk_followup_rena_short_staffed_done:
+                $ rena_short_staffed_choice = "help"
+            mc "Where do you need me?"
+            rena "Cold station first."
+            rena "Then ask again before you decide you're finished."
+            hide rena_normal
+            $ _work_perf(6)
+            $ _apply_trust("rena", 1)
+        "I'll hold my station.":
+            if not talk_followup_rena_short_staffed_done:
+                $ rena_short_staffed_choice = "station"
+            mc "I'll hold my station."
+            rena "Then hold it properly."
+            hide rena_normal
+            $ _work_perf(3)
+    return
+
+
+label wev_cul_taste_again:
+    $ _mark_wev("culinary", "wev_cul_taste_again")
+    scene kitchen
+    show screen hud
+    show rena_normal at sprite_r
+    "Rena tastes the sauce and places the spoon beside the pan."
+    rena "Again."
+    mc "What's wrong with it?"
+    rena "You tell me."
+    menu:
+        "Taste it again.":
+            "You taste it again."
+            mc "It needs acid."
+            rena "Good."
+            rena "The second taste was the useful one."
+            hide rena_normal
+            $ _apply_trust("rena", 1)
+            $ gain_skill("cook", 2)
+        "Defend it.":
+            mc "I thought it was balanced."
+            rena "Thinking is why you taste."
+            hide rena_normal
+            $ _apply_trust("rena", -1)
+    return
+
+
+label wev_cul_station_ready:
+    $ _mark_wev("culinary", "wev_cul_station_ready")
+    scene kitchen
+    show screen hud
+    show rena_normal at sprite_r
+    rena "Your station is clean."
+    mc "Thank you."
+    rena "That was not praise."
+    mc "What's missing?"
+    rena "What happens when the first three tickets arrive together?"
+    mc "I adjust."
+    rena "Prepare so you don't have to."
+    hide rena_normal
+    $ _work_perf(3)
+    return
+
+
+label wev_cul_tired_compensation:
+    if need_energy > 30:
+        return
+    $ _mark_wev("culinary", "wev_cul_tired_compensation")
+    scene kitchen
+    show screen hud
+    show rena_normal at sprite_r
+    rena "You're compensating."
+    mc "For what?"
+    rena "Being tired."
+    mc "Is it obvious?"
+    rena "Only because you're trying so hard not to look tired."
+    hide rena_normal
+    return
+
+label wev_cul_shift_texture:
+    $ _v = _pick_texture_variant("culinary", ["missing_garnish", "ticket_smear", "low_stock", "pan_handle", "returned_side"])
+    call expression "wev_cul_tex_" + _v
+    $ _mark_wev("culinary", "wev_cul_shift_texture")
+    return
+
+label wev_cul_tex_missing_garnish:
+    scene kitchen
+    show screen hud
+    "The plate goes out without its garnish. You notice after the server is already through the pass."
+    "Nothing comes back. Probably fine."
+    return
+
+label wev_cul_tex_ticket_smear:
+    scene kitchen
+    show screen hud
+    "The dupe is wet. Half the ticket is illegible — a number, a modifier, the table number."
+    menu:
+        "Ask for the call again.":
+            "You ask. The expediter reads it back without turning around."
+            $ _work_perf(4)
+        "Follow the visible part and guess the rest.":
+            "You follow what you can read. It goes out."
+    return
+
+label wev_cul_tex_low_stock:
+    scene kitchen
+    show screen hud
+    "The mise en place for the fish is down to four covers. Service has barely started."
+    "You stretch it. No one asks how."
+    return
+
+label wev_cul_tex_pan_handle:
+    scene kitchen
+    show screen hud
+    "Someone left a pan handle turned out over the gangway. You move it before anyone walks into it."
+    "No one notices. That is the job."
+    return
+
+label wev_cul_tex_returned_side:
+    scene kitchen
+    show screen hud
+    srv "Table eight says the potatoes are too salty."
+    "You look at the potatoes. They are not too salty."
+    "You remake them."
     return

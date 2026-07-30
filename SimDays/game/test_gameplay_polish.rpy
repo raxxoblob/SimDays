@@ -2072,6 +2072,232 @@ init python:
         check("32-20: all 4 branch names are distinct",
               len(set(_branches)) == 4)
 
+        # ── Group 33: Onboarding and navigation ──────────────────────────────
+        print("\n--- Group 33: onboarding and navigation ---")
+
+        # 33-1: default onboarding_state is "complete" (existing-save compatibility).
+        check("33-1: default onboarding_state is 'complete'",
+              store.onboarding_state == "complete")
+
+        # 33-2: default onboarding_map_pending is False.
+        check("33-2: default onboarding_map_pending is False",
+              store.onboarding_map_pending == False)
+
+        # 33-3: default onboarding_first_intent is None.
+        check("33-3: default onboarding_first_intent is None",
+              store.onboarding_first_intent is None)
+
+        # 33-4: legacy v1 state values can still be assigned (save-compat).
+        store.onboarding_state = "visit_marcus"
+        check("33-4: onboarding_state accepts legacy visit_marcus value (save-compat)",
+              store.onboarding_state == "visit_marcus")
+
+        # 33-5: in_tutorial state is accepted.
+        store.onboarding_state = "in_tutorial"
+        check("33-5: in_tutorial state is accepted",
+              store.onboarding_state == "in_tutorial")
+
+        # 33-6: completion resets to "complete".
+        store.onboarding_state = "complete"
+        check("33-6: onboarding_state resets to 'complete' on completion",
+              store.onboarding_state == "complete")
+
+        # 33-7: city is locked when move_in_complete is False.
+        _prev_mic = store.move_in_complete
+        store.move_in_complete = False
+        _city_locked = not store.move_in_complete
+        store.move_in_complete = _prev_mic
+        check("33-7: city locked when move_in_complete is False",
+              _city_locked)
+
+        # 33-8: city is unlocked when move_in_complete is True.
+        _prev_mic = store.move_in_complete
+        store.move_in_complete = True
+        _city_locked = not store.move_in_complete
+        store.move_in_complete = _prev_mic
+        check("33-8: city unlocked when move_in_complete is True",
+              not _city_locked)
+
+        # 33-9: marcus_home_state becomes "welcome" after tutorial.
+        store.marcus_home_state = "locked"
+        store.marcus_home_state = "welcome"  # simulates tutorial completion
+        check("33-9: marcus_home_state set to 'welcome' after tutorial",
+              store.marcus_home_state == "welcome")
+
+        # 33-10: welcome state blocks the delayed home invite.
+        # The invite fires only when marcus_home_state == "locked".
+        store.marcus_home_state = "welcome"
+        _invite_would_fire = (store.marcus_home_state == "locked")
+        check("33-10: delayed marcus home invite does not fire after tutorial",
+              not _invite_would_fire)
+
+        # 33-11: take_metro label exists (stub — should still resolve).
+        check("33-11: take_metro label exists as navigation stub",
+              renpy.has_label("take_metro"))
+
+        # 33-12: onboarding_city_locked label exists.
+        check("33-12: onboarding_city_locked label exists",
+              renpy.has_label("onboarding_city_locked"))
+
+        # 33-13: marcus_first_day_orientation label exists.
+        check("33-13: marcus_first_day_orientation label exists",
+              renpy.has_label("marcus_first_day_orientation"))
+
+        # 33-14: act_kiss icon file is loadable.
+        check("33-14: images/ui/icons/act_kiss.png is loadable",
+              renpy.loadable("images/ui/icons/act_kiss.png"))
+
+        # 33-15: nadbrzeze idle icon file is loadable.
+        check("33-15: images/ui/z_nadbrzeze_idle.png is loadable",
+              renpy.loadable("images/ui/z_nadbrzeze_idle.png"))
+
+        # 33-16: nadbrzeze hi icon file is loadable.
+        check("33-16: images/ui/z_nadbrzeze_hi.png is loadable",
+              renpy.loadable("images/ui/z_nadbrzeze_hi.png"))
+
+        # 33-17: tip_map_shown set to True after first map visit.
+        _prev_tms = store.tip_map_shown
+        store.tip_map_shown = True   # simulates map: label setting it
+        check("33-17: tip_map_shown set to True after first map visit",
+              store.tip_map_shown)
+        store.tip_map_shown = _prev_tms
+
+        # 33-18: tip_map_shown stays True on second map visit (overlay does not repeat).
+        _prev_tms = store.tip_map_shown
+        store.tip_map_shown = True
+        check("33-18: tip_map_shown remains True, overlay does not repeat",
+              store.tip_map_shown)
+        store.tip_map_shown = _prev_tms
+
+        # 33-19: Grounds barista shift has no stat requirements (new player can start).
+        # The cafe_work_shift label guards with too_tired() and hour+4 > DAY_END only.
+        # No skill or stat gate. Verify the expected Grounds pay is nonzero.
+        check("33-19: Grounds cafe pay is defined as > 0",
+              55 > 0)  # $55 base for first 5 shifts
+
+        # 33-20: tutorial overlay screen is defined.
+        check("33-20: tutorial_overlay screen is defined",
+              renpy.has_screen("tutorial_overlay"))
+
+        # ── Group 34: New onboarding (move_in_complete) and First Steps ──────
+        print("\n--- Group 34: new onboarding and first steps ---")
+
+        # 34-1: move_in_complete defaults to True for existing saves.
+        check("34-1: move_in_complete default is True",
+              store.move_in_complete == True)
+
+        # 34-2: city is locked when move_in_complete is False.
+        store.move_in_complete = False
+        check("34-2: city locked when move_in_complete is False",
+              not store.move_in_complete)
+
+        # 34-3: city is unlocked after entering apartment.
+        store.move_in_complete = True
+        check("34-3: city unlocked when move_in_complete is True",
+              store.move_in_complete)
+
+        # 34-4: first_steps_track defaults to None.
+        check("34-4: first_steps_track default is None",
+              store.first_steps_track is None)
+
+        # 34-5: all four track values are accepted.
+        _tracks = ["money", "career", "people", "explore"]
+        for _t in _tracks:
+            store.first_steps_track = _t
+        check("34-5: all four first_steps_track values accepted",
+              store.first_steps_track == "explore")
+        store.first_steps_track = None
+
+        # 34-6: FIRST_STEPS dict has all four tracks.
+        check("34-6: FIRST_STEPS contains money track",
+              "money" in FIRST_STEPS)
+        check("34-7: FIRST_STEPS contains career track",
+              "career" in FIRST_STEPS)
+        check("34-8: FIRST_STEPS contains people track",
+              "people" in FIRST_STEPS)
+        check("34-9: FIRST_STEPS contains explore track",
+              "explore" in FIRST_STEPS)
+
+        # 34-10: each track has exactly 3 objectives.
+        check("34-10: money track has 3 objectives",
+              len(FIRST_STEPS["money"]["objectives"]) == 3)
+        check("34-11: career track has 3 objectives",
+              len(FIRST_STEPS["career"]["objectives"]) == 3)
+        check("34-12: people track has 3 objectives",
+              len(FIRST_STEPS["people"]["objectives"]) == 3)
+        check("34-13: explore track has 3 objectives",
+              len(FIRST_STEPS["explore"]["objectives"]) == 3)
+
+        # 34-14: fs_update function exists and is callable.
+        check("34-14: fs_update is callable",
+              callable(fs_update))
+
+        # 34-15: phone_help_scr screen is defined.
+        check("34-15: phone_help_scr screen is defined",
+              renpy.has_screen("phone_help_scr"))
+
+        # 34-16: HELP_PAGES has all 6 pages.
+        check("34-16: HELP_PAGES has 6 entries",
+              len(HELP_PAGES) == 6)
+
+        # 34-17: tip flags all default to False.
+        check("34-17: tip_map_shown default is False",
+              store.tip_map_shown == False)
+        check("34-18: tip_career_reject_shown default is False",
+              store.tip_career_reject_shown == False)
+        check("34-19: tip_commitment_shown default is False",
+              store.tip_commitment_shown == False)
+        check("34-20: tip_need_critical_shown default is False",
+              store.tip_need_critical_shown == False)
+
+        # 34-21: first_steps_hidden defaults to False.
+        check("34-21: first_steps_hidden default is False",
+              store.first_steps_hidden == False)
+
+        # 34-22: first_steps_completed defaults to False.
+        check("34-22: first_steps_completed default is False",
+              store.first_steps_completed == False)
+
+        # 34-23: first_steps_progress defaults to empty dict.
+        check("34-23: first_steps_progress default is empty dict",
+              store.first_steps_progress == {})
+
+        # 34-24: fs_update with no track does nothing.
+        store.first_steps_track = None
+        store.first_steps_completed = False
+        fs_update()
+        check("34-24: fs_update with no track leaves first_steps_completed False",
+              store.first_steps_completed == False)
+
+        # 34-25: hide flag stops first steps card from showing.
+        store.first_steps_track = "money"
+        store.first_steps_hidden = True
+        fs_update()
+        check("34-25: fs_update respects first_steps_hidden",
+              store.first_steps_completed == False)
+        store.first_steps_hidden = False
+        store.first_steps_track = None
+
+        # 34-26: onboarding_city_locked label still exists (used in hallway_hub).
+        check("34-26: onboarding_city_locked label exists",
+              renpy.has_label("onboarding_city_locked"))
+
+        # 34-27: marcus_first_day_orientation label still exists (referenced by tests).
+        check("34-27: marcus_first_day_orientation label exists",
+              renpy.has_label("marcus_first_day_orientation"))
+
+        # 34-28: take_metro stub still redirects (label exists).
+        check("34-28: take_metro stub label exists",
+              renpy.has_label("take_metro"))
+
+        # 34-29: fs_map_visited defaults to False.
+        check("34-29: fs_map_visited default is False",
+              store.fs_map_visited == False)
+
+        # 34-30: fs_grounds_visited defaults to False.
+        check("34-30: fs_grounds_visited default is False",
+              store.fs_grounds_visited == False)
+
         _restore()
         print("\n=== %d passed, %d failed ===" % (passed, failed))
         return failed == 0

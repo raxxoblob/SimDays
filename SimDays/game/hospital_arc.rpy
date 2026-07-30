@@ -177,6 +177,22 @@ label hosp_review_assistant:
     scene hospital1
     show screen hud
     show drlena_normal at sprite_r
+    if hospital_hard_case_done and hospital_hard_case_followup_done:
+        if hospital_hard_case_outcome == "escalated":
+            lena "The escalation on that case — you chose the harder path. That's not nothing."
+        elif hospital_hard_case_outcome == "reassessed":
+            lena "Your documentation on the ambiguous case was exactly what that situation needed."
+        elif hospital_hard_case_owned_mistake:
+            lena "You reported the mistake before I had to ask. I don't forget that."
+        else:
+            lena "Your reasoning on the hard case still concerns me. We've talked about it. Watch it doesn't happen again."
+        python:
+            _lhc_oc = store.hospital_hard_case_outcome
+            if _lhc_oc == "dismissed":
+                _lhc_oc = "dismissed_owned" if store.hospital_hard_case_owned_mistake else "dismissed_defended"
+            _queue_story_aftermath("lena", "lena_hard_case", "hospital_hard_case", _lhc_oc,
+                                   store.day, store.day + 2, "aftermath_lena_hard_case")
+            store.lena_bar_absent_until_day = store.day + 3
     "Lena finds you between rounds."
     lena "The formal notification comes through tomorrow. I wanted to tell you first."
     lena "You're moving to resident. The clinical director signed off this morning."
@@ -241,6 +257,120 @@ label wev_hosp_overtime_call:
         "You can't tonight.":
             "\"No problem. We'll manage.\""
             "They will."
+    return
+
+
+# ── Phase 47: hard-case arc ─────────────────────────────────────────────────
+
+label hospital_hard_case_scene:
+    $ _wev_relbar_open("lena")
+    show screen npc_relbar("lena")
+    scene hospital1
+    show screen hud
+    "A patient's condition changes halfway through an otherwise routine case."
+    "The signs are concerning — but ambiguous. Borderline readings, no clear pattern yet."
+    show drlena_normal at sprite_r
+    "Another staff member leans in."
+    "Staff" "Could be nothing. We can check again after the current procedure."
+    hide drlena_normal
+    "Lena is occupied on the other side of the ward."
+    menu:
+        "Stop the procedure and escalate immediately.":
+            $ hospital_hard_case_choice = "escalated"
+            $ hospital_hard_case_outcome = "escalated"
+            mc "We stop here. I'm calling for senior review."
+            "Staff" "Are you sure? The readings could still normalise."
+            mc "We're not waiting to find out."
+            "The procedure halts. The review is requested."
+            $ _work_perf(6)
+            $ _apply_trust("lena", 3)
+        "Pause, reassess, and document the change before deciding.":
+            $ hospital_hard_case_choice = "reassessed"
+            $ hospital_hard_case_outcome = "reassessed"
+            mc "Hold on. Let me document what we're seeing and request a second opinion before we continue."
+            "The staff member steps back. You record the change in full."
+            "Within the hour, a senior reviews the case."
+            $ _work_perf(3)
+            $ _apply_trust("lena", 2)
+        "Continue the routine process — the concern is probably minor.":
+            $ hospital_hard_case_choice = "dismissed"
+            $ hospital_hard_case_outcome = "dismissed"
+            mc "It's likely just a variation. Let's continue."
+            "Staff" "Okay."
+            "You continue. The patient requires additional intervention later in the shift."
+            $ _work_perf(-8)
+            $ _apply_trust("lena", -3)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ hospital_hard_case_done = True
+    $ hospital_hard_case_followup_pending = True
+    $ hospital_hard_case_followup_shift = hosp_shifts + 2
+    return
+
+
+label hospital_hard_case_followup:
+    scene hospital1
+    show screen hud
+    show drlena_normal at sprite_r
+    if hospital_hard_case_outcome == "escalated":
+        "The patient from the earlier case received attention sooner because of the escalation."
+        lena "The decision to stop was correct. The reading was early but the pattern was real."
+        mc "I wasn't certain at the time."
+        lena "You didn't need to be certain. You needed to be concerned enough to stop. You were."
+        hide drlena_normal
+        $ _work_perf(2)
+        $ _apply_trust("lena", 2)
+    elif hospital_hard_case_outcome == "reassessed":
+        "The documentation from your hold became part of the case record."
+        lena "Your notes captured the change clearly. That's what supported the later decision."
+        mc "I wasn't sure stopping was right at the time."
+        lena "The documentation made the choice defensible. That's the point of it."
+        hide drlena_normal
+        $ _work_perf(1)
+        $ _apply_trust("lena", 1)
+    else:
+        "Two additional interventions were required after you continued the routine process."
+        lena "You saw the case update?"
+        mc "Yes."
+        "She waits."
+        hide drlena_normal
+        $ _wev_relbar_open("lena")
+        show screen npc_relbar("lena")
+        show drlena_normal at sprite_r
+        menu:
+            "Report the mistake before Lena asks.":
+                $ hospital_hard_case_owned_mistake = True
+                mc "I got it wrong. The signs were concerning and I kept going."
+                "Lena doesn't move to reassure."
+                lena "What would you do now?"
+                mc "Stop. Document. Call for review."
+                lena "Then you've learned it. The hard way costs more, but it stays."
+                hide drlena_normal
+                $ _work_perf(1)
+                $ _apply_trust("lena", 2)
+                $ hospital_hard_case_review_extra_shifts = 1
+            "Wait and defend the original reasoning.":
+                $ hospital_hard_case_owned_mistake = False
+                mc "The readings were ambiguous. I made a reasonable call with what I had."
+                lena "Sharp enough to notice. Not decisive enough to act on it."
+                mc "I—"
+                lena "We continue. But this will weigh on how I assess your readiness."
+                hide drlena_normal
+                $ _work_perf(-2)
+                $ _apply_trust("lena", -2)
+                $ hospital_hard_case_review_extra_shifts = 2
+        $ _wev_relbar_close()
+        hide screen npc_relbar
+    $ hospital_hard_case_followup_done = True
+    $ hospital_hard_case_followup_pending = False
+    if hosp_review_done:
+        python:
+            _lhc_oc = store.hospital_hard_case_outcome
+            if _lhc_oc == "dismissed":
+                _lhc_oc = "dismissed_owned" if store.hospital_hard_case_owned_mistake else "dismissed_defended"
+            _queue_story_aftermath("lena", "lena_hard_case", "hospital_hard_case", _lhc_oc,
+                                   store.day, store.day + 2, "aftermath_lena_hard_case")
+            store.lena_bar_absent_until_day = store.day + 3
     return
 
 

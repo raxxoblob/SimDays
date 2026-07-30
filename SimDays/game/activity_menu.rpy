@@ -71,10 +71,49 @@ screen activity(items):
         vbox:
             xsize 150
             spacing 4
-            $ _exit_icon = "apartment_ext" if activity_exit_name == "Hallway" else "metro"
+            $ _exit_icon = "apartment_ext" if activity_exit_name == "Hallway" else "hub"  # ponytail: hub is a placeholder; a proper icon_city_map.png is needed
             imagebutton:
                 xalign 0.5
                 idle  Transform("images/ui/icons/icon_%s.png" % _exit_icon, size=(120, 120))
                 hover Transform("images/ui/icons/icon_%s.png" % _exit_icon, size=(132, 132))
                 action Jump(activity_exit_jump)
             text "[activity_exit_name]" xalign 0.5 size 16 color "#ffffff"
+
+
+screen people_here_dock(return_location):
+    zorder 11
+    if (current_loc in ("location_cafe", "location_park", "location_bar", "location_sandbeach",
+                        "location_library", "location_hospital", "location_gym", "location_nightclub",
+                        "location_office", "location_warehouse", "location_diner", "location_college")
+            and not renpy.get_screen("profile")
+            and not renpy.get_screen("phone_home")
+            and not renpy.get_screen("npc_relbar")):
+        $ _dock_npcs = [n for n in public_talkable_npcs_here() if NPC_DATA[n].get("portrait")]
+        if _dock_npcs:
+            frame:
+                xpos 44
+                ypos 164
+                xsize 372
+                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                padding (12, 10, 12, 10)
+                viewport:
+                    id "phd_vp"
+                    xsize 348
+                    ysize 72
+                    mousewheel "horizontal"
+                    draggable True
+                    hbox:
+                        spacing 10
+                        for npc_id in _dock_npcs:
+                            button:
+                                xysize (72, 72)
+                                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                                hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                                action [SetVariable("_dock_npc", npc_id), SetVariable("_dock_return", return_location), Jump("npc_interact_from_dock")]
+                                fixed:
+                                    xysize (72, 72)
+                                    if NPC_DATA[npc_id].get("portrait"):
+                                        add ("images/ui/icons/%s.png" % NPC_DATA[npc_id]["portrait"]) xysize (64, 64) align (0.5, 0.4)
+                                    text (NPC_DATA[npc_id]["name"]):
+                                        size 10 font ACT_FONT color "#00000000" hover_color "#e0ecff"
+                                        xalign 0.5 yalign 1.0 yoffset -3

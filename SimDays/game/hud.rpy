@@ -7,12 +7,6 @@ screen hud():
     $ timestr = time_label(hour)
 
     key "K_c" action ToggleScreen("profile")
-    button:
-        xalign 0.5 ypos 22
-        xysize (104, 52)
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        action ToggleScreen("profile")
-        text "Me" font "fonts/Quicksand-SemiBold.ttf" size 24 color "#cfe0f5" align (0.5, 0.5)
 
     # phone peek — hidden when phone is fully open to avoid overlap
     key "K_p" action Show("phone_home")
@@ -67,6 +61,16 @@ screen hud():
             xpos 1256 ypos 28 xysize (270, 72)
             action NullAction()
             tooltip "Energy - sleep to refill. Below 20 you can't do demanding activities."
+
+    # "Me" / stats button — declared after the fixed frame so it renders on top
+    # and is not obscured by hud_topbar.png or blocked by the needs tooltip buttons.
+    # xpos 1672: clear of the energy tooltip right edge (absolute ~1666).
+    button:
+        xpos 1672 ypos 22
+        xysize (104, 52)
+        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+        action ToggleScreen("profile")
+        text "Me" font "fonts/Quicksand-SemiBold.ttf" size 24 color "#cfe0f5" align (0.5, 0.5)
 
     $ _tt = GetTooltip()
     if _tt:

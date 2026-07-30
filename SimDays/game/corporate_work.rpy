@@ -41,6 +41,12 @@ label corp_regular_work:
             call corporate_martha_1
         elif corp_martha_1_done and martha_trust >= 20 and not corp_martha_2_done and corp_shifts >= 6:
             call corporate_martha_2
+        elif corp_martha_2_done and not corp_integrity_done:
+            call corp_reporting_integrity
+        elif (corp_integrity_done and corp_integrity_followup_pending
+                and corp_shifts >= corp_integrity_followup_shift
+                and not corp_integrity_followup_done):
+            call corp_reporting_integrity_followup
         elif _tired:
             "Running on empty, you limp to end of day. Your manager notices the slippage."
         else:

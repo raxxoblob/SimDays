@@ -4,7 +4,7 @@
 # Defines _TR_POOL and work_event_trainer.
 
 init python:
-    _TR_POOL = ["wev_tr_challenging_client", "wev_tr_equipment_issue", "wev_tr_group_class"]
+    _TR_POOL = ["wev_tr_challenging_client", "wev_tr_equipment_issue", "wev_tr_group_class", "wev_trainer_shift_texture"]
 
 
 label work_event_trainer:
@@ -131,10 +131,134 @@ label tr_npc2_kai:
     return
 
 
+label tr_boundary_case:
+    $ _wev_relbar_open("kai")
+    show screen npc_relbar("kai")
+    scene pov_trainer
+    show screen hud
+    show kai_gym_normal at sprite_r
+    "Your 9am is a regular — twelve sessions in, trains for recreational half-marathons."
+    "They arrive moving carefully. Before the warm-up finishes, they stop."
+    "Client" "Sharp. Just inside the knee. Started yesterday."
+    mc "How sharp?"
+    "Client" "Not constant. Just — catches when I bend past a certain point."
+    "They have a charity run in nine days."
+    "Client" "I can push through it. I just need to get through this week."
+    "Kai is at the other end of the floor with her own client."
+    menu:
+        "Stop the session and refer to a physio.":
+            $ tr_boundary_choice = "referred"
+            $ tr_boundary_outcome = "referred"
+            mc "We're not training on that today."
+            "Client" "It's not that bad."
+            mc "Sharp knee pain before a warm-up is your body asking to be heard."
+            mc "I'd refer you to a physio before we touch another session. Nine days is enough time for an assessment."
+            "Client" "...Okay."
+            "They don't look happy. They look relieved."
+            $ _work_perf(6)
+            $ _apply_trust("kai", 3)
+        "Modify to pain-free movement and document it.":
+            $ tr_boundary_choice = "managed"
+            $ tr_boundary_outcome = "managed"
+            mc "We're not going anywhere near that range of motion today."
+            "You rebuild the session: upper body, seated core, nothing that loads the knee past ninety degrees."
+            "You write it down — pain onset, location, what you avoided and why."
+            "The client finishes looking surprised the hour was still useful."
+            $ _work_perf(3)
+            $ _apply_trust("kai", 2)
+        "Continue carefully — the client knows their body.":
+            $ tr_boundary_choice = "continued"
+            $ tr_boundary_outcome = "aggravated"
+            mc "We'll take it easy. Listen to the signals."
+            "The client appreciates being trusted."
+            "Halfway through the session the catching becomes a catch-and-lock."
+            "You stop immediately, but the session ends early."
+            "The client limps slightly on the way to the changing room."
+            $ _work_perf(-8)
+            $ _apply_trust("kai", -3)
+    hide kai_gym_normal
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ tr_boundary_done = True
+    $ tr_boundary_followup_pending = True
+    $ tr_boundary_followup_shift = tr_shifts + 2
+    return
+
+
+label tr_boundary_followup:
+    scene pov_trainer
+    show screen hud
+    show kai_gym_normal at sprite_r
+    if tr_boundary_outcome == "referred":
+        "The referred client returns with a physio report and a revised training plan."
+        "Iliotibial band — tightness compounding over their mileage increase. Three weeks modified; back to full in four to six."
+        "The plan they bring you is more specific than the one you had."
+        kai "Good call on the referral."
+        mc "It was the only call."
+        kai "The ones who think there's a grey zone there are the ones I watch."
+        hide kai_gym_normal
+        $ _apply_trust("kai", 2)
+        $ _work_perf(2)
+    elif tr_boundary_outcome == "managed":
+        "The client has been back twice since. The documentation you wrote became the basis for their revised plan."
+        kai "Your notes were clear. That matters — if anything had developed, the chain was there."
+        mc "I wasn't sure it was enough at the time."
+        kai "That's why you wrote it down."
+        hide kai_gym_normal
+        $ _apply_trust("kai", 1)
+        $ _work_perf(1)
+    else:
+        "Two sessions cancelled without rescheduling. A message this morning."
+        "'Pain got worse after the gym session. Seeing a doctor. Not sure about the rest of the programme.'"
+        kai "You saw the message?"
+        mc "Yes."
+        "She waits."
+        hide kai_gym_normal
+        $ _wev_relbar_open("kai")
+        show screen npc_relbar("kai")
+        show kai_gym_normal at sprite_r
+        menu:
+            "Own it.":
+                $ tr_boundary_owned_mistake = True
+                mc "I made the wrong call. They said the pain was sharp and I let them continue."
+                "Kai doesn't fill the silence right away."
+                kai "What would you do differently?"
+                mc "Stop the session. Refer. Regardless of what they wanted."
+                kai "Then you understand it now."
+                kai "Knowing what you'd change is the start of not making the same call again."
+                $ _apply_trust("kai", 2)
+                $ _work_perf(1)
+                $ tr_boundary_review_extra_shifts = 1
+            "Defend the decision.":
+                $ tr_boundary_owned_mistake = False
+                mc "They insisted. I modified the intensity. I didn't think it would escalate."
+                kai "Sharp pain before a warm-up."
+                mc "I know."
+                kai "That's not a grey zone."
+                "She looks at the floor. Not angry — deliberate."
+                kai "We'll keep working. But this goes into how I think about your progression."
+                $ _apply_trust("kai", -2)
+                $ tr_boundary_review_extra_shifts = 2
+        $ _wev_relbar_close()
+        hide screen npc_relbar
+        hide kai_gym_normal
+    $ tr_boundary_followup_done = True
+    $ tr_boundary_followup_pending = False
+    return
+
+
 label tr_review_asst:
     $ tr_review_done = True
     scene pov_trainer
     show screen hud
+    if tr_boundary_outcome == "referred":
+        kai "The knee client — that referral was the right call. That kind of judgment is the last thing I can teach in a timeline."
+    elif tr_boundary_outcome == "managed":
+        kai "The documentation on the knee session — that's professional practice. Most people either ignore it or overcorrect. You found the line."
+    elif tr_boundary_owned_mistake:
+        kai "The knee session. You got it wrong and said so. That's harder than getting it right in the first place."
+    else:
+        kai "We've covered the knee session. Your reasoning at the time still concerns me. I need to see you think differently under that kind of pressure."
     kai "You're not assisting anymore."
     kai "Morning slot, Monday to Friday — yours. Your own client book starts Monday. Trainer, effective immediately."
     menu:
@@ -212,4 +336,62 @@ label wev_tr_group_class:
             "Good call for safety. Slightly messy in execution."
             $ gain_skill("fit", 3)
             $ _work_perf(2)
+    return
+
+label wev_trainer_shift_texture:
+    $ _v = _pick_texture_variant("trainer", ["no_show", "wrong_weight", "busy_floor", "broken_clip", "client_shortcut"])
+    call expression "wev_trainer_tex_" + _v
+    $ _mark_wev("trainer", "wev_trainer_shift_texture")
+    return
+
+label wev_trainer_tex_no_show:
+    scene pov_trainer
+    show screen hud
+    "The appointment time passes."
+    "The client does not arrive."
+    "Five minutes later, a message appears."
+    "'Running five minutes late.'"
+    mc "Impressive timing."
+    return
+
+label wev_trainer_tex_wrong_weight:
+    scene pov_trainer
+    show screen hud
+    "You check the bar before the next set."
+    "One side is heavier than the other."
+    "The difference is small enough to miss and large enough to matter."
+    mc "Reset it."
+    $ gain_skill("fit", 3)
+    return
+
+label wev_trainer_tex_busy_floor:
+    scene pov_trainer
+    show screen hud
+    "Every bench is occupied."
+    "Two clients reach the cable station at the same time."
+    menu:
+        "Reorder the session.":
+            "You move the next exercise earlier and keep the session moving."
+            $ _work_perf(2)
+        "Wait for the planned equipment.":
+            "You use the pause to review the next set."
+    return
+
+label wev_trainer_tex_broken_clip:
+    scene pov_trainer
+    show screen hud
+    "The cable attachment clip does not close completely."
+    "You remove it before anyone loads the machine."
+    "A working replacement is three steps away."
+    mc "Better now than halfway through a set."
+    return
+
+label wev_trainer_tex_client_shortcut:
+    scene pov_trainer
+    show screen hud
+    "Client" "Can we skip the warm-up today?"
+    mc "Why?"
+    "Client" "I'm already warm."
+    "The client gestures toward the walk from the changing room."
+    mc "We're keeping the warm-up."
     return

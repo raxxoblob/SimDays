@@ -147,6 +147,7 @@ default relationship_memories = {}         # {npc_id: [{id, title, day}]}
 default relationship_thresholds_seen = {}  # {"nora_aff_25": True, ...}
 default npc_last_date_day = {}             # {npc_id: day_of_last_date/outing}
 default npc_date_venue_count = {}          # {"npc|venue": times_visited} — diminishing returns
+default npc_date_invite_last_day = {}      # {"npc_id": day} — last day NPC sent a date invitation
 default npc_last_hug_day = {}              # {npc_id: day_of_last_hug}
 default npc_last_kiss_day = {}             # {npc_id: day_of_last_kiss}
 default failed_physical_attempts = {}     # {(npc_id, action): consecutive_fail_count}
@@ -203,6 +204,16 @@ default corp_review_intern_done = False
 default corp_shifts            = 0      # total corporate shifts worked (gate for arc pacing)
 default corp_review_score      = 0     # accumulated from arc choices; feeds review outcome
 default corp_net_credit_hallway_done = False
+
+# Corporate integrity arc (Phase 48)
+default corp_integrity_done               = False
+default corp_integrity_choice             = None
+default corp_integrity_outcome            = None
+default corp_integrity_followup_pending   = False
+default corp_integrity_followup_shift     = -1
+default corp_integrity_followup_done      = False
+default corp_integrity_review_extra_shifts = 0
+default corp_integrity_owned_mistake      = None
 
 # Project Atlas — Associate arc
 default atlas_started          = False
@@ -266,6 +277,15 @@ default lena_shoulder_pending        = False
 default lena_shoulder_pending_day    = -1
 default nora_kai_crossover_done      = False
 default nora_kai_pending             = False
+# Phase 44 — NPC crossover callbacks (one flag per participant, 8 total)
+default crossover_nora_elle_callback_nora_done          = False
+default crossover_nora_elle_callback_elle_done          = False
+default crossover_lena_marcus_callback_lena_done        = False
+default crossover_lena_marcus_callback_marcus_done      = False
+default crossover_sam_kai_callback_sam_done             = False
+default crossover_sam_kai_callback_kai_done             = False
+default crossover_caroline_marcus_callback_caroline_done = False
+default crossover_caroline_marcus_callback_marcus_done  = False
 default eli_meets_zoe_done        = False
 default car_marcus_drive_done     = False
 default martha_gift_accusation_done = False
@@ -277,6 +297,15 @@ default nora_kai_retry_after_day  = 0
 default kitchen_lena_extended_done = False
 default lena_break_room_done      = False
 default hospital_hard_case_pending = False
+default lena_case_observation_done          = False
+default hospital_hard_case_done             = False
+default hospital_hard_case_choice           = None
+default hospital_hard_case_outcome          = None
+default hospital_hard_case_followup_pending = False
+default hospital_hard_case_followup_shift   = -1
+default hospital_hard_case_followup_done    = False
+default hospital_hard_case_owned_mistake    = None
+default hospital_hard_case_review_extra_shifts = 0
 default martha_coffee_machine_done = False
 default gift_log                  = []
 default major_scene_last_day      = -1
@@ -294,6 +323,17 @@ default nora_cooking_declined_day     = -1      # day of last decline; -1 = neve
 default natalie_bar_scene_done        = False
 default natalie_bar_scene_pending     = False
 default natalie_bar_scene_pending_day = -1
+
+# Warehouse safety arc (Phase 48)
+default wh_shifts                      = 0
+default wh_safety_done                 = False
+default wh_safety_choice               = None
+default wh_safety_outcome              = None
+default wh_safety_followup_pending     = False
+default wh_safety_followup_shift       = -1
+default wh_safety_followup_done        = False
+default wh_safety_review_extra_shifts  = 0
+default wh_safety_owned_mistake        = None
 default kai_cafe_quiet_done           = False
 default kai_cafe_quiet_pending        = False
 default kai_cafe_quiet_pending_day    = -1
@@ -305,6 +345,51 @@ default sam_marcus_scene_done         = False
 default sam_marcus_scene_pending      = False
 default sam_marcus_scene_pending_day  = -1
 default eli_dinner_done               = False
+
+# Phase 50 — Zoe exhibition arc
+default zoe_exhibition_offer_last_day = -999
+default zoe_exhibition_done           = False
+default zoe_exhibition_day            = -1
+default zoe_exhibition_outcome        = None
+default zoe_exhibition_aftermath_queued = False
+default zoe_exhibition_followup_done  = False
+default zoe_gallery_until_day         = -1
+default zoe_gallery_talk_last_day     = -999
+
+# Phase 49 — home social life Wave 1 (Nora, Eli, Zoe invitation visits)
+default nora_home_coffee_done         = False
+default eli_home_dinner_done          = False
+default zoe_home_guitar_done          = False
+default nora_home_coffee_followup_done   = False
+default eli_home_dinner_followup_done    = False
+default zoe_home_guitar_followup_done    = False
+default nora_home_coffee_day          = -1
+default eli_home_dinner_day           = -1
+default zoe_home_guitar_day           = -1
+
+# Phase 42 — world progression
+default world_progression_initialized    = False
+# Phase 43 — player milestone echo
+default life_milestones_initialized      = False
+default life_snapshot_job_id             = None
+default life_snapshot_job_rank           = 0
+default life_snapshot_apartment_tier     = 1
+default life_snapshot_degrees            = []
+default life_snapshot_loan               = 0
+default life_milestones_seen             = {}
+default npc_milestone_followup_pending   = {}
+default nora_school_accepted_day         = -1
+default nora_school_start_day            = -1
+default nora_life_state                  = "cafe"
+default nora_school_started_message_done = False
+default nora_school_first_week_followup_done = False
+default elle_decision_day                = -1
+default elle_life_state                  = "city"
+default elle_life_state_day              = -1
+default elle_return_day                  = -1
+default elle_decision_callback_done      = False
+default elle_return_message_done         = False
+default elle_post_decision_talk_done     = False
 
 # Corporate work activity system
 default office_reputation      = 0    # 0-100; built through networking
@@ -319,6 +404,16 @@ default it_npc1_done      = False
 default it_npc2_done      = False
 default it_review_done    = False
 default it_shifts         = 0
+
+# IT incident arc (Phase 48)
+default it_incident_done               = False
+default it_incident_choice             = None
+default it_incident_outcome            = None
+default it_incident_followup_pending   = False
+default it_incident_followup_shift     = -1
+default it_incident_followup_done      = False
+default it_incident_review_extra_shifts = 0
+default it_incident_owned_mistake      = None
 
 # Hospital arc (Clinical Assistant)
 default hosp_first_day_done = False
@@ -351,6 +446,23 @@ default tr_npc2_done       = False
 default tr_review_done     = False
 default tr_shifts          = 0
 
+# Phase 45: trainer boundary case
+default tr_boundary_done              = False
+default tr_boundary_choice            = None
+default tr_boundary_outcome           = None
+default tr_boundary_followup_pending  = False
+default tr_boundary_followup_shift    = -1
+default tr_boundary_followup_done     = False
+default tr_boundary_review_extra_shifts = 0
+default tr_boundary_owned_mistake     = None
+
+# Phase 46: story aftermath queue
+default npc_story_aftermath_initialized = False
+default npc_story_aftermath_seen        = {}
+default npc_story_aftermath_pending     = {}
+default rena_diner_absent_until_day     = -1
+default lena_bar_absent_until_day       = -1
+
 # Story flags set by topic arcs
 default zoe_grant_discussed   = False
 default zoe_exhibition_invited = False
@@ -375,10 +487,107 @@ default wed_marcus_loan_callback_ready = False   # True when callback should fir
 default sam_off_routine_done          = False
 default sam_off_routine_greet_done    = False
 
+# Marcus personal WED events
+default wed_marcus_low_energy_count   = 0    # capped at 3 fires
+
+# Culinary work events
+default wev_cul_short_staffed_count   = 0    # capped at 2 fires
+
+# Phase 2 — relationship panel feedback (non-persistent; reset on new game)
+default _npc_panel_npc_id     = None    # npc_id shown in relbar; None when hidden
+default _rel_feedback_aff     = 0       # queued aff delta for floating label
+default _rel_feedback_tr      = 0       # queued trust delta for floating label
+default _rb_flash_aff_neg     = 0.0     # timestamp of last aff decrease
+default _rb_flash_tr_neg      = 0.0     # timestamp of last trust decrease
+
+# Phase 2 — one-time Talk follow-up flags
+default talk_followup_marcus_first_shift_done = False
+default talk_followup_rena_taste_again_done   = False
+default talk_followup_martha_credit_done      = False
+
+# Phase 4 — choice memory
+default marcus_first_shift_choice    = None
+default rena_short_staffed_choice    = None
+default martha_revision_choice       = None
+
+# Phase 4 — one-time Talk follow-up flags
+default talk_followup_rena_short_staffed_done = False
+default talk_followup_martha_revision_done    = False
+default talk_followup_martha_settled_done     = False
+
+# Phase 6B — jealousy tension system
+default npc_jealousy_tension  = {}   # npc_id -> accumulated tension int
+default npc_jealousy_last_day = {}   # npc_id -> day cooldown was last set
+default npc_jealousy_pending  = {}   # npc_id -> {target, action, day}
+default npc_social_attention  = {}   # npc_id -> total attention recorded (informational)
+
+# Phase 6B — Zoe jealousy pilot
+default zoe_jealousy_first_notice_done    = False
+
+# Phase 7 — shift texture variant tracking
+default work_texture_last_variant = {}   # career_id -> last variant string
+default work_texture_variant_days = {}   # career_id -> {variant_id: day_last_shown}
+
+# Phase 10 — ambient public micro-scene variant tracking
+default ambient_texture_last_variant = {}   # scene_id -> last variant string
+default ambient_texture_variant_days = {}   # scene_id -> {variant_id: day_last_shown}
+default contextual_talk_last_day = {}       # "npc_id|location" -> day last contextual Talk ran
+default active_work_shift = None            # set to career key during an active shift, cleared on exit
+
+# Phase 30 — NPC-initiated phone contact
+default npc_initiative_last_day = {}        # npc_id -> day last initiative message was queued
+default npc_initiative_pending = {}         # npc_id -> variant tag currently awaiting reply
+default npc_initiative_last_global_day = -999  # global one-per-day cap
+default npc_initiative_last_sender = None       # Phase 41: soft repeat-sender penalty
+default npc_invitation_pending = None          # dict with npc_id/invitation_id/target_location/accepted_day/expiry_day, or None
+default npc_invitation_followup_pending = {}   # npc_id -> {invitation_id, completed_day}
+
+# Phase 6C — Nora, Martha, Eli first-notice flags
+default nora_jealousy_first_notice_done   = False
+default martha_jealousy_first_notice_done = False
+default eli_jealousy_first_notice_done    = False
+
 # Marcus home access
 default marcus_home_state             = "locked"  # locked|invited_once|welcome
 default marcus_home_invite_day        = -1
 default marcus_chili_last_day         = -1
+
+# ── Legacy onboarding variables (v1) ──────────────────────────────────────────
+# These exist ONLY for save-file compatibility. They control NOTHING active:
+# not city access, not map tips, not Marcus's door, not new-game routing,
+# not First Steps. Do NOT read them in new code.
+# City access → move_in_complete (below).
+default onboarding_state       = "complete"   # v1 state machine — LEGACY, read nowhere
+default onboarding_map_pending = False        # v1 map-tip flag  — LEGACY, read nowhere
+default onboarding_first_intent = None        # v1 intent flag   — LEGACY, read nowhere
+
+# New-game onboarding (v2): city locked until player enters apartment.
+# Existing saves default to move_in_complete = True so city stays unlocked.
+default move_in_complete      = True    # False until player enters apt 12 for first time
+default first_steps_track     = None   # money|career|people|explore
+default first_steps_hidden    = False
+default first_steps_completed = False
+default first_steps_progress  = {}
+# Gameplay hooks for First Steps objectives
+default fs_map_visited              = False
+default fs_grounds_visited          = False
+default fs_grounds_shift_done       = False
+default fs_study_done               = False
+default fs_talk_count               = 0
+default fs_outside_activity         = False
+default fs_career_req_seen          = False   # set on first career application attempt
+# Baseline snapshots (recorded at track selection in _fs_set_track_baseline)
+default fs_career_skill_baseline    = {}      # {skill_key: level} at career track pick
+default fs_people_baseline_met      = []      # NPC keys already met at people track pick
+default fs_people_baseline_contacts = []      # contacts list at people track pick
+default fs_talk_count_baseline      = 0       # fs_talk_count at people track pick
+# Explore track: stable MAP_ZONES district keys visited
+default fs_visited_districts        = []
+# One-time contextual tips
+default tip_map_shown            = False
+default tip_career_reject_shown  = False
+default tip_commitment_shown     = False
+default tip_need_critical_shown  = False
 
 # Job / career. job_id = career key in CAREERS (None = unemployed); the rest is
 # derived from CAREERS[job_id]["ranks"][job_rank] via _sync_job() in careers.rpy.
@@ -469,6 +678,7 @@ init python:
         store.npc_anger = {k: v - 1 for k, v in store.npc_anger.items() if v > 1}
         store.npc_texted_today = []
         check_missed_commitments()
+        process_world_progression()
         deliver_due_messages()
         stocks_step()
         roll_daily_events()
@@ -679,6 +889,13 @@ init python:
             store.wed_marcus_loan_state          = "pending_solved"
             store.wed_marcus_loan_callback_ready = True
             store.wed_marcus_loan_callback_day   = -1
+
+        # Expire accepted invitations silently after 7 days.
+        if (store.npc_invitation_pending is not None
+                and store.day > store.npc_invitation_pending.get("expiry_day", -999)):
+            store.npc_invitation_pending = None
+
+        _check_npc_initiative()
 
     def cosmetic_days_left():
         return max(0, store.cosmetic_boost_until - store.day)

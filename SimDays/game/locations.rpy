@@ -2,6 +2,12 @@
 
 # ── HOME ──────────────────────────────────────────────────────────────
 label location_home:
+    if not move_in_complete:
+        $ move_in_complete = True
+        scene cheaphouse_day with fade
+        show screen hud
+        "You set your bag down inside apartment 12. Home — for now."
+        "The place came furnished — barely. A table, a chair, a mattress that could be worse."
     # Queue home-visit invitations the first time item + relationship conditions are met.
     if (own_programming_kit and eli_affection >= 25 and eli_trust >= 20
             and eli_met and not message_already_queued("eli_side_project_invite")):
@@ -48,6 +54,11 @@ label location_home_actions:
         $ nora_cooking_declined_day = day
     if commitment_available("nora_cheap_home_cooking_1"):
         call scene_nora_cheap_home_cooking
+        jump location_home_actions
+    # Phase 49: NPC invitation visits dispatched as personal WED events.
+    $ _wed_per = wed_poll_personal("location_home")
+    if _wed_per:
+        call expression _wed_per
         jump location_home_actions
 
     menu (screen="activity"):
@@ -116,13 +127,6 @@ label location_home_actions:
 
         "Invite someone for dinner (3h)" if own_kitchen_set:
             call home_dinner_invite_menu
-            jump location_home_actions
-
-        "Check phone":
-            $ deliver_due_messages()
-            call screen phone_inbox_modal
-            if _return:
-                call expression _return
             jump location_home_actions
 
 
@@ -217,17 +221,19 @@ label use_computer:
 # ── CAFE ──────────────────────────────────────────────────────────────
 label location_cafe:
     $ current_loc = "location_cafe"
+    $ fs_mark("grounds_visited")
+    $ fs_record_district("centrum")
     # nora_last_seen_day is set in nora_greet (on actual interaction), not on location entry
     # After-hours commitment (Nora closing) fires at/after close — exempt from the
     # open-check below, since it is by design an out-of-hours meeting.
     if commitment_available("nora_closing_1"):
         call phone_nora_closing_scene
-        jump take_metro
+        jump map
     # Venue-open gate FIRST: no ambient scene should stage in a closed café
     # (a scene playing, then "the café is closed" afterwards, is the bug this fixes).
     if not venue_open("coffee_shop"):
         "The café is closed. Come back between 07:00–19:00."
-        jump take_metro
+        jump map
     # Priority 2: pending conflict/repair scenes (minor)
     if nora_ignored_pending and nora_met:
         call scene_nora_feels_ignored
@@ -283,22 +289,24 @@ label cafe_actions:
         call scene_nora_romance_reopen
     if hour >= 19:
         "The café lights are going off. Time to head out."
-        jump take_metro
+        jump map
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene expression cafe_bg()
     show screen hud
-    $ _vis = location_sprites()
-    if len(_vis) >= 1:
-        show expression _vis[0][1] as npcsprite at sprite_r
-    if len(_vis) >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_l
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
-    # World Event Director: personal events at café (sam_off_routine)
+    hide screen people_here_dock
+    # World Event Director
+    $ _wed_amb = wed_poll_ambient("location_cafe")
+    if _wed_amb:
+        call expression _wed_amb
     $ _wed_per = wed_poll_personal("location_cafe")
     if _wed_per:
         call expression _wed_per
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("cafe_actions")
     menu (screen="activity"):
         "Join [_group_lbl] →" if _group:
             call group_interact(_group[0], _group[1])
@@ -313,15 +321,6 @@ label cafe_actions:
             else:
                 "You sip a good coffee. Worth it."
             jump cafe_actions
-
-        "Talk to Nora" if npc_talkable("nora"):
-            call npc_interact("nora")
-            jump cafe_actions
-
-        "Talk to Elle" if npc_talkable("elle"):
-            call npc_interact("elle")
-            jump cafe_actions
-
         "Work a shift - Barista (4h)":
             jump cafe_work_shift
 
@@ -341,6 +340,12 @@ label cafe_work_shift:
                 pass
             "Go back":
                 jump cafe_actions
+    hide npcsprite
+    hide npcsprite2
+    hide npcsprite3
+    hide npcsprite4
+    hide screen people_here_dock
+    $ active_work_shift = "cafe"
     scene pov_barista
     show screen hud
     $ _cafe_n = store.shifts_worked.get("cafe", 0)
@@ -348,6 +353,8 @@ label cafe_work_shift:
     $ spend_time(4)
     $ gain_money(_cafe_pay)
     $ store.need_energy = max(0, store.need_energy - 20)
+    $ fs_mark("grounds_shift_done")
+    $ fs_mark("outside_activity")
     "Four hours of steaming milk and small talk. You pocket $[_cafe_pay]."
     if npc_here("nora"):
         show nora_cafe_normal at sprite_r
@@ -365,18 +372,21 @@ label cafe_work_shift:
         hide nora_cafe_normal
     if _work_event_roll("cafe"):
         call work_event_cafe
+    $ active_work_shift = None
     jump cafe_actions
 
 # ── GYM ───────────────────────────────────────────────────────────────
 label location_gym:
     $ current_loc = "location_gym"
+    $ fs_record_district("centrum")
     if not venue_open("gym"):
         "The gym is closed for the night."
-        jump take_metro
+        jump map
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene gymdaypeople
     show screen hud
+    hide screen people_here_dock
     if day >= gym_pass_expires:
         jump gym_reception
     jump gym_floor
@@ -423,15 +433,14 @@ label gym_floor:
         jump sam_gym_scene
     scene gymdaypeople
     show screen hud
-    $ _vis = location_sprites()
-    if len(_vis) >= 1:
-        show expression _vis[0][1] as npcsprite at sprite_r
-    if len(_vis) >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_l
+    hide screen people_here_dock
     # World Event Director: personal events at gym (sam_off_routine when off her schedule)
     $ _wed_per = wed_poll_personal("location_gym")
     if _wed_per:
         call expression _wed_per
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("gym_floor")
     menu (screen="activity"):
         "Work a shift (8h)" if job_id == "trainer":
             if hour + 8 > DAY_END:
@@ -448,6 +457,11 @@ label gym_floor:
                         pass
                     "Go back":
                         jump gym_floor
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             scene pov_trainer
             show screen hud
             $ _tired = do_shift("trainer", 8)
@@ -460,7 +474,15 @@ label gym_floor:
                 call tr_npc1_kai
             elif tr_npc1_done and not tr_npc2_done and tr_shifts >= 7:
                 call tr_npc2_kai
-            elif tr_npc2_done and not tr_review_done and job_performance >= 100 and can_promote():
+            elif tr_npc2_done and not tr_boundary_done:
+                call tr_boundary_case
+            elif (tr_boundary_done and tr_boundary_followup_pending
+                    and tr_shifts >= tr_boundary_followup_shift
+                    and not tr_boundary_followup_done):
+                call tr_boundary_followup
+            elif (tr_boundary_followup_done and not tr_review_done
+                    and tr_shifts >= tr_boundary_followup_shift + tr_boundary_review_extra_shifts
+                    and job_performance >= 100 and can_promote()):
                 call tr_review_asst
             else:
                 if _tired:
@@ -476,12 +498,7 @@ label gym_floor:
                 "Kai looks you over, then at your form on the floor. \"You know how to move. Let's see if you can teach it.\" Assistant trainer. Starting Monday."
             else:
                 "Kai checks your profile. \"STR and the Athletic Training cert minimum. The college runs the course — come back when you're there.\""
-            jump gym_floor
-        "Talk to Kai" if npc_talkable("kai"):
-            call npc_interact("kai")
-            jump gym_floor
-        "Talk to Sam" if npc_talkable("sam"):
-            call npc_interact("sam")
+                $ _fs_career_rejection()
             jump gym_floor
         "Train - weights (1.5h, -15 energy)":
             if too_tired():
@@ -509,6 +526,8 @@ label gym_floor:
                 "Protein shake in the tank. A clean, productive session."
             else:
                 "A solid session. You can feel it already."
+            $ fs_mark("study_done")
+            $ fs_mark("outside_activity")
             jump gym_floor
         "Cardio (1h, -12 energy)":
             if too_tired():
@@ -521,6 +540,8 @@ label gym_floor:
             $ gain_stat("str", 10)
             $ gain_stat("app", 4)
             "You run until your lungs complain."
+            $ fs_mark("study_done")
+            $ fs_mark("outside_activity")
             jump gym_floor
         "Buy Protein Shake ($12)":
             if money < 12:
@@ -542,15 +563,21 @@ label gym_floor:
 # ── LIBRARY ───────────────────────────────────────────────────────────
 label location_library:
     $ current_loc = "location_library"
+    $ fs_record_district("centrum")
     if not venue_open("library"):
         "The library is closing. Time to head out."
-        jump take_metro
+        jump map
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene expression ("librarynight" if hour >= 20 else "libraryday")
     show screen hud
-    if npc_talkable("eli"):
-        show eli_normal as npcsprite at sprite_r
+    hide screen people_here_dock
+    $ _wed_amb = wed_poll_ambient("location_library")
+    if _wed_amb:
+        call expression _wed_amb
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("location_library")
     menu (screen="activity"):
         "Study — general (2h)":
             if too_tired():
@@ -577,6 +604,8 @@ label location_library:
                 "Second session. Progress slows — the mind's full — but you push through."
             else:
                 "You're staring at the page. Nothing new is going in. Get some rest."
+            $ fs_mark("study_done")
+            $ fs_mark("outside_activity")
             jump location_library
         "Self-study a subject (2h, free)":
             if too_tired():
@@ -607,9 +636,8 @@ label location_library:
                     $ store.need_energy = max(0, store.need_energy - 18)
                     $ gain_skill("art", 2)
                     "Theory, references, sketching. You can feel the improvement in small ways."
-            jump location_library
-        "Talk to Eli" if npc_talkable("eli"):
-            call npc_interact("eli")
+            $ fs_mark("study_done")
+            $ fs_mark("outside_activity")
             jump location_library
 
 # ── BAR ───────────────────────────────────────────────────────────────
@@ -639,6 +667,7 @@ label location_bar:
             call scene_car_marcus_drive
     scene bar
     show screen hud
+    hide screen people_here_dock
     # Priority 4: Natalie humanisation (weekend bar schedule, npc_here check)
     if natalie_bar_scene_pending and npc_here("natalie"):
         call scene_natalie_bar_offduty
@@ -666,12 +695,10 @@ label location_bar:
     if _wed_per:
         call expression _wed_per
     $ _vis = location_sprites()
-    if len(_vis) >= 1:
-        show expression _vis[0][1] as npcsprite at sprite_r
-    if len(_vis) >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_l
+    call show_public_sprites
     $ _drink_cost = 4 if has_event("bar_happy") else 8
     $ _chr_bonus  = 30 if has_event("bar_happy") else 15
+    show screen people_here_dock("location_bar")
     menu (screen="activity"):
         "Have a drink ($[_drink_cost], 0.5h)":
             $ spend_time(0.5)
@@ -697,21 +724,6 @@ label location_bar:
             else:
                 "You hover near a few groups but can't quite break in. Maybe with a bit more charm."
             jump location_bar
-        "Talk to Marcus" if npc_talkable("marcus"):
-            call npc_interact("marcus")
-            jump location_bar
-        "Talk to Eli" if npc_talkable("eli"):
-            call npc_interact("eli")
-            jump location_bar
-        "Talk to Dr. Lena" if npc_talkable("lena"):
-            call npc_interact("lena")
-            jump location_bar
-        "Talk to Natalie" if npc_talkable("natalie"):
-            call npc_interact("natalie")
-            jump location_bar
-        "Talk to Martha" if npc_talkable("martha"):
-            call npc_interact("martha")
-            jump location_bar
 
 # ── OFFICE (corporate career) ─────────────────────────────────────────
 label location_office:
@@ -724,7 +736,8 @@ label location_office:
             "Nexus Tower is dark on weekends. The corporate world takes Saturdays off."
         else:
             "Nexus Tower is locked up for the night."
-        jump take_metro
+        jump map
+    hide screen people_here_dock
     # Priority 2: pending conflict scenes
     if martha_gift_scene_pending and martha_met and hour >= 9 and hour < 18:
         call scene_martha_gift_accusation
@@ -741,11 +754,12 @@ label location_office:
     $ activity_exit_name = "Downtown"
     scene goodoffice1
     show screen hud
+    $ _wed_amb = wed_poll_ambient("location_office")
+    if _wed_amb:
+        call expression _wed_amb
     $ _vis = location_sprites()
-    if len(_vis) >= 1:
-        show expression _vis[0][1] as npcsprite at sprite_r
-    if len(_vis) >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_l
+    call show_public_sprites
+    show screen people_here_dock("location_office")
     menu (screen="activity"):
         "Go to work" if job_id == "corporate":
             if too_tired() or hour + 8 > DAY_END:
@@ -759,6 +773,11 @@ label location_office:
                         pass
                     "Go back":
                         jump location_office
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             menu:
                 "Handle regular responsibilities.":
                     call corp_regular_work
@@ -778,7 +797,13 @@ label location_office:
 
         "Ask about a promotion" if job_id == "corporate" and can_promote():
             if job_rank == 0 and not corp_review_intern_done:
-                call corporate_review_intern
+                if (corp_integrity_followup_done
+                        and corp_shifts >= corp_integrity_followup_shift + corp_integrity_review_extra_shifts):
+                    call corporate_review_intern
+                else:
+                    show caroline_normal at sprite_r
+                    caro "There's an open matter from the reporting review. Come back once it's resolved."
+                    hide caroline_normal
             else:
                 $ _trial = cur_rank().get("trial")
                 if _trial and not store.promotion_trials.get(("corporate", job_rank), False):
@@ -797,6 +822,7 @@ label location_office:
                 show caroline_normal as npcsprite at sprite_c
                 caro "HR. Let me save us both time - Business 1, INT 20, CHR 20, APP 20. All four, minimum. The college helps."
                 hide npcsprite
+                $ _fs_career_rejection()
             jump location_office
 
         "Quit this job" if job_id == "corporate":
@@ -804,16 +830,15 @@ label location_office:
             "You hand in your notice. Caroline nods. \"Best of luck.\""
             jump location_office
 
-        "Talk to Caroline" if npc_talkable("caroline"):
-            call npc_interact("caroline")
-            jump location_office
-        "Talk to Martha" if npc_talkable("martha"):
-            call npc_interact("martha")
-            jump location_office
 
 # ── MALL (shop hub) ───────────────────────────────────────────────────
 label location_mall:
+    $ fs_record_district("mall")
     scene expression ("mallnight" if hour >= 19 else "mallday")
+    show screen hud
+    $ _wed_amb = wed_poll_ambient("location_mall")
+    if _wed_amb:
+        call expression _wed_amb
     call screen mall_hub
 
 label location_shop_clothing:
@@ -959,6 +984,9 @@ label location_cardealer:
     $ activity_exit_name = "Downtown"
     scene cardealer_day
     show screen hud
+    $ _wed_amb = wed_poll_ambient("location_cardealer")
+    if _wed_amb:
+        call expression _wed_amb
     menu (screen="activity"):
         "Buy a used runabout ($1500)" if car_tier < 1:
             if money < 1500:
@@ -1048,6 +1076,7 @@ label location_kitchen:
                 "The head chef eyes your knife roll. \"Commis. Don't bleed on my food.\" You're in."
             else:
                 "The head chef barely looks up. \"Not ready. Cooking 1 and some muscle, minimum. Learn to prep first.\""
+                $ _fs_career_rejection()
             jump location_kitchen
 
         "Quit the kitchen" if job_id == "culinary":
@@ -1061,6 +1090,7 @@ label location_nightclub:
     $ current_loc = "location_nightclub"
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
+    hide screen people_here_dock
     # Priority 3: Zoe spontaneous moment (major, night only)
     if (zoe_moment_deflected_pending and major_scene_last_day != day
             and hour >= 21 and zoe_met):
@@ -1073,21 +1103,13 @@ label location_nightclub:
     scene nightclub
     show screen hud
     $ _vis = location_sprites()
-    if len(_vis) >= 1:
-        show expression _vis[0][1] as npcsprite at sprite_r
-    if len(_vis) >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_l
+    call show_public_sprites
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
+    show screen people_here_dock("location_nightclub")
     menu (screen="activity"):
         "Join [_group_lbl] →" if _group:
             call group_interact(_group[0], _group[1])
-            jump location_nightclub
-        "Talk to Zoe" if npc_talkable("zoe"):
-            call npc_interact("zoe")
-            jump location_nightclub
-        "Talk to Kai" if npc_talkable("kai"):
-            call npc_interact("kai")
             jump location_nightclub
         "Hit the dance floor (1h)":
             $ spend_time(1)
@@ -1175,6 +1197,7 @@ label location_flea_market:
 # ── PARK ──────────────────────────────────────────────────────────────
 label location_park:
     $ current_loc = "location_park"
+    $ fs_record_district("park")
     $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
     $ _sam_marcus_fired = False
@@ -1192,13 +1215,9 @@ label location_park:
         call scene_zoe_rain_shelter
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    $ _vis = location_sprites()
-    if len(_vis) >= 1:
-        show expression _vis[0][1] as npcsprite at sprite_r
-    if len(_vis) >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_l
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
+    hide screen people_here_dock
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_park")
     if _wed_amb:
@@ -1206,6 +1225,9 @@ label location_park:
     $ _wed_per = wed_poll_personal("location_park")
     if _wed_per:
         call expression _wed_per
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("location_park")
     menu (screen="activity"):
         "Join [_group_lbl] →" if _group and not _sam_marcus_fired:
             call group_interact(_group[0], _group[1])
@@ -1250,15 +1272,6 @@ label location_park:
             $ gain_stat("str", 8)
             "A pickup game on the court. Sweaty, competitive, good."
             jump location_park
-        "Talk to Marcus" if npc_talkable("marcus"):
-            call npc_interact("marcus")
-            jump location_park
-        "Talk to Zoe" if npc_talkable("zoe"):
-            call npc_interact("zoe")
-            jump location_park
-        "Talk to Sam" if npc_talkable("sam"):
-            call npc_interact("sam")
-            jump location_park
         "Play guitar (Zoe's here) (2h)" if own_guitar and skill_music >= 3 and zoe_affection >= 30 and zoe_met and not zoe_park_guitar_done and (day % 7 in [3, 4]) and hour >= 14 and hour <= 17:
             call scene_guitar_zoe_busking
             jump location_park
@@ -1266,6 +1279,7 @@ label location_park:
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
     $ current_loc = "location_beach"
+    $ fs_record_district("plaza")
     $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
     scene expression ("beachnight" if hour >= 19 else "beachday")
@@ -1287,6 +1301,9 @@ label location_beach:
         show expression _vis[0][1] as npcsprite at sprite_r
     if len(_vis) >= 2:
         show expression _vis[1][1] as npcsprite2 at sprite_l
+    $ _wed_amb = wed_poll_ambient("location_beach")
+    if _wed_amb:
+        call expression _wed_amb
     call screen beach_hub
 
 # ── SANDBEACH (waterfront - swimming & sunbathing) ────────────────────
@@ -1294,10 +1311,14 @@ label location_sandbeach:
     $ current_loc = "location_sandbeach"
     $ activity_exit_jump = "location_beach"
     $ activity_exit_name = "Beach"
+    hide screen people_here_dock
     if zoe_affection >= 40 and hour >= 20 and not zoe_beach_night_done:
         jump zoe_beach_night_scene
     scene expression ("sandbeach_night" if hour >= 19 else "sandbeach_day")
     show screen hud
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("location_sandbeach")
     menu (screen="activity"):
         "Search with metal detector (2h)" if own_metal_detector and hour < 18:
             $ _metal_owarn = _overlap_warning_text(2)
@@ -1340,15 +1361,6 @@ label location_sandbeach:
             $ need_energy = min(100, need_energy + 15)
             $ gain_stat("app", 1)
             "Salt air and sun."
-            jump location_sandbeach
-        "Talk to Elle" if npc_talkable("elle"):
-            call npc_interact("elle")
-            jump location_sandbeach
-        "Talk to Zoe" if npc_talkable("zoe"):
-            call npc_interact("zoe")
-            jump location_sandbeach
-        "Talk to Kai" if npc_talkable("kai"):
-            call npc_interact("kai")
             jump location_sandbeach
 
 # ── Zoe first meet - beach (daytime only, fires once) ─────────────────
@@ -1510,21 +1522,28 @@ label zoe_beach_shared:
 # Clicking the downtown district drops you "on the street" - pick a venue.
 label location_centrum:
     scene expression ("centerstreet_night" if (hour >= 20 or hour < 6) else "centerstreet_day")
+    show screen hud
+    $ _wed_amb = wed_poll_ambient("location_centrum")
+    if _wed_amb:
+        call expression _wed_amb
     # bottom bar of venue icons (screen handles navigation)
     call screen centrum_hub
 
 # ── WAREHOUSE ─────────────────────────────────────────────────────────
 label location_warehouse:
     $ current_loc = "location_warehouse"
-    $ activity_exit_jump = "take_metro"
+    $ fs_record_district("warehouse")
+    $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
+    hide screen people_here_dock
     if commitment_available("natalie_shift_1"):
         call phone_natalie_extra_scene
         jump location_warehouse
     scene warehouse
     show screen hud
-    if npc_talkable("natalie"):
-        show natalie_normal as npcsprite at sprite_r
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("location_warehouse")
     menu (screen="activity"):
         "Work a shift (8h)" if stat_str >= 25:
             if too_tired() or hour + 8 > DAY_END:
@@ -1538,6 +1557,11 @@ label location_warehouse:
                         pass
                     "Go back":
                         jump location_warehouse
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             scene pov_warehouse
             show screen hud
             $ _is_sun = (day % 7 == 6)
@@ -1552,24 +1576,33 @@ label location_warehouse:
                 "Eight hours of hauling. At clock-out the floor manager, Natalie, sizes you up: \"Not useless. I'm Natalie. Don't make me remember your name for the wrong reasons.\""
                 $ queue_phone_message("natalie", "First shift done. You held up. Get some sleep.", day, "warehouse_natalie_first")
             else:
-                "Eight hours of hauling and stacking. Your back aches; your wallet's heavier."
-                if natalie_met and renpy.random.random() < 0.15 and not message_already_queued("natalie_shift_invite"):
-                    $ queue_phone_message("natalie", "Short-handed Saturday. You up for an extra shift? Time and a half, same terms.", day + 1, "natalie_shift_invite", responses=_NATALIE_SHIFT_RESP)
+                $ wh_shifts += 1
+                if not wh_safety_done and wh_shifts >= 5:
+                    call wh_damaged_shipment
+                elif (wh_safety_done and wh_safety_followup_pending
+                        and wh_shifts >= wh_safety_followup_shift
+                        and not wh_safety_followup_done):
+                    call wh_damaged_shipment_followup
+                else:
+                    "Eight hours of hauling and stacking. Your back aches; your wallet's heavier."
+                    if renpy.random.random() < 0.15 and not message_already_queued("natalie_shift_invite"):
+                        $ queue_phone_message("natalie", "Short-handed Saturday. You up for an extra shift? Time and a half, same terms.", day + 1, "natalie_shift_invite", responses=_NATALIE_SHIFT_RESP)
+            if _work_event_roll("warehouse"):
+                call work_event_warehouse
             jump location_warehouse
         "Apply for work" if stat_str < 25:
             show natalie_normal at sprite_r
             nat "Come back when you can actually lift. STR 25, minimum. Next."
             hide natalie_normal
             jump location_warehouse
-        "Talk to Natalie" if npc_talkable("natalie"):
-            call npc_interact("natalie")
-            jump location_warehouse
 
 # ── HOSPITAL ──────────────────────────────────────────────────────────
 label location_hospital:
     $ current_loc = "location_hospital"
-    $ activity_exit_jump = "take_metro"
+    $ fs_record_district("szpital")
+    $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
+    hide screen people_here_dock
     # Priority 3: pending breakthrough scenes (major) — one per day
     if major_scene_last_day != day:
         if lena_shoulder_pending and lena_met:
@@ -1580,10 +1613,8 @@ label location_hospital:
     if _wed_amb:
         call expression _wed_amb
     $ _vis = location_sprites()
-    if len(_vis) >= 1:
-        show expression _vis[0][1] as npcsprite at sprite_r
-    if len(_vis) >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_l
+    call show_public_sprites
+    show screen people_here_dock("location_hospital")
     menu (screen="activity"):
         "Cosmetic treatment ($350, 2h)":
             if money < 350:
@@ -1609,6 +1640,11 @@ label location_hospital:
                         pass
                     "Go back":
                         jump location_hospital
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             scene pov_doctor
             show screen hud
             $ _tired = do_shift("hospital", 8)
@@ -1621,7 +1657,18 @@ label location_hospital:
                 call hosp_npc1_lena
             elif hosp_npc1_done and not hosp_npc2_done and hosp_shifts >= 7 and job_rank == 0:
                 call hosp_npc2_lena
-            elif hosp_npc2_done and not hosp_review_done and job_performance >= 100 and can_promote() and job_rank == 0:
+            elif hosp_npc2_done and lena_case_observation_done and not hospital_hard_case_done:
+                call hospital_hard_case_scene
+            elif (hospital_hard_case_done and hospital_hard_case_followup_pending
+                    and hosp_shifts >= hospital_hard_case_followup_shift
+                    and not hospital_hard_case_followup_done):
+                call hospital_hard_case_followup
+            elif (hosp_npc2_done and not hosp_review_done
+                    and job_performance >= 100 and can_promote() and job_rank == 0
+                    and ((not lena_case_observation_done and not hospital_hard_case_done)
+                     or (hospital_hard_case_done
+                         and hospital_hard_case_followup_done
+                         and hosp_shifts >= hospital_hard_case_followup_shift + hospital_hard_case_review_extra_shifts))):
                 call hosp_review_assistant
             else:
                 if commitment_available("lena_case_1"):
@@ -1672,15 +1719,13 @@ label location_hospital:
             else:
                 "A tired doctor hands your CV back. \"Not there yet - Medicine 2, INT 30, CHR 15 minimum. The college teaches it.\""
                 hide drlena_normal
+                $ _fs_career_rejection()
             jump location_hospital
 
         "Find Dr. Lena on break (0.5h)" if lena_affection >= 20 and lena_trust >= 15 and lena_met and not lena_break_room_done and hour >= 12 and hour <= 14:
             call scene_lena_hospital_break_room
             jump location_hospital
 
-        "Talk to Dr. Lena" if npc_talkable("lena"):
-            call npc_interact("lena")
-            jump location_hospital
 
         "Quit medicine" if job_id == "hospital":
             $ quit_job()
@@ -1691,9 +1736,10 @@ label location_hospital:
 # ── THE HUB (IT career) ───────────────────────────────────────────────
 label location_hub:
     $ current_loc = "location_hub"
+    $ fs_record_district("centrum")
     if not venue_open("hub"):
         "The Hub is shut. Back at 08:00."
-        jump take_metro
+        jump map
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     # Priority 3: pending breakthrough scenes (major) — one per day, evening only
@@ -1734,7 +1780,16 @@ label location_hub:
                 call it_npc1_eli
             elif it_npc1_done and not it_npc2_done and it_shifts >= 7:
                 call it_npc2_eli
-            elif it_npc2_done and not it_review_done and job_performance >= 100 and can_promote():
+            elif it_npc2_done and not it_incident_done:
+                call it_production_incident
+            elif (it_incident_done and it_incident_followup_pending
+                    and it_shifts >= it_incident_followup_shift
+                    and not it_incident_followup_done):
+                call it_production_incident_followup
+            elif (it_npc2_done and not it_review_done
+                    and job_performance >= 100 and can_promote()
+                    and it_incident_followup_done
+                    and it_shifts >= it_incident_followup_shift + it_incident_review_extra_shifts):
                 call it_review_junior
             else:
                 if commitment_available("eli_debug_1"):
@@ -1765,6 +1820,7 @@ label location_hub:
                 "You nail the interview. Junior Dev at The Hub. Welcome to the grind."
             else:
                 "A dev lead skims your work and slides it back. \"Not yet - Programming 2 and INT 30 minimum. The college runs courses.\""
+                $ _fs_career_rejection()
             jump location_hub
 
         "Quit this job" if job_id == "it":
@@ -1784,34 +1840,67 @@ label location_hub:
 # ── CITY COLLEGE (learn professional skills) ──────────────────────────
 label location_college:
     $ current_loc = "location_college"
+    $ fs_record_district("centrum")
     if not venue_open("university"):
         if day % 7 >= 5:
             "The college is closed on weekends. Back Monday at 08:00."
         else:
             "The college is closed for the day. Back at 08:00."
-        jump take_metro
+        jump map
     $ activity_exit_jump = "location_centrum"
     $ activity_exit_name = "Downtown"
     scene college_day
     show screen hud
+    hide screen people_here_dock
+    $ _wed_amb = wed_poll_ambient("location_college")
+    if _wed_amb:
+        call expression _wed_amb
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("location_college")
     $ _prog_cost = course_cost("prog")
     $ _med_cost  = course_cost("med")
     $ _biz_cost  = course_cost("biz")
     $ _art_cost  = course_cost("art")
     menu (screen="activity"):
         "Programming ($[_prog_cost], 3h, -22 energy)":
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             call college_course("prog")
             jump location_college
         "Medicine ($[_med_cost], 3h, -22 energy)":
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             call college_course("med")
             jump location_college
         "Business ($[_biz_cost], 3h, -22 energy)":
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             call college_course("biz")
             jump location_college
         "Art ($[_art_cost], 3h, -22 energy)":
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             call college_course("art")
             jump location_college
         "Degree examinations →" if skill_med >= 3 or skill_prog >= 3 or skill_biz >= 3:
+            hide npcsprite
+            hide npcsprite2
+            hide npcsprite3
+            hide npcsprite4
+            hide screen people_here_dock
             jump location_college_exams
 
 
@@ -1892,6 +1981,8 @@ label college_course(key):
         "You've maxed this one out - nothing more they can teach you here."
     else:
         "Three hours of lectures and exercises. It's starting to click."
+        $ fs_mark("study_done")
+        $ fs_mark("outside_activity")
     return
 
 # ── SLEEP ─────────────────────────────────────────────────────────────
@@ -1978,14 +2069,19 @@ label check_collapse:
     # energy==0 no longer causes collapse - demanding activities become unavailable instead.
     if not warned_today and (need_hunger < 22 or need_energy < 22 or need_hygiene < 18):
         $ warned_today = True
-        $ renpy.notify("Running low - eat, sleep, or shower soon.")
+        if not tip_need_critical_shown:
+            $ tip_need_critical_shown = True
+            $ renpy.notify("A critical need can block demanding activities — recover early.")
+        else:
+            $ renpy.notify("Running low - eat, sleep, or shower soon.")
     return
 
+# LEGACY SAVE-COMPATIBILITY STUB.
+# take_metro existed in older saves. This label exists only so those save files
+# can resume without an "unknown label" error. It immediately redirects to the
+# city map. No time is spent, no money is charged, no event fires, no menu shows.
+# No new gameplay or UI element should ever jump here.
 label take_metro:
-    if car_tier > 0:
-        jump map
-    $ spend_time(0.25)
-    "You take the metro. Fifteen minutes."
     jump map
 
 # ── MAP ────────────────────────────────────────────────────────────────
@@ -1993,8 +2089,12 @@ label map:
     call check_collapse
     $ expire_late_commitments()
     $ notify_available_commitments()
+    $ fs_mark("map_visited")
     scene map_city
     show screen hud
+    if not tip_map_shown:
+        $ tip_map_shown = True
+        call screen tutorial_overlay("CITY MAP", "Choose a district or location to travel there immediately. Travel does not advance time, but locations have schedules and opening hours.")
     call screen city_map
 
 # ── NORA - CLOSING TIME ────────────────────────────────────────────────
@@ -2094,7 +2194,7 @@ label nora_closing_scene:
                 $ _apply_trust("nora", 1)
                 $ add_relationship_memory("nora", "nora_closing_direction_withdrawal", "Walked in silence after closing")
                 "She doesn't try to fill it. Neither do you."
-    jump take_metro
+    jump map
 
 # ── ELLE - BEST SPOT PAST THE PIER ────────────────────────────────────
 # Trigger: elle_affection >= 40, Wednesday 16-19, elle present — fires once
@@ -2151,8 +2251,8 @@ label elle_pier_scene:
         "\"I'd like that.\"":
             $ elle_affection = min(100, elle_affection + 2)
             el "Me too."
-    "You walk back along the shore toward the metro stop."
-    jump take_metro
+    "You head back through the city."
+    jump map
 
 # ── DR. LENA - ROOFTOP, 3 A.M. ────────────────────────────────────────
 # Trigger: hospital job rank >= 1, lena_trust >= 25, hour >= 22 — fires once after a night shift
@@ -2207,9 +2307,9 @@ label lena_rooftop_scene:
     lena "Get some sleep. You're back in seven hours."
     "She heads for the door. Stops."
     lena "It helps. Having someone up here who gets it."
-    "You take the stairs down and head for the metro."
+    "You take the stairs down."
     $ add_relationship_memory("lena", "lena_rooftop", "The rooftop")
-    jump take_metro
+    jump map
 
 
 # ── ELI — BEACH METAL DETECTOR ────────────────────────────────────────
@@ -2420,7 +2520,7 @@ label martha_rooftop_scene:
                 "The silence doesn't need filling. She knows that."
     hide martha_dress_normal
     $ add_relationship_memory("martha", "martha_rooftop", "The rooftop conversation")
-    jump take_metro
+    jump map
 
 
 # ── NORA — RENT CONVERSATION ──────────────────────────────────────────
@@ -2644,6 +2744,7 @@ label hospital_trial_resident:
 # ── QUAYSIDE (Nadbrzeże) ───────────────────────────────────────────────
 label location_nadbrzeze:
     $ current_loc = "location_nadbrzeze"
+    $ fs_record_district("nadbrzeze")
     scene expression ("nadbrzeze_night" if (hour >= 19 or hour < 6) else "nadbrzeze_day")
     show screen hud
     call screen nadbrzeze_hub
@@ -2726,11 +2827,13 @@ label location_diner:
         jump location_nadbrzeze
     scene diner_night
     show screen hud
+    hide screen people_here_dock
     if (rena_met and cul_npc1_done and not rena_diner_first_done
             and npc_here("rena") and major_scene_last_day != day):
         call scene_rena_diner_first
-    if npc_here("rena"):
-        show rena_casual_normal at sprite_r
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("location_diner")
     menu (screen="activity"):
         "Order coffee ($3, 0.5h)":
             if try_spend(3):
@@ -2806,6 +2909,28 @@ label scene_rena_diner_first:
 
 
 label rena_diner_talk:
+    if not talk_followup_rena_taste_again_done and "wev_cul_taste_again" in work_events_seen.get("culinary", []):
+        $ talk_followup_rena_taste_again_done = True
+        $ fs_record_social("rena", "talk")
+        show rena_casual_talk at sprite_r
+        rena "You tasted it before I asked today."
+        mc "I'm learning."
+        rena "You're repeating something correctly."
+        rena "Learning comes later."
+        return
+    if not talk_followup_rena_short_staffed_done and rena_short_staffed_choice is not None:
+        $ talk_followup_rena_short_staffed_done = True
+        $ fs_record_social("rena", "talk")
+        show rena_casual_talk at sprite_r
+        if rena_short_staffed_choice == "help":
+            rena "You asked where I needed you."
+            mc "You sounded surprised."
+            rena "I was checking whether it was temporary."
+        else:
+            rena "You held your station."
+            mc "You say that like I was being tested."
+            rena "You were."
+        return
     show rena_casual_talk at sprite_r
     rena "Still here."
     menu:
@@ -2829,3 +2954,46 @@ label rena_diner_talk:
             rena "Still here."
             "She means it as an answer. You let it be one."
     return
+
+
+# ── INDEPENDENT GALLERY (Phase 50 — temporary event location) ─────────────────
+# Accessible only while: a valid Zoe exhibition plan is pending,
+# or zoe_exhibition_done and day <= zoe_gallery_until_day.
+# Background: gallery_evening (not yet declared); fallback librarynight.
+
+label location_gallery:
+    $ current_loc = "location_gallery"
+    $ activity_exit_jump = "location_centrum"
+    $ activity_exit_name = "City Centre"
+    # Safety redirect: no valid plan and no active post-opening period.
+    $ _gal_plan_ok = (store.npc_invitation_pending is not None
+                      and store.npc_invitation_pending.get("invitation_id") == "zoe_exhibition"
+                      and store.day <= store.npc_invitation_pending.get("expiry_day", -999))
+    $ _gal_post_ok = store.zoe_exhibition_done and store.day <= store.zoe_gallery_until_day
+    if not (_gal_plan_ok or _gal_post_ok):
+        jump location_centrum
+    $ _gal_bg = "gallery_evening" if renpy.has_image("gallery_evening") else "librarynight"
+    # Dispatch WED personal event (the once-only opening scene)
+    $ _wed_gal = wed_poll_personal("location_gallery")
+    if _wed_gal:
+        call expression _wed_gal
+        jump location_gallery
+    scene expression _gal_bg
+    show screen hud
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("location_gallery")
+    menu (screen="activity"):
+        "Talk to Zoe" if (zoe_exhibition_done
+                          and day <= zoe_gallery_until_day
+                          and npc_here("zoe")
+                          and zoe_gallery_talk_last_day < day):
+            $ zoe_gallery_talk_last_day = day
+            call zoe_gallery_talk
+            jump location_gallery
+        "Look at the work (0.5h)" if zoe_exhibition_done and day <= zoe_gallery_until_day:
+            $ spend_time(0.5)
+            "The work is still up. The corner piece is still in the corner."
+            jump location_gallery
+        "Leave":
+            jump location_centrum

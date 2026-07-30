@@ -65,8 +65,9 @@ init python:
             "sprites": {"casual": "marcus_casual_normal", "evening": "marcus_bar_normal", "sport": "marcus_park_neutral"},
             "world": True, "sched": [
                 (None, (6,  10), "location_park"),
+                ({1},  (15, 17), "location_cafe"),    # Tuesday coffee stop (15–16 mutual with Nora)
                 (None, (17, 24), "location_bar"),
-                (WKD,  (23, 27), "location_nightclub"),
+                (WKD,  (24, 27), "location_nightclub"),
             ],
             "likes": ["sports", "food", "nightlife"], "dislikes": ["art"],
             "topic_arcs": {
@@ -83,7 +84,10 @@ init python:
         "caroline": {
             "name": "Caroline", "portrait": "portrait_caroline", "sprite": "caroline_normal", "say": "caro",
             "aff": "caroline_affection", "trust": "caroline_trust", "greet": "caroline_greet",
-            "met": "caroline_met", "sched": [(MON_FRI, (9, 18), "location_office")],
+            "met": "caroline_met", "sched": [
+                (MON_FRI, (9,  18), "location_office"),
+                ({3},     (20, 23), "location_bar"),   # Thursday professional visit
+            ],
             "likes": ["work", "ambition", "nightlife"], "dislikes": ["sports"],
         },
         "lena": {
@@ -119,8 +123,8 @@ init python:
             "aff": "elle_affection", "trust": "elle_trust", "greet": "elle_greet",
             "world": True, "sched": [
                 ({1, 3}, (9,  13), "location_cafe"),
-                ({2},    (16, 19), "location_beach"),
-                (WKD,    (13, 18), "location_beach"),
+                ({2},    (16, 19), "location_sandbeach"),
+                (WKD,    (13, 18), "location_sandbeach"),
                 (WKD,    (21, 25), "location_nightclub"),
             ],
             "likes": ["travel", "music", "art"], "dislikes": ["work"],
@@ -135,10 +139,11 @@ init python:
             "name": "Zoe", "portrait": "portrait_zoe", "sprite": "zoe_punk_smile", "say": "z",
             "aff": "zoe_affection", "trust": "zoe_trust", "greet": "zoe_greet",
             "world": True, "sched": [
-                (WKD,    (12, 18), "location_beach"),
+                (WKD,    (12, 18), "location_sandbeach"),
                 ({3, 4}, (14, 18), "location_park"),
+                ({2},    (14, 17), "location_cafe"),        # Wednesday sketching at Grounds
                 (WKD,    (19, 24), "location_sandbeach"),  # covers zoe_beach_night_scene window
-                (FRISUN, (21, 27), "location_nightclub"),
+                (FRISUN, (24, 27), "location_nightclub"),
             ],
             "likes": ["art", "music", "nightlife"], "dislikes": ["ambition"],
             "topic_arcs": {
@@ -161,6 +166,7 @@ init python:
                 (MON_FRI, (6,  10), "location_park"),
                 (MON_FRI, (10, 14), "location_gym"),
                 (WKD,     (9,  13), "location_gym"),
+                ({4},     (16, 18), "location_park"),  # Friday outdoor exercise (aligns with Zoe park Thu–Fri 14–18)
             ],
             "likes": ["sports", "work", "food"], "dislikes": ["nightlife"],
         },
@@ -186,7 +192,7 @@ init python:
             "world": True, "sched": [
                 ({1, 3}, (10, 14), "location_cafe"),
                 (WKD,    (10, 14), "location_gym"),
-                (WKD,    (14, 18), "location_beach"),
+                (WKD,    (14, 18), "location_sandbeach"),
                 (WKD,    (18, 22), "location_bar"),
                 (FRISUN, (22, 27), "location_nightclub"),
             ],
@@ -222,10 +228,34 @@ init python:
         d = NPC_DATA.get(npc_id, {})
         return d.get("sprites", {}).get(context, d["sprite"])
 
-    def npc_here(npc_id):
-        sched = NPC_DATA[npc_id].get("sched")
-        if not sched:
+    def npc_is_temporarily_unavailable(npc_id):
+        if npc_id == "elle" and store.elle_life_state == "abroad":
             return True
+        return False
+
+    def npc_schedule_entries(npc_id):
+        if npc_id == "nora" and store.nora_life_state == "school":
+            return _NORA_SCHOOL_SCHED   # defined in world_progression.rpy
+        sched = NPC_DATA[npc_id].get("sched")
+        if sched and npc_id == "rena" and store.day < store.rena_diner_absent_until_day:
+            sched = [e for e in sched if e[2] != "location_diner"]
+        if sched and npc_id == "lena" and store.day < store.lena_bar_absent_until_day:
+            sched = [e for e in sched if e[2] != "location_bar"]
+        # Phase 50: Zoe temporary gallery schedule — Sunday 14:00-18:00 during post-opening period
+        if (npc_id == "zoe"
+                and store.zoe_exhibition_done
+                and store.day <= store.zoe_gallery_until_day):
+            sched = list(sched) + [({6}, (14, 18), "location_gallery")]
+        return sched
+
+    def npc_here(npc_id):
+        if npc_is_temporarily_unavailable(npc_id):
+            return False
+        sched = npc_schedule_entries(npc_id)
+        if sched is None:   # no schedule key → NPC is unrestricted
+            return True
+        if not sched:       # schedule key present but all entries filtered → not here
+            return False
         wd = store.day % 7
         for entry in sched:
             days = entry[0]
@@ -351,15 +381,189 @@ init python:
 
     def _apply_aff(npc_id, delta):
         av = NPC_DATA[npc_id]["aff"]
-        setattr(store, av, max(0, min(getattr(store, av) + delta, 100)))
+        _old = getattr(store, av)
+        _new = max(-100, min(_old + delta, 100))
+        _actual = _new - _old
+        setattr(store, av, _new)
+        if _actual != 0 and store._npc_panel_npc_id == npc_id:
+            store._rel_feedback_aff = _actual
         if delta > 0:
             _check_relationship_thresholds(npc_id)
 
     def _apply_trust(npc_id, delta):
         tv = NPC_DATA[npc_id]["trust"]
-        setattr(store, tv, max(0, min(getattr(store, tv) + delta, 100)))
+        _old = getattr(store, tv)
+        _new = max(0, min(_old + delta, 100))
+        _actual = _new - _old
+        setattr(store, tv, _new)
+        if _actual != 0 and store._npc_panel_npc_id == npc_id:
+            store._rel_feedback_tr = _actual
         if delta > 0:
             _check_relationship_thresholds(npc_id)
+
+    def _check_talk_followup(npc_id):
+        if npc_id == "marcus" and not store.talk_followup_marcus_first_shift_done:
+            if "marcus_first_shift_checkin" in store.wed_resolved:
+                return "talk_followup_marcus_first_shift"
+        if npc_id == "martha":
+            if not store.talk_followup_martha_credit_done:
+                if relationship_memory_exists("martha", "martha_acknowledged_work"):
+                    return "talk_followup_martha_credit"
+            if not store.talk_followup_martha_revision_done:
+                if store.martha_revision_choice is not None and "wev_corp_final_revision" in store.wed_resolved:
+                    return "talk_followup_martha_revision"
+            if not store.talk_followup_martha_settled_done:
+                if store.corp_shifts >= 3:
+                    return "talk_followup_martha_settled"
+            if (not store.martha_jealousy_first_notice_done
+                    and store.npc_jealousy_pending.get("martha")
+                    and store.martha_corridor_done):
+                return "martha_jealousy_first_notice"
+        if npc_id == "nora":
+            if (not store.nora_jealousy_first_notice_done
+                    and store.npc_jealousy_pending.get("nora")
+                    and store.nora_bad_day_done):
+                return "nora_jealousy_first_notice"
+        if npc_id == "eli":
+            if (not store.eli_jealousy_first_notice_done
+                    and store.npc_jealousy_pending.get("eli")
+                    and store.eli_deploy_hug_done):
+                return "eli_jealousy_first_notice"
+        if npc_id == "zoe":
+            if (not store.zoe_jealousy_first_notice_done
+                    and store.npc_jealousy_pending.get("zoe")
+                    and store.zoe_rain_done):
+                return "zoe_jealousy_first_notice"
+        # Phase 35: post-invitation follow-up (priority below jealousy, above life-progression)
+        _inv_fu = store.npc_invitation_followup_pending.get(npc_id)
+        if _inv_fu is not None and store.day > _inv_fu.get("completed_day", store.day):
+            return _inv_fu["invitation_id"] + "_followup"
+        # Phase 42: life-progression follow-ups
+        if npc_id == "nora":
+            if (not store.nora_school_first_week_followup_done
+                    and store.nora_life_state == "school"
+                    and store.day > store.nora_school_start_day):
+                return "talk_followup_nora_school_first_week"
+        if npc_id == "elle":
+            if (not store.elle_post_decision_talk_done
+                    and store.elle_decision_done
+                    and not npc_is_temporarily_unavailable("elle")
+                    and (
+                        (store.elle_life_state == "returned" and store.elle_return_message_done)
+                        or (store.elle_life_state == "staying" and store.elle_decision_callback_done)
+                        or (store.elle_life_state == "deferred" and store.elle_decision_callback_done)
+                    )):
+                return "talk_followup_elle_post_decision"
+        # Phase 46: story aftermath (below life-progression, above social-graph callbacks)
+        _46_lst = store.npc_story_aftermath_pending.get(npc_id)
+        if _46_lst:
+            _46_eligible = [e for e in _46_lst if store.day >= e["eligible_day"]]
+            if _46_eligible:
+                return min(_46_eligible, key=lambda e: e["created_day"])["label"]
+        # Phase 49: home-visit callbacks (below Phase 46 aftermath, above Phase 44 crossovers)
+        if npc_id == "nora":
+            if (not store.nora_home_coffee_followup_done
+                    and store.nora_home_coffee_done
+                    and store.nora_home_coffee_day >= 0
+                    and store.day > store.nora_home_coffee_day):
+                return "talk_followup_nora_home_coffee"
+        if npc_id == "eli":
+            if (not store.eli_home_dinner_followup_done
+                    and store.eli_home_dinner_done
+                    and store.eli_home_dinner_day >= 0
+                    and store.day > store.eli_home_dinner_day):
+                return "talk_followup_eli_home_dinner"
+        if npc_id == "zoe":
+            if (not store.zoe_home_guitar_followup_done
+                    and store.zoe_home_guitar_done
+                    and store.zoe_home_guitar_day >= 0
+                    and store.day > store.zoe_home_guitar_day):
+                return "talk_followup_zoe_home_guitar"
+        # Phase 50: Zoe exhibition final callback (below Phase 46 aftermath, above Phase 44 crossovers)
+        if npc_id == "zoe":
+            if (not store.zoe_exhibition_followup_done
+                    and store.zoe_exhibition_done
+                    and store.day > store.zoe_gallery_until_day
+                    and store.npc_story_aftermath_seen.get("zoe_exhibition")):
+                return "talk_followup_zoe_exhibition"
+        # Phase 44: NPC crossover callbacks (below aftermath, above milestones)
+        _44_fired = store.wed_event_last_day
+        if npc_id == "nora":
+            if (not store.crossover_nora_elle_callback_nora_done
+                    and "crossover_nora_elle_grounds" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_nora_elle_grounds", store.day)):
+                return "talk_followup_crossover_nora_elle_nora"
+        if npc_id == "elle":
+            if (not store.crossover_nora_elle_callback_elle_done
+                    and "crossover_nora_elle_grounds" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_nora_elle_grounds", store.day)):
+                return "talk_followup_crossover_nora_elle_elle"
+        if npc_id == "lena":
+            if (not store.crossover_lena_marcus_callback_lena_done
+                    and "crossover_lena_marcus_bar" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_lena_marcus_bar", store.day)):
+                return "talk_followup_crossover_lena_marcus_lena"
+        if npc_id == "marcus":
+            if (not store.crossover_lena_marcus_callback_marcus_done
+                    and "crossover_lena_marcus_bar" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_lena_marcus_bar", store.day)):
+                return "talk_followup_crossover_lena_marcus_marcus"
+            if (not store.crossover_caroline_marcus_callback_marcus_done
+                    and "crossover_caroline_marcus_thursday" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_caroline_marcus_thursday", store.day)):
+                return "talk_followup_crossover_caroline_marcus_marcus"
+        if npc_id == "sam":
+            if (not store.crossover_sam_kai_callback_sam_done
+                    and "crossover_sam_kai_gym" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_sam_kai_gym", store.day)):
+                return "talk_followup_crossover_sam_kai_sam"
+        if npc_id == "kai":
+            if (not store.crossover_sam_kai_callback_kai_done
+                    and "crossover_sam_kai_gym" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_sam_kai_gym", store.day)):
+                return "talk_followup_crossover_sam_kai_kai"
+        if npc_id == "caroline":
+            if (not store.crossover_caroline_marcus_callback_caroline_done
+                    and "crossover_caroline_marcus_thursday" in store.wed_resolved
+                    and store.day > _44_fired.get("crossover_caroline_marcus_thursday", store.day)):
+                return "talk_followup_crossover_caroline_marcus_caroline"
+        # Phase 43: milestone follow-ups (below crossover callbacks, above contextual Talk)
+        _mil_lst = store.npc_milestone_followup_pending.get(npc_id)
+        if _mil_lst:
+            return min(_mil_lst, key=lambda e: e["created_day"])["label"]
+        return None
+
+    _CTX_TALK = {
+        ("elle",   "location_sandbeach"): ("elle_sandbeach",  ["elle_sandbeach_tide",       "elle_sandbeach_shoes",      "elle_sandbeach_horizon"]),
+        ("kai",    "location_sandbeach"): ("kai_sandbeach",   ["kai_sandbeach_water",        "kai_sandbeach_crowd",       "kai_sandbeach_walk"]),
+        ("zoe",    "location_sandbeach"): ("zoe_sandbeach",   ["zoe_sandbeach_colour",       "zoe_sandbeach_footprints",  "zoe_sandbeach_wind"]),
+        ("marcus", "location_cafe"):      ("marcus_grounds",  ["marcus_grounds_order",       "marcus_grounds_table",      "marcus_grounds_temperature"]),
+        ("eli",    "location_library"):   ("eli_library",     ["eli_library_outlet",         "eli_library_bookmark",      "eli_library_keyboard"]),
+        ("lena",   "location_hospital"):  ("lena_hospital",   ["lena_hospital_coffee",       "lena_hospital_sign",        "lena_hospital_quiet"]),
+        ("sam",    "location_gym"):       ("sam_gym",         ["sam_gym_bench",              "sam_gym_music",             "sam_gym_rest"]),
+        ("nora",    "location_cafe"):      ("nora_grounds",    ["nora_grounds_queue",         "nora_grounds_lid",          "nora_grounds_regular"]),
+        ("martha",  "location_office"):    ("martha_nexus",    ["martha_nexus_elevator",      "martha_nexus_calendar",     "martha_nexus_badge"]),
+        ("natalie", "location_warehouse"): ("natalie_warehouse", ["natalie_warehouse_marker", "natalie_warehouse_noise",   "natalie_warehouse_path"]),
+        ("kai",     "location_nightclub"): ("kai_nightclub",   ["kai_nightclub_volume",       "kai_nightclub_exit",        "kai_nightclub_song"]),
+        ("caroline", "location_office"):   ("caroline_nexus",  ["caroline_nexus_reception",   "caroline_nexus_floor",      "caroline_nexus_document"]),
+        ("zoe",      "location_park"):     ("zoe_park",        ["zoe_park_tree",              "zoe_park_dog",              "zoe_park_path"]),
+        ("elle",     "location_cafe"):     ("elle_grounds",    ["elle_grounds_window",        "elle_grounds_spoon",        "elle_grounds_choice"]),
+        ("kai",      "location_gym"):      ("kai_gym",         ["kai_gym_mirror",             "kai_gym_machine",           "kai_gym_towel"]),
+    }
+
+    def _ctx_talk_label(npc_id):
+        entry = _CTX_TALK.get((npc_id, store.current_loc))
+        if not entry:
+            return None
+        ctl_key = npc_id + "|" + store.current_loc
+        if store.contextual_talk_last_day.get(ctl_key) == store.day:
+            return None
+        hist_key, variants = entry
+        label = _pick_ambient_variant(hist_key, variants)
+        d = dict(store.contextual_talk_last_day)
+        d[ctl_key] = store.day
+        store.contextual_talk_last_day = d
+        return label
 
     def mark_topic_today(npc_id, topic):
         td = dict(store._topics_today)
@@ -390,7 +594,9 @@ init python:
     }
 
     def npc_location_now(npc_id):
-        sched = NPC_DATA[npc_id].get("sched")
+        if npc_is_temporarily_unavailable(npc_id):
+            return None
+        sched = npc_schedule_entries(npc_id)
         if not sched:
             return None
         wd = store.day % 7
@@ -458,23 +664,36 @@ init python:
                 jealous_names.append(d["name"])
         return jealous_names
 
+    def public_talkable_npcs_here():
+        """Ordered list of NPC IDs for whom npc_talkable() is currently True."""
+        return [nid for nid in NPC_DATA if npc_talkable(nid)]
+
+    def npc_avatar_path(npc_id):
+        p = NPC_DATA[npc_id].get("portrait", "")
+        return ("images/ui/icons/%s.png" % p) if p else None
+
     def location_sprites():
         """All talkable NPCs at the current location, as (npc_id, sprite) pairs.
         Uses sprite_angry key if angry and available, else normal sprite."""
         result = []
-        for nid, d in NPC_DATA.items():
-            if npc_talkable(nid):
-                if npc_is_angry(nid) and d.get("sprite_angry"):
-                    result.append((nid, d["sprite_angry"]))
-                else:
-                    result.append((nid, d["sprite"]))
+        for nid in public_talkable_npcs_here():
+            d = NPC_DATA[nid]
+            if npc_is_angry(nid) and d.get("sprite_angry"):
+                result.append((nid, d["sprite_angry"]))
+            else:
+                result.append((nid, d["sprite"]))
         return result
 
     # Pre-existing NPC-to-NPC relationships.
     NPC_RELATIONS = {
-        ("marcus", "sam"):  {"type": "gym_friends"},
-        ("nora",   "kai"):  {"type": "regulars"},
-        ("zoe",    "elle"): {"type": "friends"},
+        ("marcus",   "sam"):      {"type": "gym_friends"},
+        ("nora",     "kai"):      {"type": "regulars"},
+        ("zoe",      "elle"):     {"type": "friends"},
+        # Phase 44
+        ("nora",     "elle"):     {"type": "cafe_familiarity"},
+        ("lena",     "marcus"):   {"type": "bar_acquaintances"},
+        ("sam",      "kai"):      {"type": "training_regulars"},
+        ("caroline", "marcus"):   {"type": "thursday_regulars"},
     }
 
     def group_scene_check():
@@ -514,9 +733,14 @@ init python:
         store._topics_today = _td
         return rtype
 
+    def _do_talk_accounting(npc_id):
+        spend_time(0.5)
+        fs_record_social(npc_id, "talk")
+        record_social_attention(npc_id, "talk")
+
     def do_talk(npc_id, topic):
         d = NPC_DATA[npc_id]
-        spend_time(0.5)
+        _do_talk_accounting(npc_id)
         # resolve reaction
         if topic in d.get("likes", []):
             result, delta, pool = "like", 2, LIKE_LINES
@@ -1086,6 +1310,106 @@ init python:
         "natalie": "disabled",
     }
 
+    # Phase 6B — per-NPC social personality profiles
+    # jealousy: "none" | "low" | "medium" | "high"
+    # jealousy_unlock: store variable name (str) that must be True; None = always unlocked
+    # jealousy_threshold: tension required to set pending; None = never fires
+    NPC_SOCIAL_PROFILES = {
+        "marcus":   {"social_openness": "high",   "initiative": "high",   "jealousy": "none",   "jealousy_unlock": None,                "jealousy_threshold": None, "jealousy_cooldown": None, "trust_sensitivity": "medium", "forgiveness": "medium", "status_sensitivity": "low",    "conflict_style": "direct",       "romance_scope": "friendship_only"},
+        "rena":     {"social_openness": "medium",  "initiative": "low",    "jealousy": "none",   "jealousy_unlock": None,                "jealousy_threshold": None, "jealousy_cooldown": None, "trust_sensitivity": "high",   "forgiveness": "low",    "status_sensitivity": "medium", "conflict_style": "professional", "romance_scope": "friendship_only"},
+        "nora":     {"social_openness": "high",   "initiative": "high",   "jealousy": "medium", "jealousy_unlock": "nora_bad_day_done", "jealousy_threshold": 10,   "jealousy_cooldown": 7,    "trust_sensitivity": "medium", "forgiveness": "medium", "status_sensitivity": "low",    "conflict_style": "gentle",       "romance_scope": "romanceable"},
+        "martha":   {"social_openness": "low",    "initiative": "low",    "jealousy": "low",    "jealousy_unlock": "martha_corridor_done", "jealousy_threshold": 7, "jealousy_cooldown": 7,    "trust_sensitivity": "high",   "forgiveness": "low",    "status_sensitivity": "high",   "conflict_style": "indirect",     "romance_scope": "romanceable"},
+        "lena":     {"social_openness": "medium",  "initiative": "medium", "jealousy": "low",    "jealousy_unlock": None,                "jealousy_threshold": 15,   "jealousy_cooldown": 7,    "trust_sensitivity": "medium", "forgiveness": "medium", "status_sensitivity": "low",    "conflict_style": "analytical",   "romance_scope": "romanceable"},
+        "natalie":  {"social_openness": "high",   "initiative": "high",   "jealousy": "none",   "jealousy_unlock": None,                "jealousy_threshold": None, "jealousy_cooldown": None, "trust_sensitivity": "low",    "forgiveness": "high",   "status_sensitivity": "low",    "conflict_style": "expressive",   "romance_scope": "friendship_only"},
+        "elle":     {"social_openness": "high",   "initiative": "high",   "jealousy": "medium", "jealousy_unlock": None,                "jealousy_threshold": 10,   "jealousy_cooldown": 7,    "trust_sensitivity": "low",    "forgiveness": "high",   "status_sensitivity": "high",   "conflict_style": "expressive",   "romance_scope": "romanceable"},
+        "caroline": {"social_openness": "medium",  "initiative": "medium", "jealousy": "medium", "jealousy_unlock": None,                "jealousy_threshold": 10,   "jealousy_cooldown": 7,    "trust_sensitivity": "high",   "forgiveness": "medium", "status_sensitivity": "medium", "conflict_style": "composed",     "romance_scope": "romanceable"},
+        "zoe":      {"social_openness": "low",    "initiative": "medium", "jealousy": "high",   "jealousy_unlock": "zoe_rain_done",     "jealousy_threshold": 6,    "jealousy_cooldown": 5,    "trust_sensitivity": "high",   "forgiveness": "medium", "status_sensitivity": "low",    "conflict_style": "deflection",   "romance_scope": "romanceable"},
+        "eli":      {"social_openness": "medium",  "initiative": "low",    "jealousy": "medium", "jealousy_unlock": "eli_deploy_hug_done", "jealousy_threshold": 7, "jealousy_cooldown": 6,    "trust_sensitivity": "medium", "forgiveness": "medium", "status_sensitivity": "low",    "conflict_style": "professional", "romance_scope": "friendship_only"},
+        "sam":      {"social_openness": "high",   "initiative": "high",   "jealousy": "none",   "jealousy_unlock": None,                "jealousy_threshold": None, "jealousy_cooldown": None, "trust_sensitivity": "low",    "forgiveness": "high",   "status_sensitivity": "low",    "conflict_style": "direct",       "romance_scope": "friendship_only"},
+        "kai":      {"social_openness": "medium",  "initiative": "medium", "jealousy": "none",   "jealousy_unlock": None,                "jealousy_threshold": None, "jealousy_cooldown": None, "trust_sensitivity": "medium", "forgiveness": "medium", "status_sensitivity": "low",    "conflict_style": "encouraging",  "romance_scope": "friendship_only"},
+    }
+
+    def npc_social_profile(npc_id):
+        return NPC_SOCIAL_PROFILES.get(npc_id, {})
+
+    def npc_social_trait(npc_id, trait, fallback=None):
+        return NPC_SOCIAL_PROFILES.get(npc_id, {}).get(trait, fallback)
+
+    # NPCs with implemented jealousy conversations this phase
+    _JEALOUSY_IMPLEMENTED = frozenset({"zoe", "nora", "martha", "eli"})
+    # Per-NPC done flags; completed first notices must not create unusable pending
+    _JEALOUSY_FIRST_NOTICE_DONE_FLAGS = {
+        "zoe":    "zoe_jealousy_first_notice_done",
+        "nora":   "nora_jealousy_first_notice_done",
+        "martha": "martha_jealousy_first_notice_done",
+        "eli":    "eli_jealousy_first_notice_done",
+    }
+    # tension delta table: action_type -> base attention points
+    # hug excluded: non-romantic in this phase, creates no jealousy tension
+    _SOCIAL_ATT_BASE = {"talk": 1, "gift": 1, "kiss": 5, "date": 3, "flirt": 3}
+
+    def _social_tension_delta(base, jealousy_level):
+        if jealousy_level == "low":
+            return base // 2
+        if jealousy_level == "high":
+            return (base * 3 + 1) // 2   # ceiling of 150%
+        return base  # medium
+
+    def record_social_attention(target_npc_id, action_type):
+        """Accumulate jealousy tension on NPCs observing the interaction.
+        Only converts tension to a pending conversation for _JEALOUSY_IMPLEMENTED NPCs."""
+        base = _SOCIAL_ATT_BASE.get(action_type, 0)
+        if base == 0:
+            return
+        is_romantic = action_type in ("kiss", "flirt", "date")
+        # friendship-only targets + non-romantic action → no observer jealousy
+        if not is_romantic and target_npc_id not in ROMANCE_PROFILES:
+            return
+        tension  = dict(store.npc_jealousy_tension)
+        pending  = dict(store.npc_jealousy_pending)
+        last_day = dict(store.npc_jealousy_last_day)
+        attention = dict(store.npc_social_attention)
+        changed = False
+        for nid, profile in NPC_SOCIAL_PROFILES.items():
+            if nid == target_npc_id:
+                continue
+            if profile["jealousy"] == "none":
+                continue
+            if not npc_here(nid):
+                continue
+            # friendship-only observers don't react to non-romantic actions
+            if profile["romance_scope"] == "friendship_only" and not is_romantic:
+                continue
+            # jealousy_unlock must be satisfied
+            unlock = profile["jealousy_unlock"]
+            if unlock and not getattr(store, unlock, False):
+                continue
+            # per-NPC cooldown gap since last resolved jealousy
+            cooldown = profile["jealousy_cooldown"] or 5
+            if (store.day - last_day.get(nid, -999)) < cooldown:
+                continue
+            # do not overwrite an existing pending reaction (wait for it to resolve)
+            if nid in pending:
+                continue
+            delta = _social_tension_delta(base, profile["jealousy"])
+            if delta == 0:
+                continue
+            tension[nid] = tension.get(nid, 0) + delta
+            attention[nid] = attention.get(nid, 0) + delta
+            changed = True
+            thresh = profile["jealousy_threshold"]
+            if thresh is not None and nid in _JEALOUSY_IMPLEMENTED and tension[nid] >= thresh:
+                done_flag = _JEALOUSY_FIRST_NOTICE_DONE_FLAGS.get(nid)
+                if done_flag and getattr(store, done_flag, False):
+                    tension[nid] = thresh - 1  # cap: no repeat dialogue yet
+                else:
+                    pending[nid] = {"target": target_npc_id, "action": action_type, "day": store.day}
+                    tension[nid] = max(0, tension[nid] - thresh)
+        if changed:
+            store.npc_jealousy_tension  = tension
+            store.npc_jealousy_pending  = pending
+            store.npc_social_attention  = attention
+
     _VALID_ROMANCE_STATES = frozenset(
         ("unopened", "friends", "interested", "dating", "committed", "paused", "closed")
     )
@@ -1338,6 +1662,7 @@ init python:
         if delta > 0:
             _apply_aff(npc_id, delta)
             gain_aff(d["name"], delta)
+        record_social_attention(npc_id, "gift")
         # Martha gift accusation — set pending on exactly the 3rd gift.
         # gift_log already includes the current gift so count == 3 means this IS the 3rd.
         # ponytail: == 3 prevents re-trigger on 4th+ gifts.
@@ -1361,6 +1686,11 @@ init python:
 # _rb_prev_* are set to -1 by npc_interact on entry so the first render never
 # flashes; a gain flips the fill to a bright colour for FLASH_LEN seconds.
 define FLASH_LEN = 0.9
+
+transform _rel_label_float:
+    alpha 1.0 yoffset 0
+    linear 0.9 alpha 0.0 yoffset -20
+
 default _rb_prev_aff = -1
 default _topics_seen    = {}   # {npc_id: {topic: "like"|"dislike"|"neutral"}}
 default _topics_today   = {}   # {npc_id: [topics]} — cleared in new_day()
@@ -1382,10 +1712,16 @@ screen npc_relbar(npc_id):
         $ _rb_flash_aff = _time.time()
     if _rb_prev_tr >= 0 and _tr > _rb_prev_tr:
         $ _rb_flash_tr = _time.time()
+    if _rb_prev_aff >= 0 and _aff < _rb_prev_aff:
+        $ _rb_flash_aff_neg = _time.time()
+    if _rb_prev_tr >= 0 and _tr < _rb_prev_tr:
+        $ _rb_flash_tr_neg = _time.time()
     $ _rb_prev_aff = _aff
     $ _rb_prev_tr = _tr
     $ _aff_hot = (_time.time() - _rb_flash_aff) < FLASH_LEN
     $ _tr_hot = (_time.time() - _rb_flash_tr) < FLASH_LEN
+    $ _aff_hot_neg = (_time.time() - _rb_flash_aff_neg) < FLASH_LEN
+    $ _tr_hot_neg = (_time.time() - _rb_flash_tr_neg) < FLASH_LEN
     # keep re-rendering so the flash window can close on its own
     # ponytail: always-on 15fps tick; fine for the single relbar shown in-chat
     timer 0.06 repeat True action NullAction()
@@ -1416,12 +1752,29 @@ screen npc_relbar(npc_id):
                 xsize 356
                 ysize 30
                 text "Affection" font PROFILE_FONT size 17 color "#cfe0f5" xpos 0 ypos 4
+                # negative half (110–184): right_bar grows leftward from center as _aff < 0
                 bar:
                     xpos 110 ypos 7
-                    value AnimatedValue(_aff, 100, delay=FLASH_LEN)
-                    xsize 150 ysize 16
+                    value AnimatedValue(100 + _aff, 100, delay=FLASH_LEN)
+                    xsize 74 ysize 16
+                    left_bar Frame("images/ui/bar_track.png", 14, 0) right_bar ("#e86a55" if _aff_hot_neg else Frame("images/ui/bar_fill_chr.png", 14, 0)) thumb Null()
+                # neutral midpoint marker
+                frame:
+                    xpos 184 ypos 7
+                    xsize 2 ysize 16
+                    padding (0, 0, 0, 0)
+                    background "#ffffff50"
+                # positive half (186–260): left_bar grows rightward from center as _aff > 0
+                bar:
+                    xpos 186 ypos 7
+                    value AnimatedValue(max(0, _aff), 100, delay=FLASH_LEN)
+                    xsize 74 ysize 16
                     left_bar ("#ffd76a" if _aff_hot else Frame("images/ui/bar_fill_chr.png", 14, 0)) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-                text "[_aff]" font PROFILE_FONT size 17 color ("#ffd76a" if _aff_hot else "#ffffff") xpos 270 ypos 4
+                text "[_aff]" font PROFILE_FONT size 17 color ("#ffd76a" if _aff_hot else ("#e86a55" if _aff_hot_neg else "#ffffff")) xpos 270 ypos 4
+                if (_aff_hot or _aff_hot_neg) and _rel_feedback_aff != 0:
+                    $ _aff_fb_str = ("+%d" % _rel_feedback_aff) if _rel_feedback_aff > 0 else ("%d" % _rel_feedback_aff)
+                    $ _aff_fb_col = "#ffd76a" if _rel_feedback_aff > 0 else "#e86a55"
+                    text _aff_fb_str at _rel_label_float font ACT_FONT size 14 color _aff_fb_col xpos 310 ypos -4
             fixed:
                 xsize 356
                 ysize 30
@@ -1432,6 +1785,10 @@ screen npc_relbar(npc_id):
                     xsize 150 ysize 16
                     left_bar ("#7fe0ff" if _tr_hot else Frame("images/ui/bar_fill_int.png", 14, 0)) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
                 text "[_tr]" font PROFILE_FONT size 17 color ("#7fe0ff" if _tr_hot else "#ffffff") xpos 270 ypos 4
+                if (_tr_hot or _tr_hot_neg) and _rel_feedback_tr != 0:
+                    $ _tr_fb_str = ("+%d" % _rel_feedback_tr) if _rel_feedback_tr > 0 else ("%d" % _rel_feedback_tr)
+                    $ _tr_fb_col = "#7fe0ff" if _rel_feedback_tr > 0 else "#e86a55"
+                    text _tr_fb_str at _rel_label_float font ACT_FONT size 14 color _tr_fb_col xpos 310 ypos -4
 
 
 # ── Main action bar (bottom) — icon tiles ──────────────────────────────
@@ -1551,16 +1908,24 @@ label npc_interact(npc_id):
     $ renpy.hide("npcsprite2")
     $ _rb_prev_aff = -1   # -1 = don't flash on the opening render
     $ _rb_prev_tr = -1
+    $ _rel_feedback_aff = 0
+    $ _rel_feedback_tr = 0
+    $ _rb_flash_aff = 0.0
+    $ _rb_flash_tr = 0.0
+    $ _rb_flash_aff_neg = 0.0
+    $ _rb_flash_tr_neg = 0.0
     # update last-seen day for this NPC (feeds ignore-decay in new_day)
     $ store.npc_last_seen[npc_id] = day
     $ _spr = NPC_DATA[npc_id]["sprite"]
     show expression _spr as npcsprite at sprite_c
     show screen npc_relbar(npc_id)
+    $ _npc_panel_npc_id = npc_id
     $ _nm = NPC_DATA[npc_id]["name"]
     # cold approach: a stranger might brush you off
     if not cold_approach_ok(npc_id):
         $ _rb = renpy.random.choice(COLD_REBUFF) % _nm
         "[_rb]"
+        $ _npc_panel_npc_id = None
         hide screen npc_relbar
         hide npcsprite
         hide npcsprite2
@@ -1572,13 +1937,22 @@ label npc_interact(npc_id):
     while _act != "leave":
         $ _act = renpy.call_screen("npc_actions", npc_id)
         if _act == "talk":
-            $ _t = renpy.call_screen("npc_topics", npc_id)
-            if _t != "back":
-                $ _arc = check_arc(npc_id, _t)
-                if _arc is not None:
-                    call expression _arc["label"]
+            $ _fu_label = _check_talk_followup(npc_id)
+            if _fu_label:
+                call expression _fu_label
+            else:
+                $ _ctx_label = _ctx_talk_label(npc_id)
+                if _ctx_label:
+                    call expression _ctx_label
+                    $ _do_talk_accounting(npc_id)
                 else:
-                    $ do_talk(npc_id, _t)
+                    $ _t = renpy.call_screen("npc_topics", npc_id)
+                    if _t != "back":
+                        $ _arc = check_arc(npc_id, _t)
+                        if _arc is not None:
+                            call expression _arc["label"]
+                        else:
+                            $ do_talk(npc_id, _t)
         elif _act == "gift":
             $ _g = renpy.call_screen("npc_gift_select")
             if _g != "back":
@@ -1589,6 +1963,8 @@ label npc_interact(npc_id):
                 $ _jn = " and ".join(_jealous)
                 "[_jn] clocks the embrace. Their expression flickers."
             call do_hug_interaction(npc_id)
+            if store._last_hug_accepted:
+                $ record_social_attention(npc_id, "hug")
             $ spend_time(0.1)
         elif _act == "kiss":
             $ _jealous = check_jealousy(npc_id)
@@ -1596,6 +1972,8 @@ label npc_interact(npc_id):
                 $ _jn = " and ".join(_jealous)
                 "[_jn] catches your eye. Their expression shifts."
             call do_kiss_interaction(npc_id)
+            if _kiss_outcome in ("first_kiss", "warm", "repeat"):
+                $ record_social_attention(npc_id, "kiss")
             $ spend_time(0.1)
         elif _act == "number":
             $ store.npc_contacts = store.npc_contacts + [npc_id]
@@ -1607,7 +1985,10 @@ label npc_interact(npc_id):
                 $ _jn = " and ".join(_jealous)
                 "[_jn] catches your attention drift toward [_nm]. Something shifts in their expression."
             call npc_date(npc_id)
+            if store._last_date_completed:
+                $ record_social_attention(npc_id, "date")
             $ _act = "leave"   # a date is the whole evening
+    $ _npc_panel_npc_id = None
     hide screen npc_relbar
     hide npcsprite
     hide npcsprite2
@@ -1619,6 +2000,7 @@ label npc_interact(npc_id):
 # "outing". Rewards are venue-preference- and repetition-aware (see
 # date_outing_rewards) and the closing beat reflects the romance state.
 label npc_date(npc_id):
+    $ store._last_date_completed = False
     $ _nm = NPC_DATA[npc_id]["name"]
     $ _spr = NPC_DATA[npc_id]["sprite"]
     $ _c = getattr(store, NPC_DATA[npc_id]["say"])
@@ -1669,6 +2051,7 @@ label npc_date(npc_id):
         $ renpy.say(_c, "That was fun. We should do it again sometime.")
     hide npcsprite
     hide npcsprite2
+    $ store._last_date_completed = True
     return
 
 
@@ -1854,4 +2237,620 @@ label scene_first_kiss_martha:
     show screen hud
     "[_kiss_text]"
     $ _act = "leave"
+    return
+
+
+# ── Phase 2: one-time Talk follow-up labels ────────────────────────────
+
+label talk_followup_marcus_first_shift:
+    $ talk_followup_marcus_first_shift_done = True
+    $ spend_time(0.5)
+    $ fs_record_social("marcus", "talk")
+    if marcus_first_shift_choice == "barely":
+        m "Still surviving the job?"
+        mc "Barely."
+        m "Consistent, at least."
+    elif marcus_first_shift_choice == "used_to_it":
+        m "Still think you could get used to the job?"
+        mc "Ask me after the fifth shift."
+        m "Good answer."
+    else:
+        m "Still surviving the job?"
+        mc "So far."
+        m "Good."
+        m "The first shift proves you can show up."
+        m "The fifth proves it wasn't an accident."
+    return
+
+label talk_followup_martha_credit:
+    $ talk_followup_martha_credit_done = True
+    $ spend_time(0.5)
+    $ fs_record_social("martha", "talk")
+    ma "The next summary is yours too."
+    mc "That almost sounded like trust."
+    ma "Don't make me revise it."
+    return
+
+label talk_followup_martha_revision:
+    $ talk_followup_martha_revision_done = True
+    $ spend_time(0.5)
+    $ fs_record_social("martha", "talk")
+    if martha_revision_choice == "update":
+        ma "The revision reached the meeting on time."
+        mc "You could say thank you."
+        ma "I could also revise it again."
+    else:
+        ma "You were right about the duplicate attachments."
+        mc "I was hoping never to hear that sentence."
+        ma "Don't become dependent on it."
+    return
+
+label talk_followup_martha_settled:
+    $ talk_followup_martha_settled_done = True
+    $ spend_time(0.5)
+    $ fs_record_social("martha", "talk")
+    ma "You stopped asking where the templates are."
+    mc "I know where they are now."
+    ma "That wasn't praise."
+    mc "It sounded close."
+    ma "Then your standards are adapting."
+    return
+
+# Phase 35 — post-invitation Talk follow-up labels
+
+label marcus_park_invite_followup:
+    $ _do_talk_accounting("marcus")
+    m "You still counting that shot?"
+    mc "It went in."
+    m "After the rebound."
+    mc "Still went in."
+    m "That is not how counting works."
+    $ _fu_d = dict(store.npc_invitation_followup_pending); del _fu_d["marcus"]; store.npc_invitation_followup_pending = _fu_d
+    return
+
+label nora_grounds_invite_followup:
+    $ _do_talk_accounting("nora")
+    n "I changed the drink."
+    mc "Because of my opinion?"
+    n "Despite your opinion."
+    mc "Good to know I helped."
+    n "You created resistance. Similar effect."
+    $ _fu_d = dict(store.npc_invitation_followup_pending); del _fu_d["nora"]; store.npc_invitation_followup_pending = _fu_d
+    return
+
+label zoe_park_invite_followup:
+    $ _do_talk_accounting("zoe")
+    z "I kept the second version."
+    mc "The one you were less annoyed by?"
+    z "I corrected that."
+    mc "The drawing?"
+    z "The annoyance."
+    $ _fu_d = dict(store.npc_invitation_followup_pending); del _fu_d["zoe"]; store.npc_invitation_followup_pending = _fu_d
+    return
+
+label eli_library_invite_followup:
+    $ _do_talk_accounting("eli")
+    eli "The second outlet stopped working."
+    mc "You jinxed it."
+    eli "I documented it."
+    mc "That is not the same."
+    eli "It is more useful."
+    $ _fu_d = dict(store.npc_invitation_followup_pending); del _fu_d["eli"]; store.npc_invitation_followup_pending = _fu_d
+    return
+
+# Phase 6B — Zoe jealousy pilot conversation
+label zoe_jealousy_first_notice:
+    $ zoe_jealousy_first_notice_done = True
+    $ _jzp = dict(store.npc_jealousy_pending)
+    $ _jzp.pop("zoe", None)
+    $ store.npc_jealousy_pending = _jzp
+    $ _jzld = dict(store.npc_jealousy_last_day)
+    $ _jzld["zoe"] = day
+    $ store.npc_jealousy_last_day = _jzld
+    $ spend_time(0.5)
+    $ fs_record_social("zoe", "talk")
+    z "You've been spending a lot of time with her."
+    mc "Are you keeping track?"
+    z "No."
+    z "I noticed."
+    menu:
+        "\"It doesn't mean anything.\"":
+            mc "It doesn't mean anything."
+            $ _apply_trust("zoe", -1)
+            z "That wasn't what I asked."
+        "\"I didn't realise it bothered you.\"":
+            mc "I didn't realise it bothered you."
+            z "I didn't say it did."
+            mc "You didn't have to."
+        "\"Are you jealous?\"":
+            mc "Are you jealous?"
+            $ _apply_aff("zoe", -1)
+            z "That's a very confident interpretation."
+    $ add_relationship_memory("zoe", "zoe_first_jealousy_notice", "Zoe noticed who I was spending time with")
+    return
+
+label nora_jealousy_first_notice:
+    $ nora_jealousy_first_notice_done = True
+    $ _njp = dict(store.npc_jealousy_pending)
+    $ _njp.pop("nora", None)
+    $ store.npc_jealousy_pending = _njp
+    $ _njld = dict(store.npc_jealousy_last_day)
+    $ _njld["nora"] = day
+    $ store.npc_jealousy_last_day = _njld
+    $ spend_time(0.5)
+    $ fs_record_social("nora", "talk")
+    n "You've been popular lately."
+    mc "That sounds dangerous."
+    n "Only for your schedule."
+    mc "Is that what this is about?"
+    n "I'm deciding."
+    menu:
+        "\"Are you jealous?\"":
+            mc "Are you jealous?"
+            n "A little."
+            n "Don't look so pleased with yourself."
+        "\"You could have just asked.\"":
+            mc "You could have just asked."
+            n "I just did."
+        "\"It's none of your business.\"":
+            mc "It's none of your business."
+            $ _apply_aff("nora", -1)
+            n "Right."
+            n "Good to know."
+    $ add_relationship_memory("nora", "nora_first_jealousy_notice", "Nora admitted she had noticed my attention elsewhere")
+    return
+
+label martha_jealousy_first_notice:
+    $ martha_jealousy_first_notice_done = True
+    $ _mjp = dict(store.npc_jealousy_pending)
+    $ _mjp.pop("martha", None)
+    $ store.npc_jealousy_pending = _mjp
+    $ _mjld = dict(store.npc_jealousy_last_day)
+    $ _mjld["martha"] = day
+    $ store.npc_jealousy_last_day = _mjld
+    $ spend_time(0.5)
+    $ fs_record_social("martha", "talk")
+    ma "Your private life has become surprisingly public."
+    mc "Is this professional feedback?"
+    ma "I haven't decided."
+    mc "Then what is it?"
+    ma "An observation."
+    menu:
+        "\"Does it bother you?\"":
+            mc "Does it bother you?"
+            ma "That depends on whether you intended me to notice."
+        "\"I wasn't trying to make a point.\"":
+            mc "I wasn't trying to make a point."
+            ma "Good."
+            ma "It would have been an imprecise one."
+        "\"You're overthinking it.\"":
+            mc "You're overthinking it."
+            $ _apply_trust("martha", -1)
+            ma "And you're underestimating it."
+    $ add_relationship_memory("martha", "martha_first_jealousy_notice", "Martha confronted me about what she had noticed")
+    return
+
+label eli_jealousy_first_notice:
+    $ eli_jealousy_first_notice_done = True
+    $ _ejp = dict(store.npc_jealousy_pending)
+    $ _ejp.pop("eli", None)
+    $ store.npc_jealousy_pending = _ejp
+    $ _ejld = dict(store.npc_jealousy_last_day)
+    $ _ejld["eli"] = day
+    $ store.npc_jealousy_last_day = _ejld
+    $ spend_time(0.5)
+    $ fs_record_social("eli", "talk")
+    e "You don't have to explain anything."
+    mc "I wasn't going to."
+    e "Okay."
+    "A quiet pause."
+    mc "You clearly want to say something."
+    e "Wanting to and being entitled to are different things."
+    menu:
+        "\"It matters what you think.\"":
+            mc "It matters what you think."
+            e "Then don't make me guess."
+        "\"There's nothing to explain.\"":
+            mc "There's nothing to explain."
+            $ _apply_trust("eli", -1)
+            e "Then we're done."
+        "\"Are you upset?\"":
+            mc "Are you upset?"
+            $ _apply_aff("eli", -1)
+            e "I'm adjusting my expectations."
+    $ add_relationship_memory("eli", "eli_first_jealousy_notice", "Eli withdrew after noticing my attention elsewhere")
+    return
+
+
+# ── Phase 21: Sandbeach contextual Talk ─────────────────────────────────────
+
+label elle_sandbeach_tide:
+    el "The water was farther out earlier."
+    mc "You've been watching it?"
+    el "Not deliberately."
+    mc "That sounds convincing."
+    el "I had a better spot before the tide disagreed."
+    return
+
+label elle_sandbeach_shoes:
+    mc "You brought shoes onto the sand."
+    el "I also brought the intention to keep sand out of them."
+    mc "How is that going?"
+    el "The intention remains strong."
+    return
+
+label elle_sandbeach_horizon:
+    el "The horizon looks closer when the air is clear."
+    mc "It is not."
+    el "I know."
+    mc "Then why say it?"
+    el "Because knowing something isn't the same as how it looks."
+    return
+
+label kai_sandbeach_water:
+    mc "Going in?"
+    kai "I considered it."
+    mc "And?"
+    kai "The water made a counterargument."
+    return
+
+label kai_sandbeach_crowd:
+    kai "It's quieter over here."
+    mc "There are still people everywhere."
+    kai "Quieter isn't the same as empty."
+    mc "Fair."
+    return
+
+label kai_sandbeach_walk:
+    mc "How far did you walk?"
+    kai "Far enough to stop counting."
+    mc "That doesn't answer the question."
+    kai "It answers why I don't know."
+    return
+
+label zoe_sandbeach_colour:
+    z "The water isn't blue today."
+    mc "It looks blue."
+    z "That's the problem."
+    mc "What colour is it?"
+    z "I haven't decided."
+    return
+
+label zoe_sandbeach_footprints:
+    z "Someone walked through the part I was drawing."
+    mc "The sand?"
+    z "The footprints."
+    mc "They made more footprints."
+    z "Different ones."
+    return
+
+label zoe_sandbeach_wind:
+    "The wind lifts the edge of Zoe's page."
+    "She presses it flat with one hand."
+    mc "Need help?"
+    z "I need the wind to develop restraint."
+    mc "I'll speak to it."
+    z "Be firm."
+    return
+
+
+# ── Phase 25: Contextual public Talk rollout A ───────────────────────────────
+
+label marcus_grounds_order:
+    m "I ordered the simple one."
+    mc "Which one is simple?"
+    m "The one with the shortest name."
+    mc "That doesn't make it simple."
+    m "It makes it easier to say confidently."
+    return
+
+label marcus_grounds_table:
+    mc "You've been looking at that table for a while."
+    m "It's close to the door and far from the speaker."
+    mc "Strategic."
+    m "I take coffee seating seriously."
+    return
+
+label marcus_grounds_temperature:
+    m "This is still too hot."
+    mc "You bought it ten minutes ago."
+    m "I expected progress."
+    mc "It's coffee, not a negotiation."
+    m "Everything is a negotiation if you wait long enough."
+    return
+
+label eli_library_outlet:
+    eli "That outlet doesn't work."
+    mc "How do you know?"
+    eli "I tried it."
+    mc "Once?"
+    eli "Four times, with decreasing optimism."
+    return
+
+label eli_library_bookmark:
+    mc "You're using a receipt as a bookmark."
+    eli "It was available."
+    mc "It's from three months ago."
+    eli "It has proven reliable."
+    return
+
+label eli_library_keyboard:
+    "A keyboard clicks rapidly from the next table."
+    eli "They've been writing the same sentence for five minutes."
+    mc "How can you tell?"
+    eli "The backspace key has a distinct sound."
+    return
+
+label lena_hospital_coffee:
+    mc "Is that coffee still warm?"
+    lena "That stopped being the relevant question an hour ago."
+    mc "What's the relevant question?"
+    lena "Whether I remember where I left it."
+    return
+
+label lena_hospital_sign:
+    lena "That sign has been pointing the wrong way all week."
+    mc "Nobody changed it?"
+    lena "Several people discussed changing it."
+    mc "Productive."
+    lena "There were notes."
+    return
+
+label lena_hospital_quiet:
+    mc "It's unusually quiet."
+    lena "Never say that in a hospital."
+    mc "Why?"
+    lena "Because the building takes it personally."
+    return
+
+label sam_gym_bench:
+    sam "Someone moved this bench."
+    mc "By how much?"
+    sam "Not enough to notice."
+    mc "You noticed."
+    sam "Exactly."
+    return
+
+label sam_gym_music:
+    mc "Do you actually like this song?"
+    sam "Not anymore."
+    mc "What changed?"
+    sam "It started for the fourth time."
+    return
+
+label sam_gym_rest:
+    sam "You're supposed to rest between sets."
+    mc "I am resting."
+    sam "You're reorganising the weights."
+    mc "Resting productively."
+    sam "That isn't a thing."
+    return
+
+
+# ── Phase 26: Contextual public Talk rollout B ───────────────────────────────
+
+label nora_grounds_queue:
+    n "The queue always gets longer when somebody asks whether we're busy."
+    mc "Maybe they want confirmation."
+    n "They usually ask while standing in the queue."
+    mc "Strong evidence."
+    n "I'm considering putting it on the menu."
+    return
+
+label nora_grounds_lid:
+    n "That lid doesn't fit."
+    mc "It looks like it fits."
+    n "That is how it gains your trust."
+    mc "You make disposable cups sound dangerous."
+    n "Complacency is dangerous."
+    return
+
+label nora_grounds_regular:
+    mc "You remembered their order."
+    n "They order the same thing every time."
+    mc "Still counts."
+    n "It stops counting after the twentieth time."
+    return
+
+label martha_nexus_elevator:
+    ma "The elevator stopped on every floor."
+    mc "Busy building."
+    ma "Nobody entered or left."
+    mc "Less busy building."
+    ma "More indecisive elevator."
+    return
+
+label martha_nexus_calendar:
+    mc "Your calendar has no empty space."
+    ma "There are seven minutes at twelve forty-three."
+    mc "That isn't empty space."
+    ma "It is if nobody notices."
+    return
+
+label martha_nexus_badge:
+    ma "Your badge is upside down."
+    mc "It still works."
+    ma "That wasn't my objection."
+    mc "What was?"
+    ma "That I noticed."
+    return
+
+label natalie_warehouse_marker:
+    nat "Who left the marker without the cap?"
+    mc "Is that important?"
+    nat "Not until every label becomes unreadable."
+    mc "Then it becomes important?"
+    nat "Then it becomes expensive."
+    return
+
+label natalie_warehouse_noise:
+    "A pallet jack rattles somewhere behind the shelving."
+    mc "That sounds healthy."
+    nat "It sounds temporary."
+    mc "Which part?"
+    nat "The pallet jack."
+    return
+
+label natalie_warehouse_path:
+    nat "Keep the walkway clear."
+    mc "It is clear."
+    nat "It was not clear ten seconds ago."
+    mc "Fast improvement."
+    nat "Late improvement."
+    return
+
+label kai_nightclub_volume:
+    mc "Can you hear me?"
+    kai "Mostly."
+    mc "What did I say?"
+    kai "That proves less than you think."
+    return
+
+label kai_nightclub_exit:
+    kai "The exit sign is brighter than everything else in here."
+    mc "Planning ahead?"
+    kai "Appreciating useful design."
+    mc "Very festive."
+    kai "I have range."
+    return
+
+label kai_nightclub_song:
+    kai "This song was better outside."
+    mc "You heard it outside?"
+    kai "Through three walls."
+    mc "And that improved it?"
+    kai "Significantly."
+    return
+
+
+# ── Phase 27: Contextual public Talk rollout C ───────────────────────────────
+
+label caroline_nexus_reception:
+    caro "Reception called twice."
+    mc "About what?"
+    caro "They did not say."
+    mc "Are you going to call back?"
+    caro "Eventually they will become specific."
+    return
+
+label caroline_nexus_floor:
+    mc "You pressed the wrong floor."
+    caro "No."
+    mc "The doors opened on the wrong floor."
+    caro "The elevator misunderstood."
+    mc "Naturally."
+    return
+
+label caroline_nexus_document:
+    caro "This document is marked confidential."
+    mc "It is sitting beside the printer."
+    caro "Which is why I am standing beside the printer."
+    mc "Protecting it?"
+    caro "Judging whoever left it."
+    return
+
+label zoe_park_tree:
+    z "That tree leans more than it did yesterday."
+    mc "You measured it?"
+    z "No."
+    mc "Then how do you know?"
+    z "It looks more committed."
+    return
+
+label zoe_park_dog:
+    "A dog stops beside Zoe and studies her sketchbook."
+    z "No."
+    mc "It hasn't done anything."
+    z "It is considering it."
+    "The dog loses interest and walks away."
+    z "Correct decision."
+    return
+
+label zoe_park_path:
+    mc "Why are you sitting beside the path instead of on the bench?"
+    z "The bench faces the wrong direction."
+    mc "For what?"
+    z "Everything."
+    return
+
+label elle_grounds_window:
+    el "This table gets better light."
+    mc "You moved two metres."
+    el "Exactly."
+    mc "Significant journey."
+    el "Worth it."
+    return
+
+label elle_grounds_spoon:
+    mc "You haven't used the spoon."
+    el "I might."
+    mc "For what?"
+    el "That depends on whether the coffee improves."
+    mc "Will stirring help?"
+    el "It will create activity."
+    return
+
+label elle_grounds_choice:
+    el "I always choose faster when the menu is shorter."
+    mc "There are six options."
+    el "And I have been considering them for ten minutes."
+    mc "Efficient."
+    el "I did not say I was good at it."
+    return
+
+label kai_gym_mirror:
+    mc "You keep looking at the mirror."
+    kai "I am checking the space behind me."
+    mc "Very practical."
+    kai "That is why the mirror is there."
+    mc "I thought it was for form."
+    kai "That too."
+    return
+
+label kai_gym_machine:
+    kai "This machine has twelve adjustment points."
+    mc "Is that too many?"
+    kai "It has one useful position."
+    mc "Which one?"
+    kai "I am still negotiating."
+    return
+
+label kai_gym_towel:
+    mc "That towel has been on the bench for a while."
+    kai "It is reserving the bench."
+    mc "For who?"
+    kai "Someone with a strong sense of entitlement."
+    return
+
+
+label npc_interact_from_dock:
+    $ _npc = _dock_npc
+    $ _return = _dock_return
+    $ _dock_npc = None
+    $ _dock_return = None
+    hide screen people_here_dock
+    call npc_interact(_npc)
+    jump expression _return
+
+
+label show_public_sprites:
+    $ _nc = len(_vis)
+    hide npcsprite
+    hide npcsprite2
+    hide npcsprite3
+    hide npcsprite4
+    if _nc >= 4:
+        show expression _vis[0][1] as npcsprite  at sprite_quad_d
+        show expression _vis[1][1] as npcsprite2 at sprite_quad_a
+        show expression _vis[2][1] as npcsprite3 at sprite_quad_b
+        show expression _vis[3][1] as npcsprite4 at sprite_quad_c
+    elif _nc == 3:
+        show expression _vis[0][1] as npcsprite  at sprite_tri_r
+        show expression _vis[1][1] as npcsprite2 at sprite_tri_l
+        show expression _vis[2][1] as npcsprite3 at sprite_tri_c
+    elif _nc == 2:
+        show expression _vis[0][1] as npcsprite  at sprite_duo_r
+        show expression _vis[1][1] as npcsprite2 at sprite_duo_l
+    elif _nc == 1:
+        show expression _vis[0][1] as npcsprite  at sprite_solo
     return

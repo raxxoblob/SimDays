@@ -304,6 +304,15 @@ label corporate_review_intern:
         caro "You're results-focused. That reads well in some rooms and very poorly in others. You're learning which is which."
     elif corporate_style == "people_first":
         caro "You've built trust quickly. Martha mentioned it — which she doesn't do."
+    if corp_integrity_followup_done:
+        if corp_integrity_outcome == "disclosed":
+            caro "The reporting situation — integrity before presentation. That's a short list."
+        elif corp_integrity_outcome == "qualified":
+            caro "Transparency with controlled delivery. The reconciliation note did its job."
+        elif corp_integrity_owned_mistake:
+            caro "The admission mattered. The alteration was still serious."
+        else:
+            caro "Target pressure doesn't remove your responsibility for the figure you submitted."
     if corp_review_score >= 4:
         # Strong outcome — earned it visibly
         if martha_trust >= 20:
@@ -351,10 +360,143 @@ label corporate_review_intern:
         "You got what you came for. The terms weren't quite what you expected."
     hide caroline_normal
     $ corp_review_intern_done = True
+    if corp_integrity_followup_done:
+        python:
+            _lci_oc = store.corp_integrity_outcome
+            if _lci_oc == "smoothed":
+                _lci_oc = "smoothed_owned" if store.corp_integrity_owned_mistake else "smoothed_defended"
+            _queue_story_aftermath("caroline", "corp_reporting_integrity", "corp_integrity", _lci_oc,
+                                   store.day, store.day + 1, "aftermath_corp_reporting_integrity")
     if corp_review_score >= 4:
         $ queue_phone_message("caroline", "Three months on record as strong. Enjoy the title this weekend — Associate track expectations start Monday, 9am.", day + 1, "corp_review_followup")
     elif corp_review_score >= 2:
         $ queue_phone_message("caroline", "The initiative note was a nudge, not a criticism. Associate is the right next step. Monday, 9am.", day + 1, "corp_review_followup")
     else:
         $ queue_phone_message("caroline", "The contract's done. Monday. The numbers were right. I'm still reading the rest.", day + 1, "corp_review_followup")
+    return
+
+
+# ── Phase 48: corporate reporting integrity ───────────────────────────────────
+
+label corp_reporting_integrity:
+    $ corp_integrity_done = True
+    scene goodoffice1
+    show screen hud
+    show caroline_normal at sprite_r
+    "Three days before the executive review. Caroline stops at your desk with the summary deck."
+    caro "The Q3 Vantage segment. The board expects it at 4.2. Your current source gives 3.8."
+    "A discrepancy of four-tenths across a reported segment — not trivial."
+    caro "I need this reconciled before Monday."
+    "She means use the expected number and sort it out after the meeting."
+    mc "What's the source for the 3.8?"
+    caro "Confirmed. The 4.2 is the target we submitted in Q2."
+    "She waits. The review is in three days."
+    $ _wev_relbar_open("caroline")
+    show screen npc_relbar("caroline")
+    menu:
+        "Stop submission and disclose the discrepancy.":
+            $ corp_integrity_choice = "disclosed"
+            $ corp_integrity_outcome = "disclosed"
+            mc "I can't submit 4.2. The source is 3.8. That's a material difference."
+            caro "I'm aware of that."
+            mc "Then I need to flag it through the right channel and pause submission until it's cleared."
+            "A pause."
+            caro "That will delay the deck."
+            mc "Yes."
+            "She takes the deck back."
+            hide caroline_normal
+            $ _work_perf(6)
+            $ _apply_trust("caroline", 3)
+        "Submit with the discrepancy explicitly marked and attach reconciliation.":
+            $ corp_integrity_choice = "qualified"
+            $ corp_integrity_outcome = "qualified"
+            mc "I'll submit with the 3.8, note the Q2 target for reference, and attach a reconciliation note."
+            "A beat."
+            caro "That draws attention to the gap."
+            mc "It also means no one acts on an incorrect figure."
+            "She considers this."
+            caro "Do it carefully."
+            hide caroline_normal
+            $ _work_perf(3)
+            $ _apply_trust("caroline", 2)
+        "Replace the figure with the expected target.":
+            $ corp_integrity_choice = "smoothed"
+            $ corp_integrity_outcome = "smoothed"
+            mc "I can reconcile it after the meeting."
+            "You update the deck. The figure becomes 4.2."
+            "The problem will be there on Tuesday when you open the source file."
+            hide caroline_normal
+            $ _work_perf(-8)
+            $ _apply_trust("caroline", -3)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ corp_integrity_followup_pending = True
+    $ corp_integrity_followup_shift = corp_shifts + 2
+    return
+
+
+label corp_reporting_integrity_followup:
+    scene goodoffice1
+    show screen hud
+    show caroline_normal at sprite_r
+    if corp_integrity_outcome == "disclosed":
+        "Two shifts later: the source data was reanalysed before the meeting. The Q3 Vantage figure had been pulled from a pre-adjustment extract — the correct number aligned closer to the board's expectation than the discrepancy had suggested."
+        caro "The delay was the right call."
+        mc "I didn't know that at the time."
+        caro "That's the point. You didn't know — and you didn't submit anyway."
+        hide caroline_normal
+        $ _work_perf(2)
+        $ _apply_trust("caroline", 2)
+    elif corp_integrity_outcome == "qualified":
+        "Two shifts later: the reconciliation note had been picked up before the deck went to the board — the qualified figure was held pending clarification rather than treated as final."
+        caro "The note did its job."
+        mc "It flagged the gap without stopping the submission."
+        caro "Which is why the data error didn't make it into the board summary. Your note, your work."
+        hide caroline_normal
+        $ _work_perf(1)
+        $ _apply_trust("caroline", 1)
+    else:
+        "Two shifts later: a strategy team sharing the same client family cross-referenced the segment. The 4.2 didn't match their independently sourced data."
+        caro "How did the figure become 4.2?"
+        mc "You asked me to reconcile it."
+        "A pause."
+        caro "I asked you to reconcile the gap. Not replace the source number."
+        hide caroline_normal
+        $ _wev_relbar_open("caroline")
+        show screen npc_relbar("caroline")
+        show caroline_normal at sprite_r
+        menu:
+            "Report what you changed.":
+                $ corp_integrity_owned_mistake = True
+                mc "I replaced the figure. The source was 3.8 — I changed it to 4.2 in the deck."
+                caro "Why?"
+                mc "Because you needed it reconciled before Monday and I made the wrong call about what that meant."
+                "She doesn't defend the original request."
+                caro "This goes to compliance. I'll need your written account by end of day."
+                hide caroline_normal
+                $ _work_perf(1)
+                $ _apply_trust("caroline", 2)
+                $ corp_integrity_review_extra_shifts = 1
+            "Argue that the requested target was reasonable.":
+                $ corp_integrity_owned_mistake = False
+                mc "The Q2 target was the board-approved expectation. Using it wasn't unreasonable."
+                caro "The Q2 target and the Q3 source are different documents."
+                mc "The intent was to present the business's trajectory."
+                caro "The intent doesn't appear in the report. The number does."
+                "She closes the folder."
+                hide caroline_normal
+                $ _work_perf(-2)
+                $ _apply_trust("caroline", -2)
+                $ corp_integrity_review_extra_shifts = 2
+        $ _wev_relbar_close()
+        hide screen npc_relbar
+    $ corp_integrity_followup_done = True
+    $ corp_integrity_followup_pending = False
+    if corp_review_intern_done:
+        python:
+            _lci_oc = store.corp_integrity_outcome
+            if _lci_oc == "smoothed":
+                _lci_oc = "smoothed_owned" if store.corp_integrity_owned_mistake else "smoothed_defended"
+            _queue_story_aftermath("caroline", "corp_reporting_integrity", "corp_integrity", _lci_oc,
+                                   store.day, store.day + 1, "aftermath_corp_reporting_integrity")
     return

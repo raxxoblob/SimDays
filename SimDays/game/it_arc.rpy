@@ -166,6 +166,15 @@ label it_review_junior:
     $ it_review_done = True
     scene hub_pov
     show screen hud
+    if it_incident_followup_done:
+        if it_incident_outcome == "rollback":
+            eli "The deployment incident — judgment under uncertainty. The rollback was right."
+        elif it_incident_outcome == "isolated":
+            eli "Controlled scope, complete documentation. That's how recoverable errors stay recoverable."
+        elif it_incident_owned_mistake:
+            eli "The correction after the concealment mattered. The original call was still wrong."
+        else:
+            eli "Trust in your decision-making on that incident is limited. That's where we are."
     eli "HR will send you something official. I wanted to tell you before the system does."
     eli "You're not junior anymore."
     menu:
@@ -183,7 +192,124 @@ label it_review_junior:
             $ gain_skill("prog", 3)
             $ gain_skill("biz", 2)
     $ promote()
+    if it_incident_followup_done:
+        python:
+            _lti_oc = store.it_incident_outcome
+            if _lti_oc == "concealed":
+                _lti_oc = "concealed_owned" if store.it_incident_owned_mistake else "concealed_defended"
+            _queue_story_aftermath("eli", "it_production_incident", "it_incident", _lti_oc,
+                                   store.day, store.day + 1, "aftermath_it_production_incident")
     return
 
 
 # ─── Arc work events appended to _IT_POOL; label bodies live in work_events.rpy
+
+
+# ── Phase 48: IT production incident ──────────────────────────────────────────
+
+label it_production_incident:
+    $ it_incident_done = True
+    scene hub_pov
+    show screen hud
+    "Deployment window opens at six. By six-forty the monitoring board flags a data mismatch."
+    "Limited scope — around nine hundred records — but the pattern is irregular in a way that doesn't resolve to an obvious cause."
+    eli "How wide?"
+    mc "Nine hundred records. The write confirmation went through, but the downstream state doesn't match."
+    "A colleague at the next terminal turns around."
+    "Colleague" "It might self-correct once the migration completes. We've seen that before. Deploy through it — document it and explain in the morning."
+    eli "It's a judgment call."
+    "She's not making it for you."
+    "Rollback means delay, escalation, and an explanation tonight. Continuing means nine hundred users with inconsistent state until morning."
+    $ _wev_relbar_open("eli")
+    show screen npc_relbar("eli")
+    menu:
+        "Stop deployment, roll back and escalate.":
+            $ it_incident_choice = "rollback"
+            $ it_incident_outcome = "rollback"
+            mc "Rollback. Now."
+            "You kill the deployment. The monitoring board steadies."
+            mc "Nine hundred records with an irregular mismatch doesn't get explained in the morning."
+            "The colleague doesn't argue. Eli makes a note."
+            $ _work_perf(6)
+            $ _apply_trust("eli", 3)
+        "Isolate the affected component, document it, deploy the safe portion.":
+            $ it_incident_choice = "isolated"
+            $ it_incident_outcome = "isolated"
+            mc "Split it. Document the mismatch scope, isolate the affected component, and deploy the rest."
+            "The colleague pulls up the architecture. Forty minutes of careful partitioning."
+            mc "The safe portion ships. The rest waits for root cause."
+            "It lands clean."
+            $ _work_perf(3)
+            $ _apply_trust("eli", 2)
+        "Continue deployment and suppress the warning until morning.":
+            $ it_incident_choice = "concealed"
+            $ it_incident_outcome = "concealed"
+            mc "Continue. I'll take the call on it."
+            "The flag clears from the active board. The deployment finishes."
+            "You write a private note to review the affected records in the morning."
+            $ _work_perf(-8)
+            $ _apply_trust("eli", -3)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ it_incident_followup_pending = True
+    $ it_incident_followup_shift = it_shifts + 2
+    return
+
+
+label it_production_incident_followup:
+    scene hub_pov
+    show screen hud
+    if it_incident_outcome == "rollback":
+        "Two shifts later: the source analysis comes back. The mismatch wasn't localised — the upstream feed had been corrupted at the source for two days before the deploy."
+        eli "Your rollback caught it before it compounded."
+        mc "I didn't know how wide it was at the time."
+        eli "You didn't need to know. The scope was unclear and the risk was real. That was enough."
+        $ _work_perf(2)
+        $ _apply_trust("eli", 2)
+    elif it_incident_outcome == "isolated":
+        "Two shifts later: the case review. The safe portion held; the documentation you attached made the remaining fix traceable."
+        eli "The partition worked because the documentation was complete."
+        mc "I wasn't certain the boundary would hold."
+        eli "It did. The note you left was why the fix took two hours instead of two days."
+        $ _work_perf(1)
+        $ _apply_trust("eli", 1)
+    else:
+        "Two shifts later: the incident report. The mismatch reached users. Support tickets opened the morning after the deploy."
+        eli "The flag was cleared from the active board."
+        mc "I cleared it."
+        "She waits."
+        $ _wev_relbar_open("eli")
+        show screen npc_relbar("eli")
+        menu:
+            "Acknowledge the call before she asks.":
+                $ it_incident_owned_mistake = True
+                mc "I made the wrong call. The risk was real and I chose the deadline."
+                "Eli doesn't soften."
+                eli "What's different next time?"
+                mc "Escalate. The delay is recoverable. The user impact isn't."
+                eli "That's the right answer. Getting there after the incident is still getting there."
+                $ _work_perf(1)
+                $ _apply_trust("eli", 2)
+                $ it_incident_review_extra_shifts = 1
+            "Defend the reasoning.":
+                $ it_incident_owned_mistake = False
+                mc "The scope looked contained. I made a judgment call with the information I had."
+                eli "Nine hundred records with an irregular mismatch pattern isn't contained scope."
+                mc "The monitoring had cleared similar flags before."
+                eli "This one wasn't similar."
+                "She closes the incident report."
+                $ _work_perf(-2)
+                $ _apply_trust("eli", -2)
+                $ it_incident_review_extra_shifts = 2
+        $ _wev_relbar_close()
+        hide screen npc_relbar
+    $ it_incident_followup_done = True
+    $ it_incident_followup_pending = False
+    if it_review_done:
+        python:
+            _lti_oc = store.it_incident_outcome
+            if _lti_oc == "concealed":
+                _lti_oc = "concealed_owned" if store.it_incident_owned_mistake else "concealed_defended"
+            _queue_story_aftermath("eli", "it_production_incident", "it_incident", _lti_oc,
+                                   store.day, store.day + 1, "aftermath_it_production_incident")
+    return

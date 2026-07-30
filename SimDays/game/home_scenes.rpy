@@ -57,6 +57,8 @@ label home_nora_coffee_scene:
     n "Okay. Here's what's actually happening between the bean and the cup."
     "She makes three espressos. Talks through each one."
     "The third is the best coffee you've had in your apartment."
+    $ _wev_relbar_open("nora")
+    show screen npc_relbar("nora")
     menu:
         "\"How long did it take you to learn all this?\"":
             n "Five years behind a bar. You stop noticing after a while."
@@ -67,8 +69,16 @@ label home_nora_coffee_scene:
             n "Someday I want my own place. People come for the coffee, not the atmosphere."
             $ _apply_aff("nora", 3)
             $ _apply_trust("nora", 2)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
     "When she leaves, your apartment smells like a proper café."
     $ home_coffee_calibrated = True
+    $ spend_time(1.0)
+    $ fs_record_social("nora", "home_visit")
+    $ record_social_attention("nora", "home_visit")
+    $ add_relationship_memory("nora", "nora_home_coffee", "Coffee calibration visit")
+    $ nora_home_coffee_done = True
+    $ nora_home_coffee_day = day
     hide nora_casual_normal
     return
 
@@ -86,6 +96,8 @@ label home_zoe_guitar_scene:
     if _cg:
         scene expression _cg with dissolve
         show screen hud
+    $ _wev_relbar_open("zoe")
+    show screen npc_relbar("zoe")
     "You pick up the guitar."
     if skill_music >= 5:
         "It comes out better than expected. A couple of wrong notes, then something that actually sounds like music."
@@ -115,6 +127,14 @@ label home_zoe_guitar_scene:
             "She doesn't ask you to stop for an hour."
             $ gain_skill("music", 3)
             $ _apply_trust("zoe", 2)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ spend_time(1.5)
+    $ fs_record_social("zoe", "home_visit")
+    $ record_social_attention("zoe", "home_visit")
+    $ add_relationship_memory("zoe", "zoe_home_guitar", "Guitar session at home")
+    $ zoe_home_guitar_done = True
+    $ zoe_home_guitar_day = day
     hide zoe_street_neutral
     return
 
@@ -150,8 +170,7 @@ label home_dinner_invite_menu:
         "Invite Kai (3h)"      if home_invite_available("kai",     min_aff=20, min_trust=15):
             $ spend_time(3)
             call home_dinner_scene_kai
-        "Invite Eli (3h)"      if home_invite_available("eli",     min_aff=20, min_trust=15):
-            $ spend_time(3)
+        "Invite Eli (1.5h)"    if home_invite_available("eli",     min_aff=20, min_trust=15):
             call home_dinner_scene_eli
         "Not tonight":
             pass
@@ -306,6 +325,8 @@ label home_dinner_scene_eli:
     "Halfway through, she notices something about your setup — the way the monitor is positioned, the cable routing on your desk, a book left out at an odd angle. She tilts her head slightly."
     eli "You put the router there on purpose."
     "It's not a question."
+    $ _wev_relbar_open("eli")
+    show screen npc_relbar("eli")
     menu:
         "\"You notice a lot.\"":
             eli "I notice most things. It's not always useful."
@@ -328,8 +349,15 @@ label home_dinner_scene_eli:
     eli "I like it here."
     "She doesn't follow it up. The jasmine rice is still on the counter."
     $ _apply_aff("eli", 3)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ spend_time(1.5)
+    $ fs_record_social("eli", "home_visit")
+    $ record_social_attention("eli", "home_visit")
     $ add_relationship_memory("eli", "eli_home_dinner", "Home dinner — the rice")
     $ eli_dinner_done = True
+    $ eli_home_dinner_done = True
+    $ eli_home_dinner_day = day
     hide eli_normal
     return
 
@@ -378,4 +406,69 @@ label scene_nora_cheap_home_cooking:
     $ _apply_aff("nora", 2)
     $ nora_cooking_state = "done"
     hide nora_casual_normal
+    return
+
+
+# ── Phase 49: NPC invitation home visits ──────────────────────────────────────
+
+label home_visit_nora_coffee:
+    $ wed_fire("home_visit_nora_coffee")
+    call home_nora_coffee_scene
+    python:
+        if (store.npc_invitation_pending
+                and store.npc_invitation_pending.get("invitation_id") == "nora_home_coffee"):
+            store.npc_invitation_pending = None
+    return
+
+
+label home_visit_eli_dinner:
+    $ wed_fire("home_visit_eli_dinner")
+    call home_dinner_scene_eli
+    python:
+        if (store.npc_invitation_pending
+                and store.npc_invitation_pending.get("invitation_id") == "eli_home_dinner"):
+            store.npc_invitation_pending = None
+    return
+
+
+label home_visit_zoe_guitar:
+    $ wed_fire("home_visit_zoe_guitar")
+    call home_zoe_guitar_scene
+    python:
+        if (store.npc_invitation_pending
+                and store.npc_invitation_pending.get("invitation_id") == "zoe_home_guitar"):
+            store.npc_invitation_pending = None
+    return
+
+
+# ── Phase 49: Talk callbacks ──────────────────────────────────────────────────
+
+label talk_followup_nora_home_coffee:
+    $ nora_home_coffee_followup_done = True
+    $ _do_talk_accounting("nora")
+    n "Did you change the settings back?"
+    mc "..."
+    n "Right."
+    "She already knew."
+    return
+
+
+label talk_followup_eli_home_dinner:
+    $ eli_home_dinner_followup_done = True
+    $ _do_talk_accounting("eli")
+    eli "That dinner was unexpectedly uncomplicated."
+    "A pause."
+    eli "Not that I expected it to be complicated. That's not what I — "
+    mc "I know what you meant."
+    "She doesn't confirm or deny that."
+    return
+
+
+label talk_followup_zoe_home_guitar:
+    $ zoe_home_guitar_followup_done = True
+    $ _do_talk_accounting("zoe")
+    z "That chord at the end. The open one."
+    mc "What about it?"
+    z "Nothing. I just noticed it."
+    "She definitely noticed more than one thing."
     return

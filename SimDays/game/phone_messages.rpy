@@ -95,6 +95,9 @@ init python:
             "cancelled": False,
             "notified":  False,
         })
+        if not store.tip_commitment_shown:
+            store.tip_commitment_shown = True
+            renpy.notify("Commitment saved. Missing it will affect your relationship. Check your phone.")
 
     def _c_active(c):
         """True when commitment is not in any terminal state."""

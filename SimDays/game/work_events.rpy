@@ -41,20 +41,64 @@ init python:
                 delta = min(-1, delta + 2)
         store.job_performance = max(0, min(100, store.job_performance + delta))
 
+    def _wev_relbar_open(npc_id):
+        store._rel_feedback_aff = 0
+        store._rel_feedback_tr = 0
+        store._rb_flash_aff = 0.0
+        store._rb_flash_tr = 0.0
+        store._rb_flash_aff_neg = 0.0
+        store._rb_flash_tr_neg = 0.0
+        store._rb_prev_aff = -1
+        store._rb_prev_tr = -1
+        store._npc_panel_npc_id = npc_id
+
+    def _wev_relbar_close():
+        store._npc_panel_npc_id = None
+
+    def _pick_texture_variant(cid, variants):
+        """Select a shift-texture variant for the given career.
+        Prevents immediate repeat; prefers variants unseen in the last 3 days;
+        falls back to least-recently-used if all are recent. Always returns."""
+        last  = store.work_texture_last_variant.get(cid)
+        days_outer = store.work_texture_variant_days
+        days  = days_outer.get(cid, {})
+        today = store.day
+        candidates = [v for v in variants if v != last] or list(variants)
+        fresh = [v for v in candidates if today - days.get(v, -999) > 3]
+        chosen = (renpy.random.choice(fresh) if fresh
+                  else min(candidates, key=lambda v: days.get(v, -999)))
+        lv = dict(store.work_texture_last_variant); lv[cid] = chosen
+        store.work_texture_last_variant = lv
+        dout = dict(days_outer); din = dict(dout.get(cid, {})); din[chosen] = today
+        dout[cid] = din; store.work_texture_variant_days = dout
+        return chosen
+
     _CAFE_POOL = [
         "wev_cafe_tray", "wev_cafe_rush", "wev_cafe_complaint",
+        "wev_cafe_machine_hot", "wev_cafe_regular_order", "wev_cafe_closing_check",
+        "wev_cafe_shift_texture",
     ]
     _IT_POOL = [
         "wev_it_prod_bug", "wev_it_pr_review",
         "wev_it_scope_creep", "wev_it_help_colleague", "wev_it_deploy_crisis",
+        "wev_it_eli_bug_report", "wev_it_eli_code_comment", "wev_it_eli_deploy_window",
+        "wev_it_shift_texture",
     ]
     _CORP_POOL = [
         "wev_corp_colleague", "wev_corp_meeting", "wev_corp_complaint",
         "wev_corp_credit", "wev_corp_budget",
+        "wev_corp_final_revision", "wev_corp_meeting_moved", "wev_corp_credit_line",
+        "wev_corp_shift_texture",
     ]
     _HOSP_POOL = [
         "wev_hosp_case", "wev_hosp_overtime",
         "wev_hosp_difficult_patient", "wev_hosp_shortage", "wev_hosp_near_miss",
+        "wev_hosp_read_chart_again", "wev_hosp_difficult_relative", "wev_hosp_quiet_minute",
+        "wev_hosp_shift_texture",
+    ]
+    _WAREHOUSE_POOL = [
+        "wev_warehouse_wrong_bay", "wev_warehouse_safety_vest", "wev_warehouse_early_arrival",
+        "wev_warehouse_shift_texture",
     ]
 
 
@@ -76,6 +120,11 @@ label work_event_hospital:
 
 label work_event_it:
     $ _e = _pick_wev("it", _IT_POOL)
+    call expression _e
+    return
+
+label work_event_warehouse:
+    $ _e = _pick_wev("warehouse", _WAREHOUSE_POOL)
     call expression _e
     return
 
@@ -238,6 +287,62 @@ label wev_it_deploy_crisis:
             $ _apply_trust("eli", -3)
             "Technically, yes. Nobody forgets."
     $ _mark_wev("it", "wev_it_deploy_crisis")
+    return
+
+
+# ── IT — Phase 5 Eli sprite events ────────────────────────────────────────
+
+label wev_it_eli_bug_report:
+    show eli_normal at sprite_r
+    eli "You closed the bug."
+    mc "It stopped reproducing."
+    eli "That isn't the same sentence."
+    mc "It feels close."
+    eli "It won't when it comes back."
+    menu:
+        "Reopen it and document the cause.":
+            mc "I'll reopen it."
+            $ _apply_trust("eli", 1)
+            eli "Good."
+            eli "A solved problem should be able to explain itself."
+            hide eli_normal
+            $ _work_perf(4)
+        "Wait and see if it returns.":
+            mc "I'll wait and see if it returns."
+            eli "It will."
+            mc "Confident."
+            eli "Experienced."
+            hide eli_normal
+    $ _mark_wev("it", "wev_it_eli_bug_report")
+    return
+
+
+label wev_it_eli_code_comment:
+    show eli_normal at sprite_r
+    eli "What does this function do?"
+    mc "It validates the request."
+    eli "I know what it does."
+    mc "Then why ask?"
+    eli "Because the comment says 'temporary fix.'"
+    mc "It was temporary."
+    eli "Three months ago."
+    hide eli_normal
+    $ gain_skill("prog", 2)
+    $ _mark_wev("it", "wev_it_eli_code_comment")
+    return
+
+
+label wev_it_eli_deploy_window:
+    show eli_normal at sprite_r
+    eli "Deployment window opens in ten."
+    mc "Everything passed."
+    eli "Everything automated passed."
+    mc "That's what the tests are for."
+    eli "Tests confirm what we remembered to ask."
+    "A notification appears on Eli's screen."
+    eli "And there is the question we forgot."
+    hide eli_normal
+    $ _mark_wev("it", "wev_it_eli_deploy_window")
     return
 
 
@@ -440,4 +545,498 @@ label wev_hosp_near_miss:
             $ gain_skill("med", 3)
             hide drlena_normal
     $ _mark_wev("hospital", "wev_hosp_near_miss")
+    return
+
+
+# ══ CORPORATE — Phase 1 additions ═════════════════════════════════════════
+
+label wev_corp_final_revision:
+    show martha_neutral at sprite_r
+    ma "You saw the revised numbers?"
+    mc "I saw an email titled 'Final Revision Three.'"
+    ma "Then you understand how final it is."
+    menu:
+        "I'll update the draft.":
+            $ martha_revision_choice = "update"
+            mc "I'll update the draft."
+            ma "Before the meeting, preferably."
+            hide martha_neutral
+            $ _work_perf(5)
+            $ _apply_trust("martha", 1)
+        "Which version are we using?":
+            $ martha_revision_choice = "clarify"
+            mc "Which version are we actually using?"
+            ma "The one attached to the most recent email."
+            mc "There are two attachments."
+            ma "Of course there are."
+            hide martha_neutral
+    $ _mark_wev("corporate", "wev_corp_final_revision")
+    return
+
+
+label wev_corp_meeting_moved:
+    show martha_neutral at sprite_r
+    ma "The meeting moved forward."
+    mc "By how much?"
+    ma "Enough that your current pace is now theoretical."
+    mc "When did they tell you?"
+    ma "Just now."
+    mc "And you're this calm?"
+    ma "No."
+    ma "I'm efficient."
+    hide martha_neutral
+    $ gain_skill("biz", 2)
+    $ _mark_wev("corporate", "wev_corp_meeting_moved")
+    return
+
+
+label wev_corp_credit_line:
+    if "wev_corp_credit" not in work_events_seen.get("corporate", []):
+        return
+    show martha_neutral at sprite_r
+    ma "The director liked the summary."
+    mc "The one I wrote?"
+    ma "Unless someone else used your name."
+    mc "You could just say it was good."
+    ma "I could."
+    "A short pause."
+    ma "It was good."
+    hide martha_neutral
+    $ _apply_trust("martha", 1)
+    $ add_relationship_memory("martha", "martha_acknowledged_work", "Martha acknowledged my work")
+    $ _mark_wev("corporate", "wev_corp_credit_line")
+    return
+
+
+# ══ CAFE — Phase 3 additions ══════════════════════════════════════════════
+
+label wev_cafe_machine_hot:
+    $ _wev_relbar_open("nora")
+    show screen npc_relbar("nora")
+    show nora_cafe_talk at sprite_r
+    n "The machine's running hot again."
+    mc "Is that bad?"
+    n "Only if customers prefer coffee to steam."
+    menu:
+        "Let me recalibrate it.":
+            mc "Let me recalibrate it."
+            n "You know how?"
+            mc "I know how to look confident while checking."
+            $ _apply_trust("nora", 1)
+            n "Good enough. Start with the pressure."
+            hide nora_cafe_talk
+            $ _work_perf(6)
+        "Should I stop using it?":
+            mc "Should I stop using it?"
+            n "Not unless you want the queue to become a protest."
+            n "Use the other group head until I fix it."
+            hide nora_cafe_talk
+            $ _work_perf(3)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ _mark_wev("cafe", "wev_cafe_machine_hot")
+    return
+
+label wev_cafe_regular_order:
+    "A customer reaches the counter before Nora looks up."
+    show nora_cafe_normal at sprite_r
+    n "Large oat latte. Extra hot. No foam."
+    mc "They haven't ordered yet."
+    n "They order the same thing every Tuesday."
+    "The customer begins to speak."
+    mc "Large oat latte?"
+    "The customer pauses, then nods."
+    n "Now don't look proud. It encourages them."
+    hide nora_cafe_normal
+    $ _work_perf(4)
+    $ _mark_wev("cafe", "wev_cafe_regular_order")
+    return
+
+label wev_cafe_closing_check:
+    show nora_cafe_normal at sprite_r
+    n "Before the next rush, check the back counter."
+    mc "I already cleaned it."
+    n "That wasn't the instruction."
+    hide nora_cafe_normal
+    "You check beneath the grinder."
+    mc "Coffee grounds."
+    n "Coffee grounds."
+    mc "You knew they were there."
+    n "I knew you didn't."
+    $ _work_perf(3)
+    $ _mark_wev("cafe", "wev_cafe_closing_check")
+    return
+
+
+# ══ HOSPITAL — Phase 3 additions ══════════════════════════════════════════
+
+label wev_hosp_read_chart_again:
+    show drlena_normal at sprite_r
+    lena "Before you answer, read the chart again."
+    mc "I did."
+    lena "Then read the part you skipped."
+    "You look back at the notes."
+    mc "The dosage changed this morning."
+    lena "There it is."
+    lena "Being quick is useful after being correct."
+    hide drlena_normal
+    $ gain_skill("med", 2)
+    $ _mark_wev("hospital", "wev_hosp_read_chart_again")
+    return
+
+label wev_hosp_difficult_relative:
+    $ _wev_relbar_open("lena")
+    show screen npc_relbar("lena")
+    "A raised voice carries from the corridor."
+    show drlena_normal at sprite_r
+    mc "Should someone go out there?"
+    lena "Someone already did."
+    mc "Who?"
+    lena "You."
+    menu:
+        "What do I tell them?":
+            mc "What do I tell them?"
+            lena "What we know."
+            $ _apply_trust("lena", 1)
+            lena "Not what they want to hear. Not what you're afraid to say."
+            hide drlena_normal
+            $ _work_perf(6)
+        "I'm not ready for that.":
+            mc "I'm not ready for that."
+            lena "Then stand beside me and listen."
+            lena "You'll be ready next time."
+            hide drlena_normal
+            $ _work_perf(3)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ _mark_wev("hospital", "wev_hosp_difficult_relative")
+    return
+
+label wev_hosp_quiet_minute:
+    "The corridor is briefly quiet."
+    show drlena_normal at sprite_r
+    mc "Is it always like this?"
+    lena "No."
+    mc "I meant the noise."
+    lena "So did I."
+    "A call light activates farther down the hall."
+    lena "There it is."
+    hide drlena_normal
+    $ _mark_wev("hospital", "wev_hosp_quiet_minute")
+    return
+
+
+# ══ WAREHOUSE ══════════════════════════════════════════════════════════════
+
+label wev_warehouse_wrong_bay:
+    $ _wev_relbar_open("natalie")
+    show screen npc_relbar("natalie")
+    show natalie_normal at sprite_r
+    nat "That pallet belongs in bay six."
+    mc "The label says eight."
+    nat "The label is wrong."
+    mc "How do you know?"
+    nat "Because bay eight is full of something flammable."
+    menu:
+        "Move it now.":
+            mc "I'll move it."
+            nat "Check the manifest first."
+            $ _apply_trust("natalie", 1)
+            nat "Fast mistakes are still mistakes."
+            hide natalie_normal
+            $ _work_perf(6)
+        "Then the label needs fixing.":
+            mc "Then the label needs fixing."
+            nat "Correct."
+            nat "After the pallet stops being in the wrong place."
+            hide natalie_normal
+            $ _work_perf(3)
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ _mark_wev("warehouse", "wev_warehouse_wrong_bay")
+    return
+
+label wev_warehouse_safety_vest:
+    show natalie_normal at sprite_r
+    nat "Zip the vest."
+    mc "It's thirty degrees in here."
+    nat "The forklift doesn't care."
+    mc "I can see it."
+    nat "The vest is for the driver."
+    "You zip the vest."
+    nat "Now both of you have a chance."
+    hide natalie_normal
+    $ _work_perf(2)
+    $ _mark_wev("warehouse", "wev_warehouse_safety_vest")
+    return
+
+label wev_warehouse_early_arrival:
+    $ _wev_relbar_open("natalie")
+    show screen npc_relbar("natalie")
+    show natalie_normal at sprite_r
+    nat "You're early."
+    mc "Five minutes."
+    nat "That counts."
+    mc "I thought you'd say it didn't."
+    nat "Five minutes late counts too."
+    mc "Fair."
+    $ _apply_trust("natalie", 1)
+    nat "Consistency usually is."
+    hide natalie_normal
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    $ _mark_wev("warehouse", "wev_warehouse_early_arrival")
+    return
+
+
+# ══ PHASE 7 — SHIFT TEXTURE (replayable, no effects) ══════════════════════
+
+label wev_cafe_shift_texture:
+    $ _v = _pick_texture_variant("cafe", ["swapped_cups", "terminal_offline", "empty_pitcher", "grinder_jam", "last_clean_mug"])
+    call expression "wev_cafe_tex_" + _v
+    $ _mark_wev("cafe", "wev_cafe_shift_texture")
+    return
+
+label wev_it_shift_texture:
+    $ _v = _pick_texture_variant("it", ["ci_only_failure", "empty_ticket", "merge_conflict", "build_queue", "alert_storm"])
+    call expression "wev_it_tex_" + _v
+    $ _mark_wev("it", "wev_it_shift_texture")
+    return
+
+
+# ── Café texture variants ───────────────────────────────────────────────────
+
+label wev_cafe_tex_swapped_cups:
+    "The labels beneath the counter don't match the cups above them. Two orders waiting."
+    menu:
+        "Fix the labels before the next order.":
+            "You do. No one notices."
+        "Hold the current arrangement in your head for the rest of the shift.":
+            "It works. Barely."
+    return
+
+label wev_cafe_tex_terminal_offline:
+    "The payment terminal freezes mid-transaction. The customer is watching."
+    menu:
+        "Restart it. Apologise.":
+            "It comes back. The queue behind them has not."
+        "Ask them to pay cash.":
+            "They don't have any."
+            "You restart it."
+    return
+
+label wev_cafe_tex_empty_pitcher:
+    "You reach for the milk. The pitcher is empty. The order is already on the counter."
+    menu:
+        "Top it up before the customer notices.":
+            "You do."
+        "Tell them there's a brief delay.":
+            "They nod."
+    return
+
+label wev_cafe_tex_grinder_jam:
+    show nora_cafe_normal at sprite_r
+    "The grinder stops mid-grind. A smell like burnt rubber."
+    n "Don't press it again."
+    mc "I wasn't going to."
+    n "You were."
+    hide nora_cafe_normal
+    return
+
+label wev_cafe_tex_last_clean_mug:
+    "One clean mug on the shelf. Two orders placed at the same time."
+    menu:
+        "Use the clean mug, rewash the other one fast.":
+            "You make it work."
+        "Tell the second customer there's a short wait.":
+            "They've waited before."
+    return
+
+
+# ── IT texture variants ─────────────────────────────────────────────────────
+
+label wev_it_tex_ci_only_failure:
+    "CI fails on a branch that passed locally. The error references a dependency that didn't exist yesterday."
+    menu:
+        "Check the lock file.":
+            "That's it. Three minutes."
+        "Rerun the build.":
+            "Same failure. Faster confirmation."
+    return
+
+label wev_it_tex_empty_ticket:
+    "Your assigned ticket has a title and a due date. The description field is empty."
+    menu:
+        "Ask the requester what they actually need.":
+            "They reply four hours later with the same description."
+        "Make your best guess and document it.":
+            "You'll be either right, or have evidence you weren't."
+    return
+
+label wev_it_tex_merge_conflict:
+    "A merge conflict in a file you're certain you didn't touch."
+    menu:
+        "Trace who changed it last.":
+            "Everyone changed it last. Three of them today."
+        "Resolve it and move on.":
+            "Fastest. Not satisfying."
+    return
+
+label wev_it_tex_build_queue:
+    "Nine builds ahead of yours. Someone queued a full regression run at noon on a Friday."
+    menu:
+        "Wait.":
+            "You wait."
+        "Cancel and requeue at lower priority.":
+            "You are lower priority. Everyone else did this too."
+    return
+
+label wev_it_tex_alert_storm:
+    show eli_normal at sprite_r
+    "A monitoring alert. Then another. Then five more."
+    mc "Real or noisy?"
+    eli "Unclear."
+    mc "Helpful."
+    eli "Monitoring is not a diagnosis. It is a symptom."
+    hide eli_normal
+    return
+
+label wev_corp_shift_texture:
+    $ _v = _pick_texture_variant("corporate", ["wrong_attachment", "calendar_collision", "reply_all", "spreadsheet_filter", "printer_queue"])
+    call expression "wev_corp_tex_" + _v
+    $ _mark_wev("corporate", "wev_corp_shift_texture")
+    return
+
+label wev_corp_tex_wrong_attachment:
+    scene office
+    show screen hud
+    "You sent the draft. Then immediately opened your sent folder."
+    "Wrong file. You send the correct one with no subject line and hope the recipient checks the timestamp."
+    return
+
+label wev_corp_tex_calendar_collision:
+    scene office
+    show screen hud
+    "Two meetings, same slot. Both marked required. Both have the same organiser listed."
+    menu:
+        "Ask which meeting takes priority.":
+            "The organiser responds in three minutes. One of them was a mistake."
+            $ _work_perf(4)
+        "Join the meeting with the more senior attendee.":
+            "You join. No one mentions the other meeting."
+    return
+
+label wev_corp_tex_reply_all:
+    scene office
+    show screen hud
+    "Someone replied all to the department announcement. Then someone replied all to that."
+    "You read the thread to its end. Seventeen messages. Nothing actionable."
+    return
+
+label wev_corp_tex_spreadsheet_filter:
+    scene office
+    show screen hud
+    "The report has a filter applied that no one set intentionally. Half the rows are hidden."
+    "You clear it. The actual numbers are less interesting than the mystery was."
+    $ _work_perf(2)
+    return
+
+label wev_corp_tex_printer_queue:
+    scene office
+    show screen hud
+    "The printer has a job stuck at the front of the queue. Owner unknown. Document unnamed."
+    "You cancel it. Your document prints. The stuck job reappears two minutes later."
+    return
+
+label wev_hosp_shift_texture:
+    $ _v = _pick_texture_variant("hospital", ["missing_signature", "lab_callback", "changed_priority", "empty_room", "double_chart"])
+    call expression "wev_hosp_tex_" + _v
+    $ _mark_wev("hospital", "wev_hosp_shift_texture")
+    return
+
+label wev_hosp_tex_missing_signature:
+    "The form is complete except for one signature."
+    "The person who needs to sign it is no longer on the ward."
+    mc "Naturally."
+    "You place it in the callback tray and add a note before it disappears into the rest of the paperwork."
+    return
+
+label wev_hosp_tex_lab_callback:
+    "The phone rings before you finish documenting the previous call."
+    "Lab" "Lab calling about the repeat sample."
+    mc "Is there a result?"
+    "Lab" "There is a problem with the sample."
+    mc "Of course there is."
+    return
+
+label wev_hosp_tex_changed_priority:
+    "The patient marked next is no longer next."
+    "A new note changes the priority without changing the queue."
+    menu:
+        "Review the new case first.":
+            "You reopen the notes and reorganise the next steps."
+        "Finish the current documentation first.":
+            "You complete the current note before moving on."
+    return
+
+label wev_hosp_tex_empty_room:
+    "You enter the room with the chart open."
+    "The bed is empty."
+    "The patient has been moved to imaging."
+    "The update reached every system except the one you checked."
+    mc "Good."
+    return
+
+label wev_hosp_tex_double_chart:
+    "Two open charts share the same surname."
+    "You stop before entering the next value."
+    "The dates of birth are different."
+    mc "That would have been memorable."
+    $ gain_skill("med", 2)
+    return
+
+label wev_warehouse_shift_texture:
+    $ _v = _pick_texture_variant("warehouse", ["scanner_retry", "blocked_bay", "torn_label", "short_delivery", "loose_wrap"])
+    call expression "wev_warehouse_tex_" + _v
+    $ _mark_wev("warehouse", "wev_warehouse_shift_texture")
+    return
+
+label wev_warehouse_tex_scanner_retry:
+    "The scanner rejects the barcode."
+    "You try again."
+    "It rejects the same barcode more confidently."
+    mc "Good talk."
+    "You enter the number manually."
+    return
+
+label wev_warehouse_tex_blocked_bay:
+    "The destination bay is blocked by an unlisted pallet."
+    "The manifest insists the space is empty."
+    menu:
+        "Move the unlisted pallet first.":
+            "You verify the label and clear the bay."
+        "Use the nearest empty bay temporarily.":
+            "You mark the temporary location before moving on."
+    return
+
+label wev_warehouse_tex_torn_label:
+    "Half the shipping label is missing."
+    "The destination code ends after two characters."
+    mc "Helpful."
+    "You compare the remaining number against the manifest."
+    return
+
+label wev_warehouse_tex_short_delivery:
+    "The delivery sheet lists twelve units."
+    "There are eleven."
+    "You count again."
+    "There are still eleven."
+    mc "Consistent."
+    $ _work_perf(-2)
+    return
+
+label wev_warehouse_tex_loose_wrap:
+    "The plastic wrap shifts when the pallet turns."
+    "You stop it before the top box begins moving independently."
+    "You tighten the wrap and check the remaining corners."
     return

@@ -102,7 +102,6 @@ init python:
 
 screen hallway_hub():
     use hud
-    # Two doors + the metro back to the city. Icons come from new_icons_3.
     frame:
         xalign 0.5
         yalign 1.0
@@ -111,21 +110,40 @@ screen hallway_hub():
         padding (24, 14, 24, 14)
         hbox:
             spacing 40
-            for icon, caption, target, need in [
-                ("door_12",  "Your Place",   "location_home",  True),
-                ("door_14",  "Marcus (14)",  "marcus_talk",    marcus_met and npc_here("marcus")),
-                ("metro",           "Metro → City", "map",            True),
-            ]:
-                if need:
-                    vbox:
-                        xsize 150
-                        spacing 4
-                        imagebutton:
-                            xalign 0.5
-                            idle  Transform("images/ui/icons/icon_%s.png" % icon, size=(120, 120))
-                            hover Transform("images/ui/icons/icon_%s.png" % icon, size=(132, 132))
-                            action Jump(target)
-                        text caption xalign 0.5 size 16 color "#ffffff"
+            # Your Place
+            vbox:
+                xsize 150
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_door_12.png", size=(120, 120))
+                    hover Transform("images/ui/icons/icon_door_12.png", size=(132, 132))
+                    action Jump("location_home")
+                text "Your Place" xalign 0.5 size 16 color "#ffffff"
+            # Marcus's door
+            if marcus_met and npc_here("marcus"):
+                vbox:
+                    xsize 150
+                    spacing 4
+                    imagebutton:
+                        xalign 0.5
+                        idle  Transform("images/ui/icons/icon_door_14.png", size=(120, 120))
+                        hover Transform("images/ui/icons/icon_door_14.png", size=(132, 132))
+                        action Jump("marcus_talk")
+                    text "Marcus (14)" xalign 0.5 size 16 color "#ffffff"
+            # City Map — locked until player enters their apartment
+            $ _city_locked = not move_in_complete
+            vbox:
+                xsize 150
+                spacing 4
+                imagebutton:
+                    xalign 0.5
+                    idle  Transform("images/ui/icons/icon_hub.png", size=(120, 120), alpha=(0.5 if _city_locked else 1.0))
+                    hover Transform("images/ui/icons/icon_hub.png", size=(132, 132))
+                    action Jump("onboarding_city_locked" if _city_locked else "map")
+                text ("Go to the City" if _city_locked else "City Map") xalign 0.5 size 16 color ("#888888" if _city_locked else "#ffffff")
+                if _city_locked:
+                    text "[[Get your things inside first]]" xalign 0.5 size 13 color "#887755"
 
 screen centrum_hub():
     use hud
@@ -154,15 +172,32 @@ screen centrum_hub():
                     else:
                         text label xalign 0.5 size 15 color "#7a8aa0"
                         text venue_hours_str(icon) xalign 0.5 size 12 color "#7a8aa0"
+            # Phase 50: gallery button — visible while Zoe's plan is active or during post-opening period
+            $ _gal_open = (
+                (store.npc_invitation_pending is not None
+                 and store.npc_invitation_pending.get("invitation_id") == "zoe_exhibition"
+                 and store.day <= store.npc_invitation_pending.get("expiry_day", -999))
+                or (store.zoe_exhibition_done and store.day <= store.zoe_gallery_until_day)
+            )
+            if _gal_open:
+                vbox:
+                    xsize 132
+                    spacing 4
+                    imagebutton:
+                        xalign 0.5
+                        idle  Transform("images/ui/icons/icon_hub.png", size=(108, 108))
+                        hover Transform("images/ui/icons/icon_hub.png", size=(120, 120))
+                        action Jump("location_gallery")
+                    text "Gallery" xalign 0.5 size 16 color "#b0d0ff"
             vbox:
                 xsize 132
                 spacing 4
                 imagebutton:
                     xalign 0.5
-                    idle  Transform("images/ui/icons/icon_metro.png", size=(108, 108))
-                    hover Transform("images/ui/icons/icon_metro.png", size=(120, 120))
+                    idle  Transform("images/ui/icons/icon_hub.png", size=(108, 108))
+                    hover Transform("images/ui/icons/icon_hub.png", size=(120, 120))
                     action Jump("map")
-                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
+                text "City Map" xalign 0.5 size 16 color "#ffffff"
 
 define NADBRZEZE_VENUES = [
     # (venue_key for venue_open/hours, icon filename, label, jump target)
@@ -220,10 +255,10 @@ screen nadbrzeze_hub():
                 spacing 4
                 imagebutton:
                     xalign 0.5
-                    idle  Transform("images/ui/icons/icon_metro.png", size=(108, 108))
-                    hover Transform("images/ui/icons/icon_metro.png", size=(120, 120))
+                    idle  Transform("images/ui/icons/icon_hub.png", size=(108, 108))
+                    hover Transform("images/ui/icons/icon_hub.png", size=(120, 120))
                     action Jump("map")
-                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
+                text "City Map" xalign 0.5 size 16 color "#ffffff"
 
 
 screen beach_hub():
@@ -250,10 +285,10 @@ screen beach_hub():
                 spacing 4
                 imagebutton:
                     xalign 0.5
-                    idle  Transform("images/ui/icons/icon_metro.png", size=(120, 120))
-                    hover Transform("images/ui/icons/icon_metro.png", size=(132, 132))
+                    idle  Transform("images/ui/icons/icon_hub.png", size=(120, 120))
+                    hover Transform("images/ui/icons/icon_hub.png", size=(132, 132))
                     action Jump("map")
-                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
+                text "City Map" xalign 0.5 size 16 color "#ffffff"
 
 # Inside the mall: pick a shop (each has its own interior).
 screen mall_hub():
@@ -282,7 +317,7 @@ screen mall_hub():
                 spacing 4
                 imagebutton:
                     xalign 0.5
-                    idle  Transform("images/ui/icons/icon_metro.png", size=(112, 112))
-                    hover Transform("images/ui/icons/icon_metro.png", size=(124, 124))
+                    idle  Transform("images/ui/icons/icon_hub.png", size=(112, 112))
+                    hover Transform("images/ui/icons/icon_hub.png", size=(124, 124))
                     action Jump("map")
-                text "Metro → City" xalign 0.5 size 16 color "#ffffff"
+                text "City Map" xalign 0.5 size 16 color "#ffffff"

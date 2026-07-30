@@ -268,6 +268,76 @@ transform sprite_l:
     yalign 1.0
     yoffset 96
 
+transform sprite_solo:
+    fit "contain"
+    xysize (760, 1040)
+    xalign 0.60
+    yalign 1.0
+    yoffset 96
+
+transform sprite_duo_r:
+    fit "contain"
+    xysize (760, 1040)
+    xalign 0.75
+    yalign 1.0
+    yoffset 96
+
+transform sprite_duo_l:
+    fit "contain"
+    xysize (760, 1040)
+    xalign 0.40
+    yalign 1.0
+    yoffset 96
+
+transform sprite_tri_r:
+    fit "contain"
+    xysize (680, 930)
+    xalign 0.82
+    yalign 1.0
+    yoffset 96
+
+transform sprite_tri_c:
+    fit "contain"
+    xysize (680, 930)
+    xalign 0.60
+    yalign 1.0
+    yoffset 96
+
+transform sprite_tri_l:
+    fit "contain"
+    xysize (680, 930)
+    xalign 0.38
+    yalign 1.0
+    yoffset 96
+
+transform sprite_quad_d:
+    fit "contain"
+    xysize (600, 820)
+    xalign 0.84
+    yalign 1.0
+    yoffset 96
+
+transform sprite_quad_c:
+    fit "contain"
+    xysize (600, 820)
+    xalign 0.67
+    yalign 1.0
+    yoffset 96
+
+transform sprite_quad_b:
+    fit "contain"
+    xysize (600, 820)
+    xalign 0.50
+    yalign 1.0
+    yoffset 96
+
+transform sprite_quad_a:
+    fit "contain"
+    xysize (600, 820)
+    xalign 0.35
+    yalign 1.0
+    yoffset 96
+
 # ── Sprite micro-animation transforms ────────────────────────────────────
 # Compose with a position transform: show sprite at sprite_r, react_bounce
 # Each animation starts and ends at the base yoffset (96) or xoffset (0) so

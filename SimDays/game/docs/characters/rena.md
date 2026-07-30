@@ -77,6 +77,19 @@ This is the only space where she is not performing the role. The diner scene is 
 
 ---
 
+## Social Profile (Phase 6B)
+
+| Trait | Value |
+|---|---|
+| `social_openness` | medium |
+| `initiative` | low |
+| `jealousy` | none |
+| `trust_sensitivity` | high |
+| `forgiveness` | low |
+| `status_sensitivity` | medium |
+| `conflict_style` | professional |
+| `romance_scope` | friendship_only |
+
 ## Arc Status
 
 | Scene | Status | Notes |
@@ -86,6 +99,9 @@ This is the only space where she is not performing the role. The diner scene is 
 | `scene_cul_service_crisis` | Implemented | 4-branch crisis; CG pre-choice; aftermath callback on next shift |
 | `scene_rena_bar` | Not implemented | Required for off-duty humanity |
 | `cul_review_commis` (promotion) | Implemented | Payoff scene post-crisis |
+| `wev_cul_short_staffed` | Implemented (Phase 4) | Stores `rena_short_staffed_choice` |
+| `rena_diner_talk` follow-up | Implemented (Phase 4) | Priority-2 follow-up; fires once; sets `talk_followup_rena_short_staffed_done` |
+| `wev_cul_tired_compensation` | Implemented (Phase 4) | Only eligible when `need_energy <= 30` |
 
 ---
 

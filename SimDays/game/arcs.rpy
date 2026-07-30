@@ -288,3 +288,179 @@ label arc_elle_travel_2:
     $ complete_arc("elle_travel_2")
     $ mark_topic_today("elle", "travel")
     return
+
+
+# ── Phase 50: Zoe exhibition opening ─────────────────────────────────────────
+
+label zoe_exhibition_opening:
+    $ wed_fire("zoe_exhibition_opening")
+    $ _gal_bg = "gallery_evening" if renpy.has_image("gallery_evening") else "librarynight"
+    scene expression _gal_bg with dissolve
+    show screen hud
+    show zoe_street_neutral at sprite_l
+    "The opening has been running for an hour."
+    "The gallery is small — three rooms, white walls, track lighting."
+    "People cluster near the entrance with drinks they're holding but not drinking."
+    "Zoe is standing near the far wall, not exactly with the other artists."
+    "She has a glass of something she hasn't touched."
+    "She's watching the entrance."
+    "She sees you."
+    z "You came."
+    mc "You said I could."
+    z "I said you were allowed to. That's different."
+    "She moves away from the wall. Doesn't lead you anywhere in particular."
+    "Four pieces. Three are confident — colour, scale, the kind of statement that fills a room."
+    "The fourth is smaller. It's in the corner. The framing is different. The light falls on it wrong, as if it wasn't planned."
+    "Zoe hasn't looked at it since you arrived."
+    if store.elle_met and not npc_is_temporarily_unavailable("elle"):
+        "Near the second room, a woman who might be Elle is taking notes in a small pad."
+    if store.nora_met and npc_location_now("nora") != "location_cafe":
+        "Later — near closing — Nora appears briefly at the entrance. She stands in front of one piece for a moment, then leaves without staying."
+    $ _wev_relbar_open("zoe")
+    show screen npc_relbar("zoe")
+    menu:
+        "Ask about the piece in the corner.":
+            z "That one isn't in the programme notes."
+            mc "I know. That's why I'm asking."
+            "She looks at it. The first time since you arrived."
+            z "It's older. I almost didn't include it."
+            mc "Why did you?"
+            "A long pause."
+            z "Because I made it when I thought no one was going to see it."
+            z "And that's when I actually made something."
+            $ _apply_aff("zoe", 2)
+            $ _apply_trust("zoe", 3)
+            $ store.zoe_exhibition_outcome = "seen"
+        "Help with something practical.":
+            "A label on the third piece has slipped — slightly crooked, visibly wrong."
+            "You straighten it."
+            z "That was bothering me since setup."
+            "She doesn't say thank you out loud. She looks at you the way someone does when they mean it."
+            "A visitor asks you a question about the work, clearly confusing you for staff."
+            "You answer it. Badly, but confidently enough that they seem satisfied."
+            z "You just made something up."
+            mc "It was plausible."
+            z "It was."
+            $ _apply_aff("zoe", 2)
+            $ _apply_trust("zoe", 2)
+            $ store.zoe_exhibition_outcome = "steady"
+        "Ask whether this will lead anywhere useful.":
+            mc "Is this the kind of thing that gets you commissions? Work?"
+            "A short silence."
+            z "I don't know. Maybe."
+            "She picks up her glass. Doesn't drink from it."
+            z "That wasn't really what tonight was."
+            "She doesn't explain further."
+            $ _apply_aff("zoe", -1)
+            $ _apply_trust("zoe", -2)
+            $ store.zoe_exhibition_outcome = "pressured"
+    $ _wev_relbar_close()
+    hide screen npc_relbar
+    scene expression _gal_bg
+    show screen hud
+    show zoe_street_neutral at sprite_l
+    "The opening runs another hour."
+    "She doesn't say much more. Neither do you."
+    "That's fine."
+    hide zoe_street_neutral
+    $ spend_time(2.0)
+    $ fs_record_social("zoe", "story_event")
+    $ record_social_attention("zoe", "story_event")
+    $ add_relationship_memory("zoe", "zoe_exhibition_opening", "The gallery opening")
+    $ zoe_exhibition_done = True
+    $ zoe_exhibition_day = day
+    $ zoe_gallery_until_day = day + 14
+    python:
+        if (store.npc_invitation_pending
+                and store.npc_invitation_pending.get("invitation_id") == "zoe_exhibition"):
+            store.npc_invitation_pending = None
+    return
+
+
+# ── Phase 50: Zoe exhibition aftermath (Phase 46 system) ─────────────────────
+
+label story_aftermath_zoe_exhibition:
+    $ _do_talk_accounting("zoe")
+    if zoe_exhibition_outcome == "seen":
+        z "You asked about the one nobody else asked about."
+        mc "It was the most interesting piece."
+        "A beat."
+        z "It wasn't meant to be."
+        "She says it as a fact, not a complaint."
+        z "I kept it small because I didn't think anyone would know what they were looking at."
+        mc "I didn't, exactly. I just noticed you weren't looking at it."
+        "Another beat."
+        z "That's the same thing."
+        "She doesn't say more than that."
+    elif zoe_exhibition_outcome == "steady":
+        z "The label thing."
+        mc "I fixed it."
+        z "I know."
+        "She's quiet for a moment."
+        z "The opening would have been a lot worse."
+        mc "It went fine."
+        z "It went fine because of that. And the visitor."
+        "She means the one you lied to."
+        z "I'm saying it practically."
+        "She does mean it practically. It still lands."
+    else:
+        z "The work was finished before anyone decided whether it was useful."
+        "She's not angry. She's settled."
+        mc "I know. I shouldn't have framed it that way."
+        z "No."
+        "A pause."
+        z "It's a fair question for most things. It wasn't the right moment."
+        "She gives you space to sit with that."
+        mc "I was wrong to ask it then."
+        z "Yeah."
+        "She nods. That's enough for her."
+    $ _resolve_story_aftermath("zoe", "zoe_exhibition")
+    return
+
+
+# ── Phase 50: Zoe exhibition final callback ───────────────────────────────────
+
+label talk_followup_zoe_exhibition:
+    $ zoe_exhibition_followup_done = True
+    $ _do_talk_accounting("zoe")
+    if zoe_exhibition_outcome == "seen":
+        z "I took the small one down this morning."
+        mc "The corner piece?"
+        z "I kept it at home."
+        "She doesn't explain why."
+        "She doesn't need to."
+    elif zoe_exhibition_outcome == "steady":
+        z "The gallery's wrapped. I left one piece — the lighting was still good on it."
+        mc "Which one?"
+        z "Near the window. I'll collect it."
+        "She probably won't for a while."
+    else:
+        z "Everything's down. One piece wasn't collected."
+        "A beat."
+        z "It's in storage. I'll work it out."
+        "She says it without tension. The opening is behind her."
+    return
+
+
+# ── Phase 50: gallery-specific Zoe Talk ──────────────────────────────────────
+
+label zoe_gallery_talk:
+    $ _do_talk_accounting("zoe")
+    if zoe_exhibition_outcome == "seen":
+        z "I'm still deciding how much of it I want to explain to people."
+        mc "You don't have to explain it."
+        z "I know."
+        "She looks at the corner piece."
+        z "That's the problem."
+    elif zoe_exhibition_outcome == "steady":
+        z "Someone moved the third piece two centimetres to the left. I can tell."
+        mc "Does it matter?"
+        z "No. But I notice."
+        "She's scanning the room with the focus of someone doing a silent inventory."
+    else:
+        z "People keep asking me what it sold for."
+        "A beat."
+        z "That's not what it was."
+        mc "I know."
+        "She looks at you briefly. Something settles."
+    return

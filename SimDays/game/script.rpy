@@ -70,18 +70,45 @@ label start:
     "He heads for the stairs with a lazy wave, towel bouncing on his shoulder."
 
     $ marcus_met = True
+    $ onboarding_state = "complete"
+    $ move_in_complete = False
+    $ first_steps_track = None
 
-    # Into the world - you start inside your own place (apartment 12).
-    scene cheaphouse_day with fade
+    scene hallway with fade
     show screen hud
-    "You drop your bag inside apartment 12. Home. For now."
-    "The place came furnished - barely. A table, a chair, a mattress that could be worse."
-    "You notice the three bars at the top of your vision: hunger, energy, hygiene. The city's way of keeping score on how well you're taking care of yourself."
-    "Let any of them drop to zero and the consequences show up fast - missed shifts, bad decisions, a hospital bill you can't afford."
-    "Right now you're fine. But hunger's already ticking down, and money doesn't grow on its own."
-    "Marcus's parting shot comes back to you: {i}Grounds Café, downtown. Always short-staffed. If you can carry a tray, you're in.{/i}"
-    "A place to start."
-    jump location_home
+    show marcus_casual_normal at sprite_r
+
+    m "Hey — before you disappear inside."
+    m "Two minutes. Won't cost you anything."
+    m "Activities use time. Walking between places doesn't. That's the first thing people miss."
+    m "Watch the three bars up top. Hunger, energy, hygiene. Let any of them crash and your day falls apart fast."
+    m "If you need income first, Grounds is the easy door — café downtown. Low barrier, enough to cover the basics."
+    m "The real careers ask more. Medicine, programming, business, cooking, fitness. Some need a degree further down the line."
+    m "People here have their own schedules. If someone isn't where you expected, they're somewhere else."
+    m "Phone keeps your messages, contacts and commitments. You don't have to come back here to use it."
+    m "So. What do you need first?"
+
+    menu:
+        "Money.":
+            $ first_steps_track = "money"
+            mc "Money."
+            m "Grounds. Corner of the Centrum. Tell them you can carry a tray."
+        "A real career.":
+            $ first_steps_track = "career"
+            mc "A proper career."
+            m "Then check what it needs before you apply. Build the skill first."
+        "People.":
+            $ first_steps_track = "people"
+            mc "People."
+            m "Go somewhere because someone might actually be there."
+        "I want to look around.":
+            $ first_steps_track = "explore"
+            mc "I want to see the city."
+            m "Map's in the phone. Rest is up to you."
+
+    $ _fs_set_track_baseline()
+    hide marcus_casual_normal
+    jump location_hallway
 
 
 # Nicer neighbourhoods you can't afford to live in yet (locked homes).
@@ -98,11 +125,15 @@ label zone_locked_suburbs:
     jump map
 
 
-# The stairwell - pick a door (clickable), or take the metro back to the city.
+# The stairwell - pick a door or head to the city map.
 label location_hallway:
     scene hallway
+    show screen hud
     if not marcus_met:
         jump marcus_intro_hallway
+    $ _wed_per = wed_poll_personal("location_hallway")
+    if _wed_per:
+        call expression _wed_per
     call screen hallway_hub
 
 
@@ -151,6 +182,19 @@ label marcus_intro_hallway:
 
     m "Well. Twelve's got better morning light, by the way. Lucky you."
     m "I'm around most evenings if you need anything. Knock on fourteen."
+
+    m "Get the boxes inside first."
+    mc "That obvious?"
+    m "You're carrying one upside down."
+    "A beat."
+    m "When you're done, knock on fourteen."
+    mc "Your place?"
+    m "Yeah."
+    m "You can walk into the city blind if you want."
+    m "But you'll waste three days learning what I can tell you in ten minutes."
+    mc "Is this the part where you sell me something?"
+    m "Coffee."
+    m "Bad coffee. Advice is free."
 
     $ store.marcus_met = True
     $ store.marcus_affection += 5
