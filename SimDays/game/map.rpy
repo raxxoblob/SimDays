@@ -2,30 +2,35 @@
 # Idle: district icon at the zone centre. Hover: blue parallelogram + name.
 # Click area = the zone's mask PNG.
 
-# key, jump target, icon file (in images/ui/icons/), centre x, centre y
+# key, jump target, icon file (in images/ui/icons/), centre x, centre y, display name
 define MAP_ZONES = [
-    ("bogate_domki", "zone_locked_uptown", "house_uptown",   220, 148),
-    ("warehouse",    "location_warehouse", "garage",        1665, 147),
-    ("park",         "location_park",      "park",           930, 254),
-    ("domki",        "zone_locked_suburbs","house_suburb",   426, 384),
-    ("bloki",        "location_hallway",   "apartment_ext",  739, 397),
-    ("centrum",      "location_centrum",   "office_ext",    1196, 387),
-    ("szpital",      "location_hospital",  "szpital",        289, 599),
-    ("mall",         "location_mall",      "mall",           964, 552),
-    ("plaza",        "location_beach",     "beach",         1061, 929),
-    ("nadbrzeze",   "location_nadbrzeze", "nadbrzeze",     1139, 707),
+    ("bogate_domki", "zone_locked_uptown", "house_uptown",   220, 148, "Uptown"),
+    ("warehouse",    "location_warehouse", "garage",        1665, 147, "Warehouse District"),
+    ("park",         "location_park",      "park",           930, 254, "City Park"),
+    ("domki",        "zone_locked_suburbs","house_suburb",   426, 384, "Suburbs"),
+    ("bloki",        "location_hallway",   "apartment_ext",  739, 397, "Apartments"),
+    ("centrum",      "location_centrum",   "office_ext",    1196, 387, "City Centre"),
+    ("szpital",      "location_hospital",  "szpital",        289, 599, "Hospital"),
+    ("mall",         "location_mall",      "mall",           964, 552, "Mall"),
+    ("plaza",        "location_beach",     "beach",         1061, 929, "Beach"),
+    ("nadbrzeze",    "location_nadbrzeze", "nadbrzeze",     1139, 707, "Quayside"),
 ]
 
 screen city_map():
     tag menu
 
     # district zones: idle shows a dim icon, hover brightens it + highlights the parcel
-    for key, lbl, icon, cx, cy in MAP_ZONES:
+    for key, lbl, icon, cx, cy, zname in MAP_ZONES:
         imagebutton:
             idle ("z_%s_idle" % key)
             hover ("z_%s_hi" % key)
             focus_mask Image("images/ui/z_%s_mask.png" % key)
             action Jump(lbl)
+        # zone name label — always visible, centred on the zone
+        text zname:
+            xpos cx ypos (cy + 52) xanchor 0.5 yanchor 0.0
+            size 15 font "fonts/Quicksand-SemiBold.ttf" color "#ffffff"
+            outlines [(2, "#000000aa", 0, 0)]
 
 
 

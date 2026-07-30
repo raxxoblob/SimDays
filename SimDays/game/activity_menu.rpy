@@ -76,7 +76,7 @@ screen activity(items):
                 xalign 0.5
                 idle  Transform("images/ui/icons/icon_%s.png" % _exit_icon, size=(120, 120))
                 hover Transform("images/ui/icons/icon_%s.png" % _exit_icon, size=(132, 132))
-                action Jump(activity_exit_jump)
+                action [Hide("people_here_dock"), Jump(activity_exit_jump)]
             text "[activity_exit_name]" xalign 0.5 size 16 color "#ffffff"
 
 

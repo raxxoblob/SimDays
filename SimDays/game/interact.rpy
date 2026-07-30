@@ -684,7 +684,10 @@ init python:
         """Gray circular silhouette for unknown/no-portrait NPCs."""
         mask = "images/ui/activity_dot.png"
         sil  = "images/ui/portrait_silhouette.png"
-        base = Transform(sil, size=(sz, sz)) if renpy.loadable(sil) else Solid("#3a3a5a", xysize=(sz, sz))
+        if renpy.loadable(sil):
+            base = Transform(sil, size=(sz, sz))
+        else:
+            base = Transform(Solid("#3a3a5a"), size=(sz, sz))
         return AlphaMask(base, Transform(mask, size=(sz, sz)))
 
     def npc_has_been_encountered(npc_id):
@@ -1948,6 +1951,7 @@ screen npc_topics(npc_id):
 # ── Driver ─────────────────────────────────────────────────────────────
 label npc_interact(npc_id):
     $ renpy.hide_screen("npc_relbar")
+    $ renpy.hide_screen("people_here_dock")
     $ renpy.hide("npcsprite")
     $ renpy.hide("npcsprite2")
     $ _rb_prev_aff = -1   # -1 = don't flash on the opening render
@@ -2871,12 +2875,13 @@ label kai_gym_towel:
 
 label npc_interact_from_dock:
     $ _npc = _dock_npc
-    $ _return = _dock_return or "location_centrum"
     $ _dock_npc = None
+    $ _ret = _dock_return
     $ _dock_return = None
     hide screen people_here_dock
     call npc_interact(_npc)
-    jump expression _return
+    $ _target = _ret if renpy.has_label(str(_ret) if _ret is not None else "") else "location_centrum"
+    jump expression _target
 
 
 label show_public_sprites:
