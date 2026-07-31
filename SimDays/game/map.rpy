@@ -21,12 +21,20 @@ screen city_map():
 
     # district zones: idle shows a dim icon, hover brightens it + highlights the parcel
     for key, lbl, icon, cx, cy, zname in MAP_ZONES:
+        # ponytail: z_nadbrzeze_idle/_hi were baked far more saturated/opaque than
+        # sibling zones (idle a≈243 vs ≈140; hi is vivid cyan vs pale blue), so we
+        # scale their alpha in-code. Its _hi is ALSO missing the district icon that
+        # sibling _hi images bake in, so on hover the icon vanished — composite the
+        # idle icon back over the highlight.
+        if key == "nadbrzeze":
+            $ _z_idle = Transform("images/ui/z_nadbrzeze_idle.png", alpha=0.55)
+            $ _z_hi   = Composite((1920, 1080), (0, 0), Transform("images/ui/z_nadbrzeze_hi.png", alpha=0.5), (0, 0), "images/ui/z_nadbrzeze_idle.png")
+        else:
+            $ _z_idle = "z_%s_idle" % key
+            $ _z_hi   = "z_%s_hi" % key
         imagebutton:
-            # ponytail: z_nadbrzeze_idle/_hi were baked far more saturated/opaque than
-            # sibling zones (idle a≈243 vs ≈140; hi is vivid cyan vs pale blue), so they
-            # read as solid. Scale both states' alpha in-code to match rather than re-bake.
-            idle  Transform("z_%s_idle" % key, alpha=(0.55 if key == "nadbrzeze" else 1.0))
-            hover Transform("z_%s_hi" % key,   alpha=(0.5  if key == "nadbrzeze" else 1.0))
+            idle  _z_idle
+            hover _z_hi
             focus_mask Image("images/ui/z_%s_mask.png" % key)
             action Jump(lbl)
         # zone name label — always visible, centred on the zone

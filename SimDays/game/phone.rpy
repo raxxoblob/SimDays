@@ -102,6 +102,13 @@ init python:
             Transform(_CHAT_AVATAR_MASK, size=(48, 48))
         )
 
+    # Any phone surface open? (home OR any app screen). The HUD peek uses this so
+    # it hides while an app is open — not just while phone_home is up.
+    _PHONE_SCREENS = ("phone_home", "phone_messages_scr", "phone_goals_scr",
+                      "phone_settings", "phone_bank_scr", "phone_help_scr", "stock_market")
+    def phone_open():
+        return any(renpy.get_screen(s) for s in _PHONE_SCREENS)
+
 
 # ── Phone geometry ─────────────────────────────────────────────────────
 # phone.png is 1024x1536 (aspect 0.667), shown at PHONE_W x PHONE_H on the right.
@@ -112,7 +119,7 @@ init python:
 define PHONE_W     = 600
 define PHONE_H     = 900
 define PHONE_X     = 1290
-define PHONE_Y     = 110
+define PHONE_Y     = 158   # centred between the top HUD (ends ~137) and the bottom edge
 define PHONE_SCR_X = 117
 define PHONE_SCR_Y = 92
 define PHONE_SCR_W = 363
@@ -222,7 +229,7 @@ screen _phone_app(label, act):
         xfill True
         ysize 68
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
         action act
         text label font ACT_FONT size 22 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
 
@@ -313,7 +320,7 @@ screen phone_messages_scr():
                                                     button:
                                                         xysize (120, 30)
                                                         background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                                        hover_background Frame("images/ui/act_bar_hover.png", 16, 16, 16, 16)
+                                                        hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16, 16, 16)
                                                         action [Function(mark_message_replied, _imsg, _rsp["id"]), Hide("phone_messages_scr"), Hide("phone_home"), Function(renpy.jump, _rsp["label"])]
                                                         text _rsp["text"] font ACT_FONT size 12 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
                             if _is_r and _rt:
@@ -365,13 +372,13 @@ screen phone_messages_scr():
                                             xysize (120, 32)
                                             sensitive not _texted
                                             background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
-                                            hover_background Frame("images/ui/act_bar_hover.png", 20, 20, 20, 20)
+                                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20, 20, 20)
                                             action Function(phone_say_hi, _k)
                                             text "Say hi" font ACT_FONT size 13 color ("#7a9ab8" if _texted else "#cfe0f5") hover_color "#ffffff" align (0.5, 0.5)
                                         button:
                                             xysize (130, 32)
                                             background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
-                                            hover_background Frame("images/ui/act_bar_hover.png", 20, 20, 20, 20)
+                                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20, 20, 20)
                                             action Function(phone_where_is, _k)
                                             text "Where are you?" font ACT_FONT size 11 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
                     elif not daily_events:
@@ -515,7 +522,7 @@ screen phone_bank_scr():
                         xfill True ysize 56
                         sensitive money < _amt * 2
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         action [SetVariable("loan", loan + _amt), SetVariable("money", money + _amt), Hide("phone_bank_scr"), Show("phone_home")]
                         text "Take $%d loan" % _amt font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             # ── Repay ────────────────────────────────────────────────
@@ -528,14 +535,14 @@ screen phone_bank_scr():
                     button:
                         xfill True ysize 56
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         action [SetVariable("money", money - _repay_full), SetVariable("loan", loan - _repay_full), Hide("phone_bank_scr"), Show("phone_home")]
                         text "Repay all  (-$%d)" % _repay_full font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
                 if _repay_half < _repay_full:
                     button:
                         xfill True ysize 56
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         action [SetVariable("money", money - _repay_half), SetVariable("loan", loan - _repay_half), Hide("phone_bank_scr"), Show("phone_home")]
                         text "Repay half  (-$%d)" % _repay_half font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             # ── Savings ──────────────────────────────────────────────
@@ -547,14 +554,14 @@ screen phone_bank_scr():
                         xfill True ysize 56
                         sensitive money >= _dep
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         action [SetVariable("money", money - _dep), SetVariable("savings", savings + _dep), Hide("phone_bank_scr"), Show("phone_home")]
                         text "Deposit $%d" % _dep font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
                 if savings > 0:
                     button:
                         xfill True ysize 56
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         action [SetVariable("money", money + savings), SetVariable("savings", 0), Hide("phone_bank_scr"), Show("phone_home")]
                         text "Withdraw all  +$[savings]" font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             null height 8

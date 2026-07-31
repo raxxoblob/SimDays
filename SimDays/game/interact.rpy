@@ -1926,7 +1926,7 @@ screen npc_gift_select():
                     xsize 280
                     sensitive _ghave > 0
                     background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                    hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                    hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                     action Return(_gkey)
                     text "[_gname]  (x[_ghave])" font ACT_FONT size 17 color ("#cfe0f5" if _ghave > 0 else "#4a6080") hover_color "#ffffff" xalign 0.5
             textbutton "Cancel" action Return("back") xalign 0.5 text_font ACT_FONT text_size 15 text_color "#9fb6d6" text_hover_color "#ffffff"
@@ -1962,7 +1962,7 @@ screen npc_topics(npc_id):
                         xysize (148, 120)
                         sensitive not _used
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         action Return(key)
                         vbox:
                             spacing 6
@@ -2916,24 +2916,23 @@ label npc_interact_from_dock:
     jump expression _target
 
 
+# Ambient standing NPCs: three fixed slots filled in order left → right → centre.
+# Because slot i always holds the i-th present NPC, nobody shifts position when
+# another person arrives or leaves (no "blocking"); they just fill the next free
+# slot like a list. Beyond 3, the extra people are still reachable via the dock.
+# Each sprite uses its per-character interaction scale (sprite_crop) so heads match.
+define _SPRITE_SLOTS = [730, 1574, 1152]   # left (0.38), right (0.82), centre (0.60) * 1920
+
 label show_public_sprites:
     $ _nc = len(_vis)
     hide npcsprite
     hide npcsprite2
     hide npcsprite3
     hide npcsprite4
-    if _nc >= 4:
-        show expression _vis[0][1] as npcsprite  at sprite_quad_d
-        show expression _vis[1][1] as npcsprite2 at sprite_quad_a
-        show expression _vis[2][1] as npcsprite3 at sprite_quad_b
-        show expression _vis[3][1] as npcsprite4 at sprite_quad_c
-    elif _nc == 3:
-        show expression _vis[0][1] as npcsprite  at sprite_tri_r
-        show expression _vis[1][1] as npcsprite2 at sprite_tri_l
-        show expression _vis[2][1] as npcsprite3 at sprite_tri_c
-    elif _nc == 2:
-        show expression _vis[0][1] as npcsprite  at sprite_duo_r
-        show expression _vis[1][1] as npcsprite2 at sprite_duo_l
-    elif _nc == 1:
-        show expression _vis[0][1] as npcsprite at sprite_crop(sprite_display_scale(_vis[0][0]), 1152)  # 0.60*1920
+    if _nc >= 1:
+        show expression _vis[0][1] as npcsprite  at sprite_crop(sprite_display_scale(_vis[0][0]), _SPRITE_SLOTS[0])
+    if _nc >= 2:
+        show expression _vis[1][1] as npcsprite2 at sprite_crop(sprite_display_scale(_vis[1][0]), _SPRITE_SLOTS[1])
+    if _nc >= 3:
+        show expression _vis[2][1] as npcsprite3 at sprite_crop(sprite_display_scale(_vis[2][0]), _SPRITE_SLOTS[2])
     return

@@ -822,6 +822,8 @@ label location_office:
 
 # ── MALL (shop hub) ───────────────────────────────────────────────────
 label location_mall:
+    $ current_loc = "location_mall"   # hub, not a talkable spot — clears the people dock
+    hide screen people_here_dock
     $ fs_record_district("mall")
     scene expression ("mallnight" if hour >= 19 else "mallday")
     show screen hud
@@ -1500,6 +1502,8 @@ label zoe_beach_shared:
 # ── CENTRUM (downtown hub) ────────────────────────────────────────────
 # Clicking the downtown district drops you "on the street" - pick a venue.
 label location_centrum:
+    $ current_loc = "location_centrum"   # hub, not a talkable spot — clears the people dock
+    hide screen people_here_dock
     scene expression ("centerstreet_night" if (hour >= 20 or hour < 6) else "centerstreet_day")
     show screen hud
     $ _wed_amb = wed_poll_ambient("location_centrum")
@@ -2065,6 +2069,12 @@ label take_metro:
 
 # ── MAP ────────────────────────────────────────────────────────────────
 label map:
+    # Off-location: clear current_loc (gates the people dock) and drop the dock so
+    # it can't linger from the location we just left — you can't talk to someone
+    # from the map. Both together: hide removes the live copy, the cleared
+    # current_loc keeps the dock's own guard from re-rendering it.
+    $ current_loc = ""
+    hide screen people_here_dock
     call check_collapse
     $ expire_late_commitments()
     $ notify_available_commitments()

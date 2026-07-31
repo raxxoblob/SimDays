@@ -8,9 +8,9 @@ screen hud():
 
     key "K_c" action ToggleScreen("profile")
 
-    # phone peek — hidden when phone is fully open to avoid overlap
+    # phone peek — hidden whenever any phone surface (home or an app) is open
     key "K_p" action Show("phone_home")
-    if renpy.get_screen("phone_home") is None:
+    if not phone_open():
         imagebutton:
             xpos 1460 ypos 986
             idle  Transform("images/ui/phone.png", crop=(0, 0, 1024, 215), size=(460, 94))

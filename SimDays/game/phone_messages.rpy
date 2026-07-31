@@ -385,7 +385,7 @@ screen phone_inbox_modal():
                                                     text_color "#cfe0f5"
                                                     text_hover_color "#ffffff"
                                                     background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
-                                                    hover_background Frame("images/ui/act_bar_hover.png", 20, 20, 20, 20)
+                                                    hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20, 20, 20)
                                                     padding (12, 6)
                                     elif _is_replied and _m.get("replied_with"):
                                         $ _rtext = next((r["text"] for r in _m.get("responses", []) if r["id"] == _m.get("replied_with")), "")

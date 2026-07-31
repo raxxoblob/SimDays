@@ -141,7 +141,7 @@ screen stock_market():
                             xfill True
                             padding (12, 8, 12, 8)
                             background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
-                            hover_background Frame("images/ui/act_bar_hover.png", 20, 20, 20, 20)
+                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20, 20, 20)
                             action SetScreenVariable("sel", sym)
                             text ("%s   $%d   x%d" % (sym, int(stock_price[sym]), stock_owned[sym])) font PROFILE_FONT size 15 color ("#ffffff" if sel == sym else "#9fb6d6")
             null height 4

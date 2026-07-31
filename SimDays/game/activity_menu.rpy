@@ -49,7 +49,7 @@ screen activity(items):
                         sensitive (getattr(i, 'sensitive', True) and not (_in_debt and "$" in _cs))
                         xysize (360, 76)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         insensitive_background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         at act_item
                         fixed:
@@ -105,15 +105,14 @@ screen people_here_dock(return_location):
                         button:
                             xysize (108, 128)
                             background None
-                            hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                            hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                             action [SetVariable("_dock_npc", npc_id), SetVariable("_dock_return", return_location), Jump("npc_interact_from_dock")]
                             vbox:
                                 spacing 4
                                 xalign 0.5
-                                if _enc and NPC_DATA[npc_id].get("portrait"):
-                                    add portrait_circle(npc_id, 100) xalign 0.5
-                                else:
-                                    add portrait_circle_fallback(100) xalign 0.5
+                                # portrait always visible — strangers are named "Stranger"
+                                # below but still show their face icon
+                                add portrait_circle(npc_id, 100) xalign 0.5
                                 text _disp:
                                     size 10 font ACT_FONT color "#b0c4d8" hover_color "#e0ecff"
                                     xalign 0.5
