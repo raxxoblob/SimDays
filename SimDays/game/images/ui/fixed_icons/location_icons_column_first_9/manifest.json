@@ -1,0 +1,65 @@
+[
+  {
+    "name": "office_day",
+    "column": 1,
+    "row_in_column": 1,
+    "width": 251,
+    "height": 247
+  },
+  {
+    "name": "office_lobby",
+    "column": 1,
+    "row_in_column": 2,
+    "width": 251,
+    "height": 252
+  },
+  {
+    "name": "apartment_evening",
+    "column": 1,
+    "row_in_column": 3,
+    "width": 251,
+    "height": 257
+  },
+  {
+    "name": "campus",
+    "column": 2,
+    "row_in_column": 1,
+    "width": 255,
+    "height": 254
+  },
+  {
+    "name": "reception",
+    "column": 2,
+    "row_in_column": 2,
+    "width": 255,
+    "height": 254
+  },
+  {
+    "name": "rooftop_evening",
+    "column": 2,
+    "row_in_column": 3,
+    "width": 255,
+    "height": 263
+  },
+  {
+    "name": "restaurant",
+    "column": 3,
+    "row_in_column": 1,
+    "width": 250,
+    "height": 251
+  },
+  {
+    "name": "nightclub",
+    "column": 3,
+    "row_in_column": 2,
+    "width": 250,
+    "height": 256
+  },
+  {
+    "name": "door_night",
+    "column": 3,
+    "row_in_column": 3,
+    "width": 250,
+    "height": 263
+  }
+]

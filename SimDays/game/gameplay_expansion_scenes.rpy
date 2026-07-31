@@ -279,7 +279,7 @@ label scene_nora_bad_day:
     scene expression home_bg() with dissolve
     show screen hud
     # Off-duty Nora: casual sprite if available, no sprite otherwise (not café outfit)
-    if renpy.loadable("images/characters/nora/nora_casual_normal.png"):
+    if renpy.loadable("images/characters/nora/nora_casual_neutral.png"):
         show nora_casual_normal at sprite_r
     n "I said bread. I meant it."
     "She puts it on the counter. Doesn't ask how you are."
@@ -305,7 +305,7 @@ label scene_nora_bad_day:
     "She doesn't say anything as she leaves. Just presses your arm briefly at the door."
     $ nora_touched_arm = True
     $ spend_time(1.5)
-    if renpy.loadable("images/characters/nora/nora_casual_normal.png"):
+    if renpy.loadable("images/characters/nora/nora_casual_neutral.png"):
         hide nora_casual_normal
     scene expression home_bg()
     show screen hud

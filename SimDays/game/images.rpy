@@ -254,6 +254,21 @@ transform sprite_c:
     yalign 1.0
     yoffset 96
 
+# Sprite for characters whose source art is cropped at the thigh/hip (zoe, sam,
+# eli, rena). fit-contain would blow their visible portion up to the full 900 box
+# and make their heads oversized next to the full-body cast. Instead we pin the
+# head to the same top line as the full-body sprites (y≈276 = 1080-900+96) and
+# scale down by a per-character factor so head sizes match; the body then hangs to
+# the crop as a natural "thigh-up" framing. xp = screen x of the standing spot
+# (xalign * 1920). See SPRITE_CROP_SCALE in interact.rpy.
+transform sprite_crop(sc, xp=960):
+    fit "contain"
+    xysize (660, 900)
+    transform_anchor True
+    xanchor 0.5 yanchor 0.0
+    xpos xp ypos 276
+    zoom sc
+
 transform sprite_r:
     fit "contain"
     xysize (660, 900)
@@ -389,14 +404,14 @@ transform react_sigh:
     ease 0.22 yoffset 96
 
 # ── Zoe sprites (plain files; positioned via the transforms above) ─────
-image zoe_street_neutral   = "images/characters/zoe/zoe_street_neutral.webp"
-image zoe_street_smile     = "images/characters/zoe/zoe_street_smile.webp"
-image zoe_street_talk      = "images/characters/zoe/zoe_street_talk.webp"
-image zoe_street_surprised = "images/characters/zoe/zoe_street_surprised.webp"
-image zoe_street_full      = "images/characters/zoe/zoe_street_full.webp"
-image zoe_punk_smile       = "images/characters/zoe/zoe_punk_smile.webp"
-image zoe_hoodie_smile     = "images/characters/zoe/zoe_hoodie_smile.webp"
-image zoe_coat_smile       = "images/characters/zoe/zoe_coat_smile.webp"
+# Zoe refreshed to neutral/talk/laugh/angry (PNG; old .webp moved to zoe/old_zoe/)
+image zoe_street_neutral   = "images/characters/zoe/zoe_street_neutral.png"
+image zoe_street_talk      = "images/characters/zoe/zoe_street_talk.png"
+image zoe_street_laugh     = "images/characters/zoe/zoe_street_laugh.png"
+image zoe_street_angry     = "images/characters/zoe/zoe_street_angry.png"
+# legacy aliases — older scenes still `show zoe_street_smile` / reference the punk sprite
+image zoe_street_smile     = "images/characters/zoe/zoe_street_laugh.png"
+image zoe_punk_smile       = "images/characters/zoe/zoe_street_neutral.png"
 
 # ── Nora sprites ───────────────────────────────────────────────────────
 # Work outfit (behind the counter)
@@ -406,7 +421,9 @@ image nora_cafe_laugh  = "images/characters/nora/nora_cafe_laugh.png"
 image nora_cafe_sad    = "images/characters/nora/nora_cafe_sad.png"
 image nora_cafe_angry  = "images/characters/nora/nora_cafe_angry.png"
 # Casual / off-duty (closing time, high-aff visits)
-image nora_casual_normal = "images/characters/nora/nora_casual_normal.png"
+# Tag nora_casual_normal kept (many call sites) but points at the renamed neutral file.
+image nora_casual_normal = "images/characters/nora/nora_casual_neutral.png"
+image nora_casual_neutral = "images/characters/nora/nora_casual_neutral.png"
 image nora_casual_talk   = "images/characters/nora/nora_casual_talk.png"
 image nora_casual_laugh  = "images/characters/nora/nora_casual_laugh.png"
 image nora_casual_angry  = "images/characters/nora/nora_casual_angry.png"
@@ -468,10 +485,13 @@ image sam_normal     = "images/characters/sam/sam_normal.png"
 image sam_talk       = "images/characters/sam/sam_talk.png"
 image sam_laugh      = "images/characters/sam/sam_laugh.png"
 image sam_determined = "images/characters/sam/sam_determined.png"
-image eli_normal     = "images/characters/eli/eli_normal.png"
+# Eli refreshed to the neutral/talk/laugh/angry convention (files renamed).
+# Tag eli_normal kept (many `show eli_normal` call sites) but points at the new file.
+image eli_normal     = "images/characters/eli/eli_neutral.png"
+image eli_neutral    = "images/characters/eli/eli_neutral.png"
 image eli_talk       = "images/characters/eli/eli_talk.png"
 image eli_laugh      = "images/characters/eli/eli_laugh.png"
-image eli_nervous    = "images/characters/eli/eli_nervous.png"
+image eli_angry      = "images/characters/eli/eli_angry.png"
 
 # ── Martha sprites (transparent PNGs) ──────────────────────────────────
 image martha_neutral = "images/characters/martha/martha_neutral.png"
@@ -486,10 +506,12 @@ image martha_dress_laugh  = "images/characters/martha/martha_dress_laugh.png"
 image martha_dress_angry  = "images/characters/martha/martha_dress_angry.png"
 
 # ── Kai (beach / weekends) ─────────────────────────────────────────────
-image kai_normal = "images/characters/kai/kai_normal.png"
-image kai_talk   = "images/characters/kai/kai_talk.png"
-image kai_laugh  = "images/characters/kai/kai_laugh.png"
-image kai_angry  = "images/characters/kai/kai_angry.png"
+# Refreshed to neutral/talk/laugh/angry; kai_normal kept as alias (scene call sites).
+image kai_normal  = "images/characters/kai/kai_neutral.png"
+image kai_neutral = "images/characters/kai/kai_neutral.png"
+image kai_talk    = "images/characters/kai/kai_talk.png"
+image kai_laugh   = "images/characters/kai/kai_laugh.png"
+image kai_angry   = "images/characters/kai/kai_angry.png"
 # Kai gym outfit (trainer arc scenes)
 image kai_gym_normal = "images/characters/kai/kai_gym_normal.png"
 

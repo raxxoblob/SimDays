@@ -29,6 +29,22 @@ init python:
     ]
     TOPIC_LABEL = dict(TOPICS)
 
+    # Per-character down-scale for the centre interaction sprite. Only characters
+    # whose source art is cropped at the thigh/hip need this (their visible portion
+    # would otherwise fill the 900px box and look oversized). Value = fraction of
+    # the fit-contain size; head pins to the same top line as the full-body cast.
+    # See transform sprite_crop in images.rpy.
+    SPRITE_CROP_SCALE = {"zoe": 0.78, "sam": 0.64, "eli": 0.82, "rena": 0.76}
+
+    # Women are keyed to Nora's size (the reference); men render a touch larger so
+    # they read as slightly taller. Kept very light on purpose. Multiplies the
+    # interaction/solo sprite scale on top of any crop scale above.
+    SPRITE_MEN  = {"marcus", "eli", "sam", "kai"}
+    MALE_SCALE  = 1.05
+
+    def sprite_display_scale(npc_id):
+        return SPRITE_CROP_SCALE.get(npc_id, 1.0) * (MALE_SCALE if npc_id in SPRITE_MEN else 1.0)
+
     # say  = the Character variable to speak as (defined in characters.rpy)
     # world/met/min_status = availability (see npc_known)
     # likes/dislikes = which of the 9 topics land well / badly
@@ -39,6 +55,7 @@ init python:
     NPC_DATA = {
         "nora": {
             "name": "Nora", "portrait": "portrait_nora", "sprite": "nora_cafe_normal", "say": "n",
+            "sprite_angry": "nora_cafe_angry",
             "aff": "nora_affection", "trust": "nora_trust", "greet": "nora_greet",
             "sprites": {"work": "nora_cafe_normal", "casual": "nora_casual_normal"},
             "world": True,
@@ -136,7 +153,8 @@ init python:
             },
         },
         "zoe": {
-            "name": "Zoe", "portrait": "portrait_zoe", "sprite": "zoe_punk_smile", "say": "z",
+            "name": "Zoe", "portrait": "portrait_zoe", "sprite": "zoe_street_neutral", "say": "z",
+            "sprite_angry": "zoe_street_angry",
             "aff": "zoe_affection", "trust": "zoe_trust", "greet": "zoe_greet",
             "world": True, "sched": [
                 (WKD,    (12, 18), "location_sandbeach"),
@@ -172,6 +190,7 @@ init python:
         },
         "eli": {
             "name": "Eli", "portrait": "portrait_eli", "sprite": "eli_normal", "say": "eli",
+            "sprite_angry": "eli_angry",
             "aff": "eli_affection", "trust": "eli_trust", "greet": "eli_greet",
             "world": True, "sched": [
                 (None,      (12, 20), "location_library"),
@@ -1732,12 +1751,16 @@ init python:
 # ── Relationship panel (right, under the topbar) ───────────────────────
 # _rb_prev_* are set to -1 by npc_interact on entry so the first render never
 # flashes; a gain flips the fill to a bright colour for FLASH_LEN seconds.
-define FLASH_LEN = 1.1
+define FLASH_LEN = 1.25
 
+# Big pop-in that shrinks past normal size and settles (a little "juice"),
+# then floats up and fades. Anchored at its centre so the zoom scales in place.
 transform _rel_label_float:
-    zoom 1.6 alpha 1.0 yoffset 0
-    linear 0.12 zoom 1.0
-    linear 0.9 alpha 0.0 yoffset -44
+    xanchor 0.5 yanchor 0.5
+    zoom 2.8 alpha 1.0 yoffset 6
+    easeout 0.16 zoom 0.85
+    easein 0.09 zoom 1.0
+    linear 0.9 alpha 0.0 yoffset -78
 
 transform act_icon_zoom:
     on idle:
@@ -1829,8 +1852,8 @@ screen npc_relbar(npc_id):
                 text "[_aff]" font PROFILE_FONT size 17 color ("#ffd76a" if _aff_hot else ("#e86a55" if _aff_hot_neg else "#ffffff")) xpos 270 ypos 4
                 if (_aff_hot or _aff_hot_neg) and _rel_feedback_aff != 0:
                     $ _aff_fb_str = ("+%d" % _rel_feedback_aff) if _rel_feedback_aff > 0 else ("%d" % _rel_feedback_aff)
-                    $ _aff_fb_col = "#ffd76a" if _rel_feedback_aff > 0 else "#e86a55"
-                    text _aff_fb_str at _rel_label_float font PROFILE_FONT size 22 color _aff_fb_col xpos 300 ypos -8
+                    $ _aff_fb_col = "#ffe27a" if _rel_feedback_aff > 0 else "#ff6a52"
+                    text _aff_fb_str at _rel_label_float font PROFILE_FONT size 30 bold True color _aff_fb_col xpos 316 ypos 8 outlines [(3, "#000000dd", 0, 0)]
             fixed:
                 xsize 356
                 ysize 30
@@ -1843,8 +1866,8 @@ screen npc_relbar(npc_id):
                 text "[_tr]" font PROFILE_FONT size 17 color ("#7fe0ff" if _tr_hot else "#ffffff") xpos 270 ypos 4
                 if (_tr_hot or _tr_hot_neg) and _rel_feedback_tr != 0:
                     $ _tr_fb_str = ("+%d" % _rel_feedback_tr) if _rel_feedback_tr > 0 else ("%d" % _rel_feedback_tr)
-                    $ _tr_fb_col = "#7fe0ff" if _rel_feedback_tr > 0 else "#e86a55"
-                    text _tr_fb_str at _rel_label_float font PROFILE_FONT size 22 color _tr_fb_col xpos 300 ypos -8
+                    $ _tr_fb_col = "#8fe8ff" if _rel_feedback_tr > 0 else "#ff6a52"
+                    text _tr_fb_str at _rel_label_float font PROFILE_FONT size 30 bold True color _tr_fb_col xpos 316 ypos 8 outlines [(3, "#000000dd", 0, 0)]
 
 
 # ── Main action bar (bottom) — icon tiles ──────────────────────────────
@@ -1974,7 +1997,7 @@ label npc_interact(npc_id):
     # update last-seen day for this NPC (feeds ignore-decay in new_day)
     $ store.npc_last_seen[npc_id] = day
     $ _spr = NPC_DATA[npc_id]["sprite"]
-    show expression _spr as npcsprite at sprite_c
+    show expression _spr as npcsprite at sprite_crop(sprite_display_scale(npc_id))
     show screen npc_relbar(npc_id)
     $ _npc_panel_npc_id = npc_id
     $ _nm = NPC_DATA[npc_id]["name"]
@@ -2080,7 +2103,7 @@ label npc_date(npc_id):
         "Actually, never mind":
             return
     show screen hud
-    show expression _spr as npcsprite at sprite_c
+    show expression _spr as npcsprite at sprite_crop(sprite_display_scale(npc_id))
     $ _date_owarn = _overlap_warning_text(3)
     if _date_owarn:
         menu:
@@ -2912,5 +2935,5 @@ label show_public_sprites:
         show expression _vis[0][1] as npcsprite  at sprite_duo_r
         show expression _vis[1][1] as npcsprite2 at sprite_duo_l
     elif _nc == 1:
-        show expression _vis[0][1] as npcsprite  at sprite_solo
+        show expression _vis[0][1] as npcsprite at sprite_crop(sprite_display_scale(_vis[0][0]), 1152)  # 0.60*1920
     return

@@ -106,49 +106,43 @@ init python:
 screen stock_market():
     modal True
     default sel = STOCK_META[0][0]
-
-    add "#000000aa"
-
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xsize 1120
-        ysize 660
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (34, 28, 34, 26)
-
+    use phone_shell:
         vbox:
-            spacing 16
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
+            spacing 6
+            null height 8
+            text "Stocks" font PROFILE_FONT size 24 color "#ffffff" xalign 0.5
+            text ("Cash $%d   Portfolio $%d" % (money, portfolio_value())) font ACT_FONT size 13 color "#9fb6d6" xalign 0.5
+            null height 2
+            # selected-stock chart + trade panel
+            add StockChart(sel, w=330, h=150) xalign 0.5
+            text ("%s — %s" % (sel, STOCK_NAME[sel])) font PROFILE_FONT size 15 color "#ffffff" xalign 0.5
+            text ("Buy $%d   Sell $%d   Own %d" % (stock_buy_price(sel), stock_sell_price(sel), stock_owned[sel])) font ACT_FONT size 12 color "#cfe0f5" xalign 0.5
             hbox:
-                spacing 24
-                text "Stock Market" font PROFILE_FONT size 34 color "#ffffff"
-                text ("Cash $%d    Portfolio $%d" % (money, portfolio_value())) font PROFILE_FONT size 20 color "#9fb6d6" yalign 1.0
-
-            hbox:
-                spacing 28
-                # left: ticker list
+                spacing 6
+                xalign 0.5
+                textbutton "Buy 1"    action Function(stock_buy, sel, 1)    text_font ACT_FONT text_size 14
+                textbutton "Buy 10"   action Function(stock_buy, sel, 10)   text_font ACT_FONT text_size 14
+                textbutton "Sell 1"   action Function(stock_sell, sel, 1)   text_font ACT_FONT text_size 14
+                textbutton "Sell all" action Function(stock_sell, sel, 999) text_font ACT_FONT text_size 14
+            null height 4
+            # ticker list
+            viewport:
+                xfill True
+                ysize 270
+                mousewheel True
+                scrollbars "vertical"
                 vbox:
-                    spacing 8
+                    spacing 6
+                    xfill True
                     for sym, name, _p, _d, _u in STOCK_META:
                         button:
-                            xsize 300
-                            padding (14, 10, 14, 10)
-                            background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                            hover_background Frame("images/ui/act_bar_hover.png", 30, 30, 30, 30)
+                            xfill True
+                            padding (12, 8, 12, 8)
+                            background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
+                            hover_background Frame("images/ui/act_bar_hover.png", 20, 20, 20, 20)
                             action SetScreenVariable("sel", sym)
-                            text ("%s   $%d   x%d" % (sym, int(stock_price[sym]), stock_owned[sym])) font PROFILE_FONT size 19 color ("#ffffff" if sel == sym else "#9fb6d6")
-
-                # right: chart + trade panel
-                vbox:
-                    spacing 10
-                    add StockChart(sel)
-                    text ("%s  -  %s" % (sel, STOCK_NAME[sel])) font PROFILE_FONT size 22 color "#ffffff"
-                    text ("Buy $%d     Sell $%d     You own %d" % (stock_buy_price(sel), stock_sell_price(sel), stock_owned[sel])) font PROFILE_FONT size 18 color "#cfe0f5"
-                    hbox:
-                        spacing 12
-                        textbutton "Buy 1"   action Function(stock_buy, sel, 1)    text_font PROFILE_FONT text_size 20
-                        textbutton "Buy 10"  action Function(stock_buy, sel, 10)   text_font PROFILE_FONT text_size 20
-                        textbutton "Sell 1"  action Function(stock_sell, sel, 1)   text_font PROFILE_FONT text_size 20
-                        textbutton "Sell all" action Function(stock_sell, sel, 999) text_font PROFILE_FONT text_size 20
-
-            textbutton "Close" action [Hide("stock_market"), Show("phone_home")] text_font PROFILE_FONT text_size 22 text_color "#cfe0f5" text_hover_color "#ffffff"
+                            text ("%s   $%d   x%d" % (sym, int(stock_price[sym]), stock_owned[sym])) font PROFILE_FONT size 15 color ("#ffffff" if sel == sym else "#9fb6d6")
+            null height 4
+            textbutton "Back" action [Hide("stock_market"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"

@@ -160,21 +160,19 @@ init python:
 
 screen phone_help_scr():
     modal True
-    add "#000000aa"
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xsize 420
-        ysize 720
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (24, 16, 24, 16)
+    use phone_shell:
         vbox:
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
             spacing 8
-            text "Help" font PROFILE_FONT size 28 color "#ffffff" xalign 0.5
+            null height 8
+            text "Help" font PROFILE_FONT size 24 color "#ffffff" xalign 0.5
             null height 4
             viewport:
-                ysize 594
+                xfill True
+                ysize 600
                 mousewheel True
+                scrollbars "vertical"
                 vbox:
                     spacing 12
                     xfill True

@@ -103,19 +103,38 @@ init python:
         )
 
 
-transform _phone_in():
-    yoffset 700 alpha 0.0
-    easein 0.28 yoffset 0 alpha 1.0
+# ── Phone geometry ─────────────────────────────────────────────────────
+# phone.png is 1024x1536 (aspect 0.667), shown at PHONE_W x PHONE_H on the right.
+# The glass sits inside the bezel at these offsets (measured from the art):
+# x≈0.195w, y≈0.10h, size 0.605w x 0.80h. Every app screen renders its content
+# inside this rect via `use phone_shell`, so apps look like real phone screens
+# instead of windows centred on the game screen.
+define PHONE_W     = 600
+define PHONE_H     = 900
+define PHONE_X     = 1290
+define PHONE_Y     = 110
+define PHONE_SCR_X = 117
+define PHONE_SCR_Y = 92
+define PHONE_SCR_W = 363
+define PHONE_SCR_H = 716
 
-screen phone_frame():
-    zorder 150
+# Shared phone chrome: dark overlay + phone art + a dark "app screen" backdrop
+# over the wallpaper. App screens do `use phone_shell:` then their content,
+# which is transcluded into the glass rect.
+screen phone_shell():
     modal True
     add "#000000aa"
     fixed:
-        xpos 1460
-        ypos 390
-        xysize (460, 690)
-        add Transform("images/ui/phone.png", size=(460, 690))
+        xpos PHONE_X
+        ypos PHONE_Y
+        xysize (PHONE_W, PHONE_H)
+        add Transform("images/ui/phone.png", size=(PHONE_W, PHONE_H))
+        fixed:
+            xpos PHONE_SCR_X
+            ypos PHONE_SCR_Y
+            xysize (PHONE_SCR_W, PHONE_SCR_H)
+            add Solid("#0b1016ee")          # app backdrop so content reads over the wallpaper
+            transclude
 
 screen phone_home():
     modal True
@@ -123,31 +142,28 @@ screen phone_home():
     $ _clock = time_label(hour)
     $ _day   = day_name(day)
 
-    # phone.png (1024x1536) displayed at 460x690, bottom-right corner
-    # screen area inside bezel: ~x=96-364, y=88-640 at display scale
     fixed:
-        at _phone_in
-        xpos 1460
-        ypos 390
-        xysize (460, 690)
+        xpos PHONE_X
+        ypos PHONE_Y
+        xysize (PHONE_W, PHONE_H)
 
-        # phone image with wallpaper baked in
-        add Transform("images/ui/phone.png", size=(460, 690))
+        # phone image with wallpaper baked in (home keeps the wallpaper visible)
+        add Transform("images/ui/phone.png", size=(PHONE_W, PHONE_H))
 
         # content overlaid on the screen area
         fixed:
-            xpos 96
-            ypos 30
-            xsize 268
-            ysize 610
+            xpos PHONE_SCR_X
+            ypos PHONE_SCR_Y
+            xysize (PHONE_SCR_W, PHONE_SCR_H)
 
             vbox:
                 spacing 0
                 xalign 0.5
+                xsize PHONE_SCR_W
 
-                null height 8
-                text "[_clock]   [_day]" font PROFILE_FONT size 16 color "#cfe0f5" xalign 0.5
-                null height 18
+                null height 10
+                text "[_clock]   [_day]" font PROFILE_FONT size 18 color "#cfe0f5" xalign 0.5
+                null height 22
 
                 $ _apps = [
                     ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_messages_scr")]),
@@ -161,43 +177,43 @@ screen phone_home():
                 ]
                 vpgrid:
                     cols 3
-                    spacing 10
+                    spacing 12
                     xalign 0.5
                     for _icon, _lbl, _act in _apps:
                         button:
-                            xysize (78, 96)
+                            xysize (104, 118)
                             background None
                             hover_background None
                             action _act
                             vbox:
-                                spacing 4
-                                add Transform("images/ui/icons/%s.png" % _icon, size=(66, 66)) xalign 0.5
-                                text _lbl font ACT_FONT size 11 color "#ffffff" xalign 0.5
+                                spacing 5
+                                add Transform("images/ui/icons/%s.png" % _icon, size=(82, 82)) xalign 0.5
+                                text _lbl font ACT_FONT size 13 color "#ffffff" xalign 0.5
 
-                null height 10
+                null height 12
                 $ _inv = phone_active_invitation()
                 if _inv:
                     frame:
                         xfill True
                         background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
-                        padding (8, 7, 8, 7)
+                        padding (10, 8, 10, 8)
                         vbox:
                             spacing 3
-                            text "Active Plan" font PROFILE_FONT size 10 color "#5bcafa" xalign 0.5
+                            text "Active Plan" font PROFILE_FONT size 11 color "#5bcafa" xalign 0.5
                             null height 2
                             hbox:
                                 spacing 8
                                 yalign 0.5
                                 if _inv["portrait"]:
-                                    add ("images/ui/icons/%s.png" % _inv["portrait"]) xysize (36, 36) yalign 0.5
+                                    add ("images/ui/icons/%s.png" % _inv["portrait"]) xysize (40, 40) yalign 0.5
                                 vbox:
                                     xfill True
                                     yalign 0.5
                                     spacing 2
-                                    text (_inv["display_text"] or ("Meet " + _inv["name"] + " at " + _inv["location"])) font ACT_FONT size 11 color "#cfe0f5"
-                                    text _inv["days_text"] font ACT_FONT size 10 color "#7a9ab8"
-                    null height 6
-                textbutton "Close" action Hide("phone_home") xalign 0.5 text_font ACT_FONT text_size 15 text_color "#9fb6d6" text_hover_color "#ffffff"
+                                    text (_inv["display_text"] or ("Meet " + _inv["name"] + " at " + _inv["location"])) font ACT_FONT size 12 color "#cfe0f5"
+                                    text _inv["days_text"] font ACT_FONT size 11 color "#7a9ab8"
+                    null height 8
+                textbutton "Close" action Hide("phone_home") xalign 0.5 text_font ACT_FONT text_size 17 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 # text-row helper used by sub-screens (messages list, groceries)
@@ -212,23 +228,21 @@ screen _phone_app(label, act):
 
 
 screen phone_messages_scr():
-    on "show" action [Function(deliver_due_messages), Function(mark_all_messages_read)]
     modal True
-    add "#000000aa"
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xsize 420
-        ysize 720
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (24, 16, 24, 16)
+    on "show" action [Function(deliver_due_messages), Function(mark_all_messages_read)]
+    use phone_shell:
         vbox:
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
             spacing 0
-            text "Messages" font PROFILE_FONT size 26 color "#ffffff" xalign 0.5
             null height 8
+            text "Messages" font PROFILE_FONT size 22 color "#ffffff" xalign 0.5
+            null height 6
             viewport:
+                xfill True
                 ysize 620
                 mousewheel True
+                scrollbars "vertical"
                 vbox:
                     spacing 8
                     xfill True
@@ -368,25 +382,23 @@ screen phone_messages_scr():
 
 
 screen phone_goals_scr():
-    on "show" action Function(fs_refresh)
     modal True
-    add "#000000aa"
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xsize 420
-        ysize 720
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (24, 22, 24, 22)
+    on "show" action Function(fs_refresh)
+    use phone_shell:
         vbox:
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
             spacing 8
-            text "Goals" font PROFILE_FONT size 28 color "#ffffff" xalign 0.5
-            null height 4
+            null height 8
+            text "Goals" font PROFILE_FONT size 24 color "#ffffff" xalign 0.5
+            null height 2
             $ _active = active_quests()
             $ _done   = completed_quests()
             viewport:
-                ysize 550
+                xfill True
+                ysize 570
                 mousewheel True
+                scrollbars "vertical"
                 vbox:
                     spacing 8
                     xfill True
@@ -458,45 +470,37 @@ screen phone_goals_scr():
 
 screen phone_settings():
     modal True
-    add "#000000aa"
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xsize 420
-        ysize 720
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (26, 22, 26, 22)
+    use phone_shell:
         vbox:
-            spacing 16
-            text "Settings" font PROFILE_FONT size 28 color "#ffffff" xalign 0.5
-            null height 6
-            text "Text speed" font PROFILE_FONT size 17 color "#cfe0f5"
-            bar value Preference("text speed") xsize 300
-            text "Music volume" font PROFILE_FONT size 17 color "#cfe0f5"
-            bar value Preference("music volume") xsize 300
-            text "Sound volume" font PROFILE_FONT size 17 color "#cfe0f5"
-            bar value Preference("sound volume") xsize 300
-            null height 6
-            textbutton "Auto-forward: toggle" action Preference("auto-forward", "toggle") text_font ACT_FONT text_size 18
-            textbutton "Fullscreen: toggle" action Preference("display", "toggle") text_font ACT_FONT text_size 18
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
+            spacing 14
             null height 8
+            text "Settings" font PROFILE_FONT size 24 color "#ffffff" xalign 0.5
+            null height 4
+            text "Text speed" font PROFILE_FONT size 16 color "#cfe0f5"
+            bar value Preference("text speed") xsize 300 xalign 0.5
+            text "Music volume" font PROFILE_FONT size 16 color "#cfe0f5"
+            bar value Preference("music volume") xsize 300 xalign 0.5
+            text "Sound volume" font PROFILE_FONT size 16 color "#cfe0f5"
+            bar value Preference("sound volume") xsize 300 xalign 0.5
+            null height 4
+            textbutton "Auto-forward: toggle" action Preference("auto-forward", "toggle") text_font ACT_FONT text_size 17 xalign 0.5
+            textbutton "Fullscreen: toggle" action Preference("display", "toggle") text_font ACT_FONT text_size 17 xalign 0.5
+            null height 6
             textbutton "Back" action [Hide("phone_settings"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 screen phone_bank_scr():
     modal True
-    add "#000000aa"
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xsize 420
-        ysize 720
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (24, 22, 24, 22)
+    use phone_shell:
         vbox:
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
             spacing 10
-            text "City Bank" font PROFILE_FONT size 28 color "#ffffff" xalign 0.5
-            null height 6
+            null height 8
+            text "City Bank" font PROFILE_FONT size 24 color "#ffffff" xalign 0.5
+            null height 4
             text "Balance:  $[money]" font PROFILE_FONT size 18 color "#39c07a"
             if loan > 0:
                 text "Loan:     $[loan]  (5%%/wk)" font PROFILE_FONT size 16 color "#e86a55"
