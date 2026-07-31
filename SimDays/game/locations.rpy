@@ -288,9 +288,6 @@ label cafe_actions:
     $ activity_exit_name = "Downtown"
     scene expression cafe_bg()
     show screen hud
-    $ _group = group_scene_check()
-    $ _group_lbl = group_scene_label(_group) if _group else ""
-    $ _dock_exclude = list(_group) if _group else []
     hide screen people_here_dock
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_cafe")
@@ -303,9 +300,6 @@ label cafe_actions:
     call show_public_sprites
     show screen people_here_dock("cafe_actions")
     menu (screen="activity"):
-        "Join [_group_lbl] →" if _group:
-            call group_interact(_group[0], _group[1])
-            jump cafe_actions
         "Buy a coffee ($3, 0.5h)":
             $ spend_time(0.5)
             $ gain_money(-3)
@@ -1099,14 +1093,8 @@ label location_nightclub:
     show screen hud
     $ _vis = location_sprites()
     call show_public_sprites
-    $ _group = group_scene_check()
-    $ _group_lbl = group_scene_label(_group) if _group else ""
-    $ _dock_exclude = list(_group) if _group else []
     show screen people_here_dock("location_nightclub")
     menu (screen="activity"):
-        "Join [_group_lbl] →" if _group:
-            call group_interact(_group[0], _group[1])
-            jump location_nightclub
         "Hit the dance floor (1h)":
             $ spend_time(1)
             $ need_energy = max(0, need_energy - 10)
@@ -1211,9 +1199,6 @@ label location_park:
         call scene_zoe_rain_shelter
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    $ _group = group_scene_check()
-    $ _group_lbl = group_scene_label(_group) if _group else ""
-    $ _dock_exclude = list(_group) if _group else []
     hide screen people_here_dock
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_park")
@@ -1226,9 +1211,6 @@ label location_park:
     call show_public_sprites
     show screen people_here_dock("location_park")
     menu (screen="activity"):
-        "Join [_group_lbl] →" if _group and not _sam_marcus_fired:
-            call group_interact(_group[0], _group[1])
-            jump location_park
         "Jog (1h)":
             scene expression ("park_jog_night" if hour >= 20 else "park_jog_day")
             show screen hud

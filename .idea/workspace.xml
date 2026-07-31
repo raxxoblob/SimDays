@@ -9,15 +9,49 @@
       <change beforePath="$PROJECT_DIR$/SimDays/game/activity_menu.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/activity_menu.rpy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/data.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/data.rpy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_anchor.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_anchor.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_apartment_block.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_apartment_block.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_apartment_ext.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_apartment_ext.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_casino.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_casino.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_door_12.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_door_12.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_door_14.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_door_14.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_gym.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_gym.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_hospital.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_hospital.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_house_suburb.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_house_suburb.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_house_uptown.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_house_uptown.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_library.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_library.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_lombard.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_lombard.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_metro.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_metro.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_nadbrzeze.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_nadbrzeze.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_sandbeach.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_sandbeach.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_szpital.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_szpital.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_terrace.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_terrace.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/interact.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/interact.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_art.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_art.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_biz.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_biz.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_cook.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_cook.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_fit.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_fit.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_mech.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_mech.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_med.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_med.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_prog.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/skill_prog.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_app.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_app.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_energy.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_energy.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hunger.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hunger.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hygiene.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_hygiene.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_int.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_int.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_money.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_money.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_social.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_social.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_str.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_str.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_time.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/stat_time.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_ambition.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_ambition.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_art.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_art.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_food.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_food.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_movies.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_movies.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_music.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_music.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_nightlife.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_nightlife.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_sports.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_sports.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_travel.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_travel.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_work.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/topic_work.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/locations.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/map.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/map.rpy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SimDays/game/profile.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/profile.rpy" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

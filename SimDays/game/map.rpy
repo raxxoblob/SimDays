@@ -22,7 +22,9 @@ screen city_map():
     # district zones: idle shows a dim icon, hover brightens it + highlights the parcel
     for key, lbl, icon, cx, cy, zname in MAP_ZONES:
         imagebutton:
-            idle Transform("z_%s_idle" % key, alpha=(0.45 if key == "nadbrzeze" else 1.0))
+            # ponytail: z_nadbrzeze_idle was baked ~opaque (a≈243) vs siblings (a≈140);
+            # scale its alpha in-code to match rather than re-bake the asset.
+            idle Transform("z_%s_idle" % key, alpha=(0.55 if key == "nadbrzeze" else 1.0))
             hover ("z_%s_hi" % key)
             focus_mask Image("images/ui/z_%s_mask.png" % key)
             action Jump(lbl)

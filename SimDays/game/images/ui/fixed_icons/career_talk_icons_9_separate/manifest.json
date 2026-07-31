@@ -1,0 +1,65 @@
+[
+  {
+    "name": "appearance",
+    "column": 1,
+    "row_in_column": 1,
+    "width": 275,
+    "height": 285
+  },
+  {
+    "name": "programming",
+    "column": 1,
+    "row_in_column": 2,
+    "width": 275,
+    "height": 286
+  },
+  {
+    "name": "fitness",
+    "column": 1,
+    "row_in_column": 3,
+    "width": 275,
+    "height": 285
+  },
+  {
+    "name": "business",
+    "column": 2,
+    "row_in_column": 1,
+    "width": 275,
+    "height": 285
+  },
+  {
+    "name": "corporate",
+    "column": 2,
+    "row_in_column": 2,
+    "width": 275,
+    "height": 288
+  },
+  {
+    "name": "mechanics",
+    "column": 2,
+    "row_in_column": 3,
+    "width": 275,
+    "height": 286
+  },
+  {
+    "name": "healthcare",
+    "column": 3,
+    "row_in_column": 1,
+    "width": 275,
+    "height": 286
+  },
+  {
+    "name": "culinary",
+    "column": 3,
+    "row_in_column": 2,
+    "width": 275,
+    "height": 286
+  },
+  {
+    "name": "art",
+    "column": 3,
+    "row_in_column": 3,
+    "width": 275,
+    "height": 287
+  }
+]

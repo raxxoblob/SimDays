@@ -1,0 +1,65 @@
+[
+  {
+    "name": "time",
+    "column": 1,
+    "row_in_column": 1,
+    "width": 269,
+    "height": 262
+  },
+  {
+    "name": "hygiene",
+    "column": 1,
+    "row_in_column": 2,
+    "width": 268,
+    "height": 258
+  },
+  {
+    "name": "education",
+    "column": 1,
+    "row_in_column": 3,
+    "width": 267,
+    "height": 257
+  },
+  {
+    "name": "money",
+    "column": 2,
+    "row_in_column": 1,
+    "width": 269,
+    "height": 263
+  },
+  {
+    "name": "energy",
+    "column": 2,
+    "row_in_column": 2,
+    "width": 268,
+    "height": 257
+  },
+  {
+    "name": "fitness",
+    "column": 2,
+    "row_in_column": 3,
+    "width": 268,
+    "height": 261
+  },
+  {
+    "name": "hunger",
+    "column": 3,
+    "row_in_column": 1,
+    "width": 268,
+    "height": 263
+  },
+  {
+    "name": "mood",
+    "column": 3,
+    "row_in_column": 2,
+    "width": 268,
+    "height": 258
+  },
+  {
+    "name": "social",
+    "column": 3,
+    "row_in_column": 3,
+    "width": 268,
+    "height": 261
+  }
+]
