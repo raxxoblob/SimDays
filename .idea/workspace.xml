@@ -5,9 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e4c28313-b122-4a65-a6c0-d81320e1d59e" name="Changes" comment="m">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/activity_menu.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/activity_menu.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/data.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/data.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_anchor.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_anchor.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_casino.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_casino.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_lombard.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_lombard.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_nadbrzeze.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_nadbrzeze.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_sandbeach.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_sandbeach.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_terrace.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/images/ui/icons/icon_terrace.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/interact.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/interact.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/locations.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/locations.rpy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SimDays/game/map.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/map.rpy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimDays/game/profile.rpy" beforeDir="false" afterPath="$PROJECT_DIR$/SimDays/game/profile.rpy" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

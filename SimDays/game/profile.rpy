@@ -15,6 +15,7 @@ screen stat_chip(label, value, fill, icon=None, tip=""):
         padding (16, 10, 18, 10)
         hbox:
             spacing 12
+            yalign 0.5
             if icon:
                 add icon xysize (34, 34) yalign 0.5
             else:
@@ -43,6 +44,7 @@ screen spec_row(key):
         padding (14, 7, 16, 7)
         hbox:
             spacing 10
+            yalign 0.5
             $ _ic = "images/ui/icons/skill_%s.png" % key
             if renpy.loadable(_ic):
                 add _ic xysize (28, 28) yalign 0.5

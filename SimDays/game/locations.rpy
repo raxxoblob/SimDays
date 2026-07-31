@@ -290,6 +290,7 @@ label cafe_actions:
     show screen hud
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
+    $ _dock_exclude = list(_group) if _group else []
     hide screen people_here_dock
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_cafe")
@@ -1100,6 +1101,7 @@ label location_nightclub:
     call show_public_sprites
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
+    $ _dock_exclude = list(_group) if _group else []
     show screen people_here_dock("location_nightclub")
     menu (screen="activity"):
         "Join [_group_lbl] →" if _group:
@@ -1211,6 +1213,7 @@ label location_park:
     show screen hud
     $ _group = group_scene_check()
     $ _group_lbl = group_scene_label(_group) if _group else ""
+    $ _dock_exclude = list(_group) if _group else []
     hide screen people_here_dock
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_park")

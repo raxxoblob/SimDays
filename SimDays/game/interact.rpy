@@ -1732,11 +1732,20 @@ init python:
 # ── Relationship panel (right, under the topbar) ───────────────────────
 # _rb_prev_* are set to -1 by npc_interact on entry so the first render never
 # flashes; a gain flips the fill to a bright colour for FLASH_LEN seconds.
-define FLASH_LEN = 0.9
+define FLASH_LEN = 1.1
 
 transform _rel_label_float:
-    alpha 1.0 yoffset 0
-    linear 0.9 alpha 0.0 yoffset -20
+    zoom 1.6 alpha 1.0 yoffset 0
+    linear 0.12 zoom 1.0
+    linear 0.9 alpha 0.0 yoffset -44
+
+transform act_icon_zoom:
+    on idle:
+        linear 0.1 zoom 1.0
+    on hover:
+        linear 0.1 zoom 1.28
+    on insensitive:
+        zoom 1.0
 
 default _rb_prev_aff = -1
 default _topics_seen    = {}   # {npc_id: {topic: "like"|"dislike"|"neutral"}}
@@ -1821,7 +1830,7 @@ screen npc_relbar(npc_id):
                 if (_aff_hot or _aff_hot_neg) and _rel_feedback_aff != 0:
                     $ _aff_fb_str = ("+%d" % _rel_feedback_aff) if _rel_feedback_aff > 0 else ("%d" % _rel_feedback_aff)
                     $ _aff_fb_col = "#ffd76a" if _rel_feedback_aff > 0 else "#e86a55"
-                    text _aff_fb_str at _rel_label_float font ACT_FONT size 14 color _aff_fb_col xpos 310 ypos -4
+                    text _aff_fb_str at _rel_label_float font PROFILE_FONT size 22 color _aff_fb_col xpos 300 ypos -8
             fixed:
                 xsize 356
                 ysize 30
@@ -1835,7 +1844,7 @@ screen npc_relbar(npc_id):
                 if (_tr_hot or _tr_hot_neg) and _rel_feedback_tr != 0:
                     $ _tr_fb_str = ("+%d" % _rel_feedback_tr) if _rel_feedback_tr > 0 else ("%d" % _rel_feedback_tr)
                     $ _tr_fb_col = "#7fe0ff" if _rel_feedback_tr > 0 else "#e86a55"
-                    text _tr_fb_str at _rel_label_float font ACT_FONT size 14 color _tr_fb_col xpos 310 ypos -4
+                    text _tr_fb_str at _rel_label_float font PROFILE_FONT size 22 color _tr_fb_col xpos 300 ypos -8
 
 
 # ── Main action bar (bottom) — icon tiles ──────────────────────────────
@@ -1871,7 +1880,7 @@ screen npc_actions(npc_id):
                         action Return(_ret)
                         background None
                         hover_background None
-                        vbox:
+                        vbox at act_icon_zoom:
                             spacing 4
                             add Transform("images/ui/icons/%s.png" % _icon, size=(72, 72), alpha=(1.0 if _ok else 0.35)) xalign 0.5
                             text _lbl font ACT_FONT size 15 xalign 0.5 color ("#cfe0f5" if _ok else "#4a6080") hover_color "#ffffff"

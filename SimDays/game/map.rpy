@@ -22,7 +22,7 @@ screen city_map():
     # district zones: idle shows a dim icon, hover brightens it + highlights the parcel
     for key, lbl, icon, cx, cy, zname in MAP_ZONES:
         imagebutton:
-            idle ("z_%s_idle" % key)
+            idle Transform("z_%s_idle" % key, alpha=(0.45 if key == "nadbrzeze" else 1.0))
             hover ("z_%s_hi" % key)
             focus_mask Image("images/ui/z_%s_mask.png" % key)
             action Jump(lbl)

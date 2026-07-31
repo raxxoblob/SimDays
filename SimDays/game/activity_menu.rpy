@@ -88,7 +88,7 @@ screen people_here_dock(return_location):
             and not renpy.get_screen("profile")
             and not renpy.get_screen("phone_home")
             and not renpy.get_screen("npc_relbar")):
-        $ _dock_npcs = [n for n in public_talkable_npcs_here() if NPC_DATA[n].get("portrait")]
+        $ _dock_npcs = [n for n in public_talkable_npcs_here() if NPC_DATA[n].get("portrait") and n not in _dock_exclude]
         $ _dock_vis  = _dock_npcs[:4]
         $ _dock_extra = len(_dock_npcs) - 4
         if _dock_vis:

@@ -91,6 +91,7 @@ default npc_encountered = {}
 # Transient dock state — need defaults so npc_interact_from_dock never reads None uninitialised.
 default _dock_npc    = None
 default _dock_return = None
+default _dock_exclude = []   # NPC ids hidden from dock (e.g. already shown via group-join option)
 default cafe_shift_done = False   # so the "first shift" line only plays once
 default nora_closing_done = False
 default elle_pier_done = False
