@@ -444,7 +444,6 @@ screen phone_thread_scr():
                             # Player bubble — right side
                             hbox:
                                 xalign 1.0
-                                xpos -4
                                 frame:
                                     xmaximum 240
                                     background "#1e4060e8"
@@ -453,7 +452,6 @@ screen phone_thread_scr():
                         else:
                             # NPC bubble — left side with avatar
                             hbox:
-                                xpos 4
                                 spacing 8
                                 yalign 0.0
                                 add _chat_circle(_npc_chat_portrait(_tnpc)) yalign 0.0
