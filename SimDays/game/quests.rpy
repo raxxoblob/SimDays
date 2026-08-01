@@ -17,7 +17,7 @@ init python:
            "Find Your Feet",
            "Settle in: head to Grounds café, meet your neighbour Marcus and the barista Nora, and pick up a shift for some cash. Zoe's around the city too — worth crossing paths.",
            lambda: True,
-           lambda: store.marcus_met and store.nora_met and (store.fs_grounds_shift_done or store.job_id is not None)),
+           lambda: store.marcus_met and store.nora_met and (store.fs_grounds_shift_done or bool(store.active_careers))),
 
         # ── Everything below is unlocked by playing ──────────────────────────
         _q("meet_zoe",
@@ -29,14 +29,14 @@ init python:
         _q("get_job",
            "Find Work",
            "Rent doesn't pay itself. Apply at Nexus Tower, The Hub, or the hospital.",
-           lambda: (store.marcus_met or store.nora_met) and store.job_id is None,
-           lambda: store.job_id is not None),
+           lambda: (store.marcus_met or store.nora_met) and not store.active_careers,
+           lambda: bool(store.active_careers)),
 
         _q("first_pay",
            "Earn Your First Paycheck",
            "Work a full shift and collect your first real paycheck.",
-           lambda: store.job_id is not None,
-           lambda: store.job_performance >= 13),
+           lambda: bool(store.active_careers),
+           lambda: any(v.get("perf", 0) >= 13 for v in store.active_careers.values())),
 
         _q("stat_30",
            "Hitting Your Stride",
@@ -53,8 +53,8 @@ init python:
         _q("first_promo",
            "Move Up the Ladder",
            "Build job performance to 100 and meet the next rank's requirements.",
-           lambda: store.job_id is not None,
-           lambda: store.job_rank >= 1),
+           lambda: bool(store.active_careers),
+           lambda: any(v.get("rank", 0) >= 1 for v in store.active_careers.values())),
 
         _q("know_marcus",
            "Marcus Has Your Back",
@@ -83,7 +83,7 @@ init python:
         _q("financial",
            "Financial Cushion",
            "Save $1,000 with no outstanding loan.",
-           lambda: store.job_id is not None,
+           lambda: bool(store.active_careers),
            lambda: store.money >= 1000 and store.loan == 0),
 
         _q("attend_first_commitment",
@@ -101,7 +101,7 @@ init python:
            "Make It Home",
            "Buy something that makes your apartment feel less temporary.",
            # unlocks once you've earned some income of your own (not the starting cash)
-           lambda: store.job_id is not None or store.fs_grounds_shift_done,
+           lambda: bool(store.active_careers) or store.fs_grounds_shift_done,
            lambda: any([store.own_guitar, store.own_bed, store.own_programming_kit, store.own_coffee_machine, store.own_kitchen_set])),
 
         _q("recover_from_debt",
@@ -113,33 +113,33 @@ init python:
         # Career-track skill goals — each unlocks only when you take that job.
         _q("prog_skill", "Sharpen Your Code",
            "You're on the IT track. Push Programming to Lv3.",
-           lambda: store.job_id == "it",
+           lambda: "it" in store.active_careers,
            lambda: store.skill_prog >= 3),
 
         _q("biz_skill", "Learn the Business",
            "You're in the corporate world. Push Business to Lv3.",
-           lambda: store.job_id == "corporate",
+           lambda: "corporate" in store.active_careers,
            lambda: store.skill_biz >= 3),
 
         _q("med_skill", "Bedside Manner",
            "You're on the medical track. Push Medicine to Lv3.",
-           lambda: store.job_id == "hospital",
+           lambda: "hospital" in store.active_careers,
            lambda: store.skill_med >= 3),
 
         _q("cook_skill", "Find Your Palate",
            "You're working the kitchen. Push Cooking to Lv3.",
-           lambda: store.job_id == "culinary",
+           lambda: "culinary" in store.active_careers,
            lambda: store.skill_cook >= 3),
 
         _q("fit_skill", "Train the Trainer",
            "You're coaching clients. Push Fitness to Lv3.",
-           lambda: store.job_id == "trainer",
+           lambda: "trainer" in store.active_careers,
            lambda: store.skill_fit >= 3),
 
         _q("reach_mentor_trust",
            "Earn Their Trust",
            "Build real trust with a career mentor (Trust 30).",
-           lambda: store.job_id is not None,
+           lambda: bool(store.active_careers),
            lambda: (
                (store.martha_met and store.martha_trust >= 30) or
                (store.eli_met    and store.eli_trust    >= 30) or
@@ -151,16 +151,16 @@ init python:
         _q("complete_preview_arc",
            "Prove Yourself",
            "Complete your career's preview arc.",
-           lambda: store.job_id in ["corporate","it","hospital","culinary","trainer"],
-           lambda: (career_arc_progress(store.job_id)[1] > 0 and
-                    career_arc_progress(store.job_id)[0] >= career_arc_progress(store.job_id)[1])),
+           lambda: bool(set(store.active_careers.keys()) & {"corporate","it","hospital","culinary","trainer"}),
+           lambda: any(career_arc_progress(c)[1] > 0 and career_arc_progress(c)[0] >= career_arc_progress(c)[1]
+                       for c in store.active_careers)),
 
         _q("ready_for_promotion",
            "Time for a Promotion",
            "You're performing well. Push to 100 and request a review.",
            # show early (80) as a heads-up; done when promotion actually happens (rank increases)
-           lambda: store.job_id is not None and store.job_performance >= 80,
-           lambda: store.job_rank > 0),
+           lambda: bool(store.active_careers) and any(v.get("perf", 0) >= 80 for v in store.active_careers.values()),
+           lambda: any(v.get("rank", 0) > 0 for v in store.active_careers.values())),
     ]
 
     def _stamp_quest_if_done(q):

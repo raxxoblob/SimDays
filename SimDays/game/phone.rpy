@@ -23,6 +23,7 @@ init python:
         td.append(npc_id)
         store.npc_texted_today = td
         _apply_trust(npc_id, 1)
+        _add_player_message(npc_id, "Hey!")
         reply = _NPC_HI_REPLY.get(npc_id, "Hey.")
         send_npc_message(npc_id, reply)
         renpy.restart_interaction()
@@ -30,12 +31,32 @@ init python:
     def phone_where_is(npc_id):
         loc = npc_location_now(npc_id)
         name = NPC_DATA[npc_id]["name"]
+        _add_player_message(npc_id, "Where are you right now?")
         if loc:
             place = LOCATION_NAMES.get(loc, loc.replace("location_", "").replace("_", " ").title())
-            renpy.notify("%s is at %s right now." % (name, place))
+            reply = "I'm at %s." % place
         else:
-            renpy.notify("Not sure where %s is right now." % name)
+            reply = "Not sure where I'll end up today."
+        send_npc_message(npc_id, reply)
         renpy.restart_interaction()
+
+    def _add_player_message(npc_id, text):
+        """Append an outgoing player message to the NPC thread."""
+        _tag = "_player_%s_%d_%d" % (npc_id, store.day, len(store.npc_messages))
+        store.npc_messages.append({
+            "npc_id":       npc_id,
+            "npc_name":     "",
+            "text":         text,
+            "send_on_day":  store.day,
+            "delivered":    True,
+            "delivered_on": store.day,
+            "read":         True,
+            "replied":      False,
+            "replied_with": None,
+            "responses":    [],
+            "tag":          _tag,
+            "is_player":    True,
+        })
 
 
     # ── Phase 32: active invitation card ─────────────────────────────────────
@@ -104,10 +125,28 @@ init python:
 
     # Any phone surface open? (home OR any app screen). The HUD peek uses this so
     # it hides while an app is open — not just while phone_home is up.
-    _PHONE_SCREENS = ("phone_home", "phone_messages_scr", "phone_goals_scr",
-                      "phone_settings", "phone_bank_scr", "phone_help_scr", "stock_market")
+    _PHONE_SCREENS = ("phone_home", "phone_messages_scr", "phone_contacts_scr", "phone_thread_scr",
+                      "phone_goals_scr", "phone_settings", "phone_bank_scr", "phone_help_scr", "stock_market")
     def phone_open():
         return any(renpy.get_screen(s) for s in _PHONE_SCREENS)
+
+    def thread_messages(npc_id):
+        """All messages in this NPC's thread, in list order (chronological)."""
+        return [m for m in store.npc_messages
+                if m.get("npc_id") == npc_id and (m.get("delivered") or m.get("is_player"))]
+
+    def thread_npc_list():
+        """NPCs with any thread messages, ordered by most-recent first."""
+        _seen = {}  # npc_id -> index of last msg
+        for _i, _m in enumerate(store.npc_messages):
+            _n = _m.get("npc_id")
+            if _n and (_m.get("delivered") or _m.get("is_player")):
+                _seen[_n] = _i
+        return sorted(_seen.keys(), key=lambda n: -_seen[n])
+
+    def npc_unread_count(npc_id):
+        return sum(1 for m in store.npc_messages
+                   if m.get("npc_id") == npc_id and m.get("delivered") and not m.get("read") and not m.get("is_player"))
 
 
 # ── Phone geometry ─────────────────────────────────────────────────────
@@ -174,7 +213,7 @@ screen phone_home():
 
                 $ _apps = [
                     ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_messages_scr")]),
-                    ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_messages_scr")]),
+                    ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_contacts_scr")]),
                     ("app_map",       "Map",        Hide("phone_home")),
                     ("app_jobs",      "Jobs",       [Hide("phone_home"), Show("phone_jobs_scr")]),
                     ("app_bank",      "Bank",       [Hide("phone_home"), Show("phone_bank_scr")]),
@@ -256,29 +295,6 @@ screen phone_messages_scr():
                     xfill True
                     # ── Upcoming commitments ──────────────────────────
                     use commitments_list(compact=True)
-                    # ── Agenda: today + tomorrow ──────────────────────
-                    $ _today_c = today_commitments()
-                    $ _tmrw_c  = tomorrow_commitments()
-                    if _today_c or _tmrw_c:
-                        null height 4
-                        text "Agenda" font PROFILE_FONT size 15 color "#9fb6d6"
-                        null height 2
-                        for _ac in (_today_c + _tmrw_c):
-                            $ _ac_status = commitment_status_text(_ac)
-                            $ _ac_color  = "#5bcafa" if commitment_available(_ac["id"]) else ("#4a6080" if _ac_status in ("Completed","Missed","Cancelled") else "#9fb6d6")
-                            frame:
-                                xfill True
-                                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                                padding (10, 6, 10, 6)
-                                hbox:
-                                    xfill True
-                                    spacing 6
-                                    vbox:
-                                        xfill True
-                                        spacing 1
-                                        text _ac["title"] font ACT_FONT size 13 color "#cfe0f5"
-                                        text ("%02d:00  ·  " % _ac["hour"] + _ac["location"]) font ACT_FONT size 11 color "#4a6080"
-                                    text _ac_status font ACT_FONT size 11 color _ac_color yalign 0.5
                     # ── City News ─────────────────────────────────────
                     if daily_events:
                         for _ev in daily_events:
@@ -290,103 +306,208 @@ screen phone_messages_scr():
                                     spacing 2
                                     text _ev["from"] font PROFILE_FONT size 12 color "#5bcafa"
                                     text _ev["body"] font ACT_FONT size 13 color "#cfe0f5"
-                    # ── NPC Inbox ────────────────────────────────────
-                    $ _inbox = delivered_messages()
-                    if _inbox:
+                    # ── Conversations list ────────────────────────────
+                    $ _tnpcs = thread_npc_list()
+                    if _tnpcs:
                         null height 4
-                        text "Messages" font PROFILE_FONT size 15 color "#9fb6d6"
-                        null height 2
-                        for _imsg in _inbox:
-                            $ _has_r = bool(_imsg.get("responses")) and not _imsg.get("replied")
-                            $ _is_r  = _imsg.get("replied", False)
-                            $ _rt    = next((r["text"] for r in _imsg.get("responses", []) if r["id"] == _imsg.get("replied_with")), "") if _is_r else ""
-                            $ _np    = _npc_chat_portrait(_imsg["npc_id"])
-                            hbox:
+                        for _tn in _tnpcs:
+                            $ _tn_msgs   = thread_messages(_tn)
+                            $ _tn_last   = _tn_msgs[-1] if _tn_msgs else None
+                            $ _tn_unread = npc_unread_count(_tn)
+                            $ _tn_np     = _npc_chat_portrait(_tn)
+                            button:
                                 xfill True
-                                spacing 8
-                                yalign 0.0
-                                add _chat_circle(_np)
-                                frame:
-                                    xfill True
-                                    background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                                    padding (10, 7, 10, 7)
-                                    vbox:
-                                        spacing 4
-                                        text _imsg["npc_name"] font PROFILE_FONT size 12 color ("#5bcafa" if not _imsg["read"] else "#3a5068")
-                                        text _imsg["text"] font ACT_FONT size 13 color ("#cfe0f5" if not _imsg["read"] else "#4a6080")
-                                        if _has_r:
-                                            hbox:
-                                                spacing 6
-                                                for _rsp in _imsg["responses"]:
-                                                    button:
-                                                        xysize (120, 30)
-                                                        background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                                        hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16, 16, 16)
-                                                        action [Function(mark_message_replied, _imsg, _rsp["id"]), Hide("phone_messages_scr"), Hide("phone_home"), Function(renpy.jump, _rsp["label"])]
-                                                        text _rsp["text"] font ACT_FONT size 12 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
-                            if _is_r and _rt:
-                                null height 2
-                                hbox:
-                                    xalign 1.0
-                                    spacing 8
-                                    yalign 0.0
-                                    frame:
-                                        xmaximum 280
-                                        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                                        padding (10, 7, 10, 7)
-                                        text _rt font ACT_FONT size 11 color "#4a7a9b"
-                                    add _chat_circle(_MC_CHAT_PORTRAIT)
-                    # ── NPC Contacts ──────────────────────────────────
-                    $ _known = [k for k in npc_contacts if k in NPC_DATA]
-                    if _known:
-                        null height 4
-                        text "Contacts" font PROFILE_FONT size 15 color "#9fb6d6"
-                        null height 2
-                        for _k in _known:
-                            $ _last  = npc_last_message(_k)
-                            $ _texted = _k in npc_texted_today
-                            $ _loc   = npc_location_now(_k)
-                            frame:
-                                xfill True
+                                ysize 72
                                 background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                                padding (12, 8, 12, 8)
-                                vbox:
-                                    spacing 4
-                                    hbox:
-                                        spacing 6
-                                        text NPC_DATA[_k]["name"] font PROFILE_FONT size 14 color "#cfe0f5" yalign 0.5
-                                        if _loc:
-                                            $ _pname = LOCATION_NAMES.get(_loc, "")
-                                            if _pname:
-                                                text ("@ " + _pname) font ACT_FONT size 11 color "#4a8a6a" yalign 0.5
-                                    if _last:
-                                        $ _msg_today = _last.get("delivered_on", _last.get("send_on_day", _last.get("day", -1))) == day
-                                        text _last["text"] font ACT_FONT size 12 color ("#9fb6d6" if _msg_today else "#3a5068")
-                                    $ _rmems = relationship_memories_for(_k)
-                                    if _rmems:
-                                        $ _recent_mems = _rmems[-2:]
-                                        for _rm in _recent_mems:
-                                            text ("• " + _rm["title"] + " — Day " + str(_rm["day"] + 1)) font ACT_FONT size 11 color "#3a5068"
-                                    hbox:
-                                        spacing 8
-                                        button:
-                                            xysize (120, 32)
-                                            sensitive not _texted
-                                            background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
-                                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20, 20, 20)
-                                            action Function(phone_say_hi, _k)
-                                            text "Say hi" font ACT_FONT size 13 color ("#7a9ab8" if _texted else "#cfe0f5") hover_color "#ffffff" align (0.5, 0.5)
-                                        button:
-                                            xysize (130, 32)
-                                            background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
-                                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20, 20, 20)
-                                            action Function(phone_where_is, _k)
-                                            text "Where are you?" font ACT_FONT size 11 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
+                                hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
+                                action [SetVariable("_active_thread_npc", _tn), Function(mark_all_messages_read), Hide("phone_messages_scr"), Show("phone_thread_scr")]
+                                hbox:
+                                    spacing 10
+                                    yalign 0.5
+                                    xpos 8
+                                    add _chat_circle(_tn_np) yalign 0.5
+                                    vbox:
+                                        xfill True
+                                        yalign 0.5
+                                        spacing 2
+                                        hbox:
+                                            xfill True
+                                            spacing 6
+                                            text NPC_DATA[_tn]["name"] font PROFILE_FONT size 14 color ("#ffffff" if _tn_unread else "#cfe0f5") yalign 0.5
+                                            if _tn_unread:
+                                                text ("●") font PROFILE_FONT size 10 color "#5bcafa" yalign 0.5
+                                        if _tn_last:
+                                            $ _preview = (_tn_last["text"][:38] + "…") if len(_tn_last["text"]) > 38 else _tn_last["text"]
+                                            $ _prev_color = "#4a7a9b" if _tn_last.get("is_player") else ("#cfe0f5" if _tn_unread else "#4a6080")
+                                            text _preview font ACT_FONT size 12 color _prev_color
                     elif not daily_events:
-                        text "No messages." font ACT_FONT size 15 color "#4a6080"
+                        text "No messages yet." font ACT_FONT size 15 color "#4a6080"
             null height 6
             textbutton "Back" action [Hide("phone_messages_scr"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
+
+# ── Contacts app ──────────────────────────────────────────────────────────
+screen phone_contacts_scr():
+    modal True
+    use phone_shell:
+        vbox:
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
+            spacing 0
+            null height 8
+            text "Contacts" font PROFILE_FONT size 22 color "#ffffff" xalign 0.5
+            null height 6
+            viewport:
+                xfill True
+                ysize 620
+                mousewheel True
+                scrollbars "vertical"
+                vbox:
+                    spacing 8
+                    xfill True
+                    $ _known = [k for k in npc_contacts if k in NPC_DATA]
+                    if _known:
+                        for _k in _known:
+                            $ _loc    = npc_location_now(_k)
+                            $ _np_cir = _chat_circle(_npc_chat_portrait(_k))
+                            frame:
+                                xfill True
+                                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                                padding (10, 8, 10, 8)
+                                hbox:
+                                    spacing 10
+                                    yalign 0.5
+                                    add _np_cir yalign 0.5
+                                    vbox:
+                                        xfill True
+                                        yalign 0.5
+                                        spacing 2
+                                        text NPC_DATA[_k]["name"] font PROFILE_FONT size 15 color "#cfe0f5"
+                                        if _loc:
+                                            $ _pname = LOCATION_NAMES.get(_loc, "")
+                                            if _pname:
+                                                text ("@ " + _pname) font ACT_FONT size 11 color "#4a8a6a"
+                                    button:
+                                        xysize (70, 36)
+                                        background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
+                                        hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16, 16, 16)
+                                        action [SetVariable("_active_thread_npc", _k), Hide("phone_contacts_scr"), Show("phone_thread_scr")]
+                                        text "Chat" font ACT_FONT size 13 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
+                    else:
+                        text "No contacts yet." font ACT_FONT size 15 color "#4a6080"
+            null height 6
+            textbutton "Back" action [Hide("phone_contacts_scr"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
+
+
+# ── Conversation thread ───────────────────────────────────────────────────
+screen phone_thread_scr():
+    modal True
+    on "show" action Function(mark_all_messages_read)
+    use phone_shell:
+        $ _tnpc   = store._active_thread_npc
+        $ _tname  = NPC_DATA[_tnpc]["name"] if (_tnpc and _tnpc in NPC_DATA) else ""
+        $ _texted = _tnpc in npc_texted_today if _tnpc else True
+        vbox:
+            xsize (PHONE_SCR_W - 8)
+            xalign 0.5
+            spacing 0
+            # Header
+            null height 6
+            hbox:
+                xfill True
+                xpos 4
+                spacing 6
+                button:
+                    xysize (28, 28)
+                    background None
+                    hover_background Frame("images/ui/act_bar_idle.png", 10, 10, 10, 10)
+                    action [Hide("phone_thread_scr"), Show("phone_messages_scr")]
+                    text "‹" font PROFILE_FONT size 22 color "#7fb0d6" hover_color "#ffffff" align (0.5, 0.5)
+                text _tname font PROFILE_FONT size 18 color "#ffffff" yalign 0.5
+            null height 6
+            # Messages viewport — yinitial 1.0 scrolls to bottom
+            viewport:
+                xfill True
+                ysize 530
+                mousewheel True
+                scrollbars "vertical"
+                yinitial 1.0
+                vbox:
+                    spacing 6
+                    xfill True
+                    $ _tmsgs = thread_messages(_tnpc) if _tnpc else []
+                    if not _tmsgs:
+                        text "No messages yet." font ACT_FONT size 14 color "#4a6080" xalign 0.5 yalign 0.5
+                    for _tm in _tmsgs:
+                        $ _is_pl = _tm.get("is_player", False)
+                        if _is_pl:
+                            # Player bubble — right side
+                            hbox:
+                                xalign 1.0
+                                xpos -4
+                                frame:
+                                    xmaximum 240
+                                    background "#1e4060e8"
+                                    padding (10, 7, 10, 7)
+                                    text _tm["text"] font ACT_FONT size 13 color "#a8d0f0"
+                        else:
+                            # NPC bubble — left side with avatar
+                            hbox:
+                                xpos 4
+                                spacing 8
+                                yalign 0.0
+                                add _chat_circle(_npc_chat_portrait(_tnpc)) yalign 0.0
+                                vbox:
+                                    spacing 4
+                                    frame:
+                                        xmaximum 220
+                                        background "#16202ae8"
+                                        padding (10, 7, 10, 7)
+                                        text _tm["text"] font ACT_FONT size 13 color "#cfe0f5"
+                                    # Actionable responses
+                                    $ _has_r = bool(_tm.get("responses")) and not _tm.get("replied")
+                                    $ _is_r  = _tm.get("replied", False)
+                                    if _has_r:
+                                        hbox:
+                                            spacing 6
+                                            for _rsp in _tm["responses"]:
+                                                button:
+                                                    xysize (110, 28)
+                                                    background Frame("images/ui/act_bar_idle.png", 14, 14, 14, 14)
+                                                    hover_background Frame("images/ui/act_bar_hover_clean.png", 14, 14, 14, 14)
+                                                    action [Function(mark_message_replied, _tm, _rsp["id"]), Hide("phone_thread_scr"), Hide("phone_home"), Function(renpy.jump, _rsp["label"])]
+                                                    text _rsp["text"] font ACT_FONT size 11 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
+                                    elif _is_r and _tm.get("replied_with"):
+                                        $ _rt = next((r["text"] for r in _tm.get("responses", []) if r["id"] == _tm.get("replied_with")), "")
+                                        if _rt:
+                                            hbox:
+                                                xalign 0.0
+                                                frame:
+                                                    xmaximum 200
+                                                    background "#1e4060e8"
+                                                    padding (8, 5, 8, 5)
+                                                    text ("You: " + _rt) font ACT_FONT size 11 color "#4a7a9b"
+            # Action area
+            null height 6
+            hbox:
+                spacing 8
+                xalign 0.5
+                if _tnpc:
+                    button:
+                        xysize (100, 32)
+                        sensitive not _texted
+                        background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16, 16, 16)
+                        action Function(phone_say_hi, _tnpc)
+                        text "Say hi" font ACT_FONT size 13 color ("#4a6080" if _texted else "#cfe0f5") hover_color "#ffffff" align (0.5, 0.5)
+                    button:
+                        xysize (126, 32)
+                        background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16, 16, 16)
+                        action Function(phone_where_is, _tnpc)
+                        text "Where are you?" font ACT_FONT size 11 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
+            null height 4
+            textbutton "Back" action [Hide("phone_thread_scr"), Show("phone_messages_scr")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
 
 
 screen phone_goals_scr():

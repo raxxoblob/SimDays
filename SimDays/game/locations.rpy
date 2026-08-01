@@ -432,7 +432,7 @@ label gym_floor:
     call show_public_sprites
     show screen people_here_dock("gym_floor")
     menu (screen="activity"):
-        "Work a shift (8h)" if job_id == "trainer":
+        "Work a shift (8h)" if "trainer" in active_careers:
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
                 jump gym_floor
@@ -472,7 +472,7 @@ label gym_floor:
                 call tr_boundary_followup
             elif (tr_boundary_followup_done and not tr_review_done
                     and tr_shifts >= tr_boundary_followup_shift + tr_boundary_review_extra_shifts
-                    and job_performance >= 100 and can_promote()):
+                    and career_perf("trainer") >= 100 and can_promote("trainer")):
                 call tr_review_asst
             else:
                 if _tired:
@@ -482,7 +482,7 @@ label gym_floor:
             if _work_event_roll("trainer"):
                 call work_event_trainer
             jump gym_floor
-        "Apply as a Personal Trainer" if job_id is None:
+        "Apply as a Personal Trainer" if "trainer" not in active_careers:
             if can_apply("trainer"):
                 $ apply_job("trainer")
                 "Kai looks you over, then at your form on the floor. \"You know how to move. Let's see if you can teach it.\" Assistant trainer. Starting Monday."
@@ -751,7 +751,7 @@ label location_office:
     call show_public_sprites
     show screen people_here_dock("location_office")
     menu (screen="activity"):
-        "Go to work" if job_id == "corporate":
+        "Go to work" if "corporate" in active_careers:
             if too_tired() or hour + 8 > DAY_END:
                 "You're too tired or it's too late to start a shift."
                 jump location_office
@@ -785,8 +785,8 @@ label location_office:
                         call corp_overtime
             jump location_office
 
-        "Ask about a promotion" if job_id == "corporate" and can_promote():
-            if job_rank == 0 and not corp_review_intern_done:
+        "Ask about a promotion" if "corporate" in active_careers and can_promote("corporate"):
+            if career_rank("corporate") == 0 and not corp_review_intern_done:
                 if (corp_integrity_followup_done
                         and corp_shifts >= corp_integrity_followup_shift + corp_integrity_review_extra_shifts):
                     call corporate_review_intern
@@ -795,17 +795,17 @@ label location_office:
                     caro "There's an open matter from the reporting review. Come back once it's resolved."
                     hide caroline_normal
             else:
-                $ _trial = cur_rank().get("trial")
-                if _trial and not store.promotion_trials.get(("corporate", job_rank), False):
+                $ _trial = cur_rank("corporate").get("trial")
+                if _trial and not store.promotion_trials.get(("corporate", career_rank("corporate")), False):
                     call expression _trial
                 else:
-                    if promote():
+                    if promote("corporate"):
                         "New title. Caroline hands you the updated contract with a tight smile."
                     else:
                         "\"Strong quarter - but you need the skills for the next rung first.\""
             jump location_office
 
-        "Apply for the graduate scheme" if job_id is None:
+        "Apply for the graduate scheme" if "corporate" not in active_careers:
             if can_apply("corporate"):
                 call corporate_recruit
             else:
@@ -815,8 +815,8 @@ label location_office:
                 $ _fs_career_rejection()
             jump location_office
 
-        "Quit this job" if job_id == "corporate":
-            $ quit_job()
+        "Quit this job" if "corporate" in active_careers:
+            $ quit_job("corporate")
             "You hand in your notice. Caroline nods. \"Best of luck.\""
             jump location_office
 
@@ -1015,7 +1015,7 @@ label location_kitchen:
     scene kitchen
     show screen hud
     menu (screen="activity"):
-        "Work a shift (8h)" if job_id == "culinary":
+        "Work a shift (8h)" if "culinary" in active_careers:
             if hour + 8 > DAY_END:
                 "Too late to start a full shift today."
                 jump location_kitchen
@@ -1036,15 +1036,15 @@ label location_kitchen:
             $ cul_shifts += 1
             if not rena_met:
                 call cul_first_day
-            elif not cul_task_1_done and cul_shifts >= 3 and job_rank == 0:
+            elif not cul_task_1_done and cul_shifts >= 3 and career_rank("culinary") == 0:
                 call cul_task_1
-            elif cul_task_1_done and not cul_npc1_done and cul_shifts >= 5 and job_rank == 0:
+            elif cul_task_1_done and not cul_npc1_done and cul_shifts >= 5 and career_rank("culinary") == 0:
                 call cul_npc1_rena
-            elif cul_npc1_done and not cul_npc2_done and cul_shifts >= 7 and job_rank == 0:
+            elif cul_npc1_done and not cul_npc2_done and cul_shifts >= 7 and career_rank("culinary") == 0:
                 call cul_npc2_rena
-            elif cul_npc2_done and not scene_cul_service_crisis_done and cul_shifts >= 10 and job_rank == 0:
+            elif cul_npc2_done and not scene_cul_service_crisis_done and cul_shifts >= 10 and career_rank("culinary") == 0:
                 call scene_cul_service_crisis
-            elif cul_npc2_done and scene_cul_service_crisis_done and not cul_review_done and job_performance >= 100 and can_promote() and job_rank == 0:
+            elif cul_npc2_done and scene_cul_service_crisis_done and not cul_review_done and career_perf("culinary") >= 100 and can_promote("culinary") and career_rank("culinary") == 0:
                 call cul_review_commis
             else:
                 if _tired:
@@ -1055,14 +1055,14 @@ label location_kitchen:
                 call work_event_culinary
             jump location_kitchen
 
-        "Ask about a promotion" if job_id == "culinary" and job_performance >= 100:
-            if promote():
+        "Ask about a promotion" if "culinary" in active_careers and career_perf("culinary") >= 100:
+            if promote("culinary"):
                 "The chef grunts approval and hands you a bigger station. Moving up."
             else:
                 "\"Not yet. Cook more, cook better, then we talk.\""
             jump location_kitchen
 
-        "Drop off your CV" if job_id is None:
+        "Drop off your CV" if "culinary" not in active_careers:
             if can_apply("culinary"):
                 $ apply_job("culinary")
                 "The head chef eyes your knife roll. \"Commis. Don't bleed on my food.\" You're in."
@@ -1071,8 +1071,8 @@ label location_kitchen:
                 $ _fs_career_rejection()
             jump location_kitchen
 
-        "Quit the kitchen" if job_id == "culinary":
-            $ quit_job()
+        "Quit the kitchen" if "culinary" in active_careers:
+            $ quit_job("culinary")
             "You hang up the apron. The heat wasn't for you."
             jump location_kitchen
 
@@ -1512,6 +1512,7 @@ label location_centrum:
         call expression _wed_amb
     # bottom bar of venue icons (screen handles navigation)
     call screen centrum_hub
+    jump map   # safety: if screen returns without a Jump (should not happen)
 
 # ── WAREHOUSE ─────────────────────────────────────────────────────────
 label location_warehouse:
@@ -1614,7 +1615,7 @@ label location_hospital:
             jump location_hospital
 
         # Medicine career (shares the engine + CAREERS["hospital"]).
-        "Work a shift (8h)" if job_id == "hospital":
+        "Work a shift (8h)" if "hospital" in active_careers:
             if too_tired() or hour + 8 > DAY_END:
                 "You're too tired or it's too late to start a shift."
                 jump location_hospital
@@ -1637,11 +1638,11 @@ label location_hospital:
             $ hosp_shifts += 1
             if not lena_met:
                 call hosp_first_day
-            elif not hosp_task_1_done and hosp_shifts >= 3 and job_rank == 0:
+            elif not hosp_task_1_done and hosp_shifts >= 3 and career_rank("hospital") == 0:
                 call hosp_task_1
-            elif hosp_task_1_done and not hosp_npc1_done and hosp_shifts >= 5 and job_rank == 0:
+            elif hosp_task_1_done and not hosp_npc1_done and hosp_shifts >= 5 and career_rank("hospital") == 0:
                 call hosp_npc1_lena
-            elif hosp_npc1_done and not hosp_npc2_done and hosp_shifts >= 7 and job_rank == 0:
+            elif hosp_npc1_done and not hosp_npc2_done and hosp_shifts >= 7 and career_rank("hospital") == 0:
                 call hosp_npc2_lena
             elif hosp_npc2_done and lena_case_observation_done and not hospital_hard_case_done:
                 call hospital_hard_case_scene
@@ -1650,7 +1651,7 @@ label location_hospital:
                     and not hospital_hard_case_followup_done):
                 call hospital_hard_case_followup
             elif (hosp_npc2_done and not hosp_review_done
-                    and job_performance >= 100 and can_promote() and job_rank == 0
+                    and career_perf("hospital") >= 100 and can_promote("hospital") and career_rank("hospital") == 0
                     and ((not lena_case_observation_done and not hospital_hard_case_done)
                      or (hospital_hard_case_done
                          and hospital_hard_case_followup_done
@@ -1663,40 +1664,37 @@ label location_hospital:
                     "Exhausted and unfed, you fumble a chart and get chewed out. A shift like this sets you back."
                 else:
                     "Charts, rounds, a dozen small crises handled. You earned the coffee."
-            # A hard case is a random event, not a result of poor performance.
-            # Performance may change the debrief dialogue, but not scene availability.
-            # ponytail: ceiling is 25%/shift once prerequisites met; upgrade path is
-            #   a dedicated case-type event if the hospital arc gains scripted shifts.
+            # ponytail: ceiling is 25%/shift once prerequisites met
             if (not lena_shoulder_done and not lena_shoulder_pending
                     and lena_break_room_done and hosp_shifts >= 10
-                    and job_rank >= 1 and renpy.random.random() < 0.25):
+                    and career_rank("hospital") >= 1 and renpy.random.random() < 0.25):
                 $ hospital_hard_case_pending = True
-                if job_performance >= 70:
+                if career_perf("hospital") >= 70:
                     "You did everything correctly. The outcome wasn't yours to control."
                 else:
                     "There are things to review. But not tonight."
             if _work_event_roll("hospital"):
                 call work_event_hospital
-            if not lena_rooftop_done and job_rank >= 1 and lena_trust >= 25 and hour >= 22:
+            if not lena_rooftop_done and career_rank("hospital") >= 1 and lena_trust >= 25 and hour >= 22:
                 jump lena_rooftop_scene
             jump location_hospital
 
-        "Ask about a promotion" if job_id == "hospital" and can_promote():
-            $ _trial = cur_rank().get("trial")
-            $ _trial_done = store.promotion_trials.get(("hospital", job_rank), False)
+        "Ask about a promotion" if "hospital" in active_careers and can_promote("hospital"):
+            $ _trial = cur_rank("hospital").get("trial")
+            $ _trial_done = store.promotion_trials.get(("hospital", career_rank("hospital")), False)
             if _trial and not _trial_done:
                 call hospital_trial_resident
             else:
-                if promote():
+                if promote("hospital"):
                     "You're handed a new badge. The attending smiles. \"Welcome to residency.\""
-                    if job_rank >= 1 and not lena_met:
+                    if career_rank("hospital") >= 1 and not lena_met:
                         $ lena_met = True
                         "A doctor mid-coffee catches you in the hall. \"Fresh resident? I'm Lena. You'll live. Probably.\" You've got a colleague now."
                 else:
                     "\"Not quite there. Keep at it.\""
             jump location_hospital
 
-        "Drop off your CV" if job_id is None:
+        "Drop off your CV" if "hospital" not in active_careers:
             show drlena_normal at sprite_r
             if can_apply("hospital"):
                 "A doctor at the desk skims your file. \"Med Student it is. Try not to faint.\" You're in."
@@ -1713,8 +1711,8 @@ label location_hospital:
             jump location_hospital
 
 
-        "Quit medicine" if job_id == "hospital":
-            $ quit_job()
+        "Quit medicine" if "hospital" in active_careers:
+            $ quit_job("hospital")
             "You hang up the coat. Not everyone's built for it."
             jump location_hospital
 
@@ -1738,7 +1736,7 @@ label location_hub:
     if _wed_amb:
         call expression _wed_amb
     menu (screen="activity"):
-        "Work a shift (8h)" if job_id == "it":
+        "Work a shift (8h)" if "it" in active_careers:
             $ _it_h = 6 if skill_prog >= 5 else 8
             if hour + _it_h > DAY_END:
                 "Too late to start a full shift today."
@@ -1773,7 +1771,7 @@ label location_hub:
                     and not it_incident_followup_done):
                 call it_production_incident_followup
             elif (it_npc2_done and not it_review_done
-                    and job_performance >= 100 and can_promote()
+                    and career_perf("it") >= 100 and can_promote("it")
                     and it_incident_followup_done
                     and it_shifts >= it_incident_followup_shift + it_incident_review_extra_shifts):
                 call it_review_junior
@@ -1788,19 +1786,19 @@ label location_hub:
                 call work_event_it
             jump location_hub
 
-        "Ask about a promotion" if job_id == "it" and can_promote():
-            $ _trial = cur_rank().get("trial")
-            $ _trial_done = store.promotion_trials.get(("it", job_rank), False)
+        "Ask about a promotion" if "it" in active_careers and can_promote("it"):
+            $ _trial = cur_rank("it").get("trial")
+            $ _trial_done = store.promotion_trials.get(("it", career_rank("it")), False)
             if _trial and not _trial_done:
                 call it_trial_team_lead
             else:
-                if promote():
+                if promote("it"):
                     "Your lead grins. \"Earned it.\" New title, better pay, higher bar."
                 else:
                     "\"Strong quarter - but you need the skills for the next rung first.\""
             jump location_hub
 
-        "Apply for a dev role" if job_id is None:
+        "Apply for a dev role" if "it" not in active_careers:
             if can_apply("it"):
                 $ apply_job("it")
                 "You nail the interview. Junior Dev at The Hub. Welcome to the grind."
@@ -1809,8 +1807,8 @@ label location_hub:
                 $ _fs_career_rejection()
             jump location_hub
 
-        "Quit this job" if job_id == "it":
-            $ quit_job()
+        "Quit this job" if "it" in active_careers:
+            $ quit_job("it")
             "You hand in your notice. Free again - broke soon, but free."
             jump location_hub
 
@@ -2048,8 +2046,9 @@ label check_collapse:
         $ gain_money(-100)
         $ need_hunger = 60
         $ need_energy = 70
-        if job_id is not None:
-            $ job_performance = max(0, job_performance - 15)
+        if active_careers:
+            $ active_careers = {k: {"rank": v["rank"], "perf": max(0, v["perf"] - 15)} for k, v in active_careers.items()}
+            $ job_performance = active_careers.get(job_id, {}).get("perf", job_performance) if job_id else job_performance
         $ new_day()
         return
     # energy==0 no longer causes collapse - demanding activities become unavailable instead.

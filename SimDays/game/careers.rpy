@@ -125,17 +125,26 @@ init python:
 
     # ── Career performance threshold notifications ──────────────────────────
 
-    def _check_career_perf_threshold(perf):
-        """Notify player when career performance crosses key thresholds (once per rank).
-        FIX 5: key is a 3-tuple (job_id, job_rank, threshold) so hitting 80 in IT
-        does not suppress the 80 notification in corporate, and each new rank resets."""
-        if store.job_id is None:
+    def career_rank(cid):
+        """Current rank index for cid (0-based), from active_careers."""
+        return store.active_careers.get(cid, {}).get("rank", 0)
+
+    def career_perf(cid):
+        """Current performance 0-100 for cid, from active_careers."""
+        return store.active_careers.get(cid, {}).get("perf", 0)
+
+    def _check_career_perf_threshold(perf, cid=None):
+        """Notify player when career performance crosses key thresholds (once per rank)."""
+        if cid is None:
+            cid = store.job_id
+        if cid is None:
             return
+        _rank = store.active_careers.get(cid, {}).get("rank", 0)
         seen = dict(store.career_perf_thresholds_seen)
         msgs = {50: "Your work is being noticed.", 80: "You're close to a review.", 100: "You're ready for a promotion."}
         changed = False
         for thresh, msg in msgs.items():
-            key = (store.job_id, store.job_rank, thresh)
+            key = (cid, _rank, thresh)
             if key not in seen and perf >= thresh:
                 seen[key] = True
                 changed = True
@@ -164,15 +173,27 @@ init python:
         "culinary":  [("stat", "str", 0.3), ("skill", "cook", 0.50)],
     }
 
-    def cur_rank():
-        if store.job_id is None:
-            return None
-        return CAREERS[store.job_id]["ranks"][store.job_rank]
+    def cur_rank(cid=None):
+        if cid is None: cid = store.job_id
+        if cid is None: return None
+        _r = store.active_careers.get(cid, {}).get("rank", 0)
+        return CAREERS[cid]["ranks"][_r]
 
-    def _sync_job():
+    def _sync_job(cid=None):
+        """Sync job_id/job_rank/job_performance display vars from active_careers.
+        cid forces a specific career to become the 'active' display career."""
+        if cid is not None:
+            store.job_id = cid
+        if store.job_id is None or store.job_id not in store.active_careers:
+            _remaining = list(store.active_careers.keys())
+            store.job_id = _remaining[-1] if _remaining else None
         if store.job_id is None:
             store.job_title = None; store.job_next = ""; store.job_schedule = ""
+            store.job_rank = 0; store.job_performance = 0
             return
+        _career = store.active_careers[store.job_id]
+        store.job_rank = _career["rank"]
+        store.job_performance = _career["perf"]
         ranks = CAREERS[store.job_id]["ranks"]
         r = ranks[store.job_rank]
         short = CAREERS[store.job_id]["name"].split(" - ")[0]
@@ -181,19 +202,25 @@ init python:
         store.job_next = next_rank_hint(ranks[store.job_rank + 1]["req"]) if store.job_rank + 1 < len(ranks) else "(top rank)"
 
     def can_apply(cid):
-        return store.job_id is None and meets_req(CAREERS[cid]["ranks"][0]["req"])
+        return cid not in store.active_careers and meets_req(CAREERS[cid]["ranks"][0]["req"])
 
     def apply_job(cid):
-        store.job_id = cid; store.job_rank = 0; store.job_performance = 0
-        _sync_job()
+        _ac = dict(store.active_careers)
+        _ac[cid] = {"rank": 0, "perf": 0}
+        store.active_careers = _ac
+        _sync_job(cid)
 
-    def quit_job():
-        store.job_id = None; store.job_rank = 0; store.job_performance = 0
+    def quit_job(cid=None):
+        if cid is None: cid = store.job_id
+        _ac = {k: v for k, v in store.active_careers.items() if k != cid}
+        store.active_careers = _ac
         _sync_job()
 
     def do_shift(cid, hours, perf_override=None):
         store.stat_boost_str = 1.0  # supplements are gym-only
-        r = CAREERS[cid]["ranks"][store.job_rank]
+        _ac = dict(store.active_careers)
+        _career = dict(_ac.get(cid, {"rank": 0, "perf": 0}))
+        r = CAREERS[cid]["ranks"][_career["rank"]]
         spend_time(hours)
         gain_money(r["pay"])
         # spend_time already applies energy decay; extra cost reflects physical demand
@@ -203,9 +230,9 @@ init python:
             perf_gain = max(1, perf_override // 2) if low else perf_override
         else:
             perf_gain = 6 if low else 13
-        store.job_performance = min(100, store.job_performance + perf_gain)
-        _check_career_perf_threshold(store.job_performance)
-        at_cap = store.job_performance >= 100
+        _career["perf"] = min(100, _career["perf"] + perf_gain)
+        _check_career_perf_threshold(_career["perf"], cid)
+        at_cap = _career["perf"] >= 100
         if not low:
             for kind, key, chance in CAREER_TRAIN.get(cid, []):
                 # at performance cap: double skill chance (overflow reward)
@@ -213,20 +240,28 @@ init python:
                 if renpy.random.random() < effective_chance:
                     if kind == "stat": gain_stat(key, 8)
                     else: gain_skill(key, 5)
-        _sync_job()
+        _ac[cid] = _career
+        store.active_careers = _ac
+        _sync_job(cid)   # focus on just-worked career so arc scripts see correct job_rank
         return low
 
-    def can_promote():
-        if store.job_id is None or store.job_performance < 100:
-            return False
-        ranks = CAREERS[store.job_id]["ranks"]
-        return store.job_rank + 1 < len(ranks) and meets_req(ranks[store.job_rank + 1]["req"])
+    def can_promote(cid=None):
+        if cid is None: cid = store.job_id
+        if cid is None: return False
+        _career = store.active_careers.get(cid, {})
+        if _career.get("perf", 0) < 100: return False
+        ranks = CAREERS[cid]["ranks"]
+        return _career.get("rank", 0) + 1 < len(ranks) and meets_req(ranks[_career["rank"] + 1]["req"])
 
-    def promote():
-        if not can_promote():
-            return False
-        store.job_rank += 1; store.job_performance = 0
-        _sync_job()
+    def promote(cid=None):
+        if cid is None: cid = store.job_id
+        if not can_promote(cid): return False
+        _ac = dict(store.active_careers)
+        _career = dict(_ac.get(cid, {"rank": 0, "perf": 0}))
+        _career["rank"] += 1; _career["perf"] = 0
+        _ac[cid] = _career
+        store.active_careers = _ac
+        _sync_job(cid)
         return True
 
     DEGREE_EXAMS = {

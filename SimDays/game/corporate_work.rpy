@@ -27,10 +27,10 @@ init python:
 label corp_regular_work:
     $ _tired = do_shift("corporate", 8)
     # Aftermath fires from any shift type the day after presentation
-    if job_rank == 1 and atlas_presentation_done and not atlas_aftermath_done:
+    if career_rank("corporate") == 1 and atlas_presentation_done and not atlas_aftermath_done:
         call corporate_atlas_aftermath
         return
-    if job_rank == 0:
+    if career_rank("corporate") == 0:
         # Intern arc — scenes gate on corp_shifts
         $ corp_shifts += 1
         if not martha_met:
@@ -51,7 +51,7 @@ label corp_regular_work:
             "Running on empty, you limp to end of day. Your manager notices the slippage."
         else:
             "A long day of meetings and spreadsheets. The pay is solid."
-    elif job_rank == 1:
+    elif career_rank("corporate") == 1:
         # Atlas intro fires during regular work — Caroline introduces the project in passing
         if not atlas_started:
             call corporate_atlas_intro
@@ -100,7 +100,7 @@ label corp_project_work:
 label corp_work_martha:
     $ _tired = do_shift("corporate", 8, perf_override=6)
     $ martha_last_collab = day
-    if job_rank == 1 and martha_trust >= 15 and corp_martha_1_done and not mco_client_call_done:
+    if career_rank("corporate") == 1 and martha_trust >= 15 and corp_martha_1_done and not mco_client_call_done:
         call mco_client_call
     else:
         $ _mco = _pick_wev("martha_collab", _MARTHA_COLLAB_POOL)

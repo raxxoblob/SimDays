@@ -143,8 +143,9 @@ default npc_gift_week       = {}   # npc_id -> (week_index, gifts_this_week)
 default work_events_seen    = {}   # cid -> [event ids already fired]
 default _career_event_last  = {}   # cid -> shift count when last event fired
 default _career_event_gap   = {}   # cid -> current gap until next event
-default npc_messages     = []   # list of {npc_id, text, day}
+default npc_messages     = []   # list of {npc_id, text, day, ...}
 default npc_texted_today = []   # npc_ids player texted today
+default _active_thread_npc = None   # NPC ID open in phone thread screen
 default player_commitments = []  # list of {id, npc_id, title, day, hour, location, label, completed, missed}
 
 # Relationship memory + threshold tracking
@@ -594,9 +595,11 @@ default tip_career_reject_shown  = False
 default tip_commitment_shown     = False
 default tip_need_critical_shown  = False
 
-# Job / career. job_id = career key in CAREERS (None = unemployed); the rest is
-# derived from CAREERS[job_id]["ranks"][job_rank] via _sync_job() in careers.rpy.
-default job_id          = None
+# Job / career. active_careers = {cid: {"rank": n, "perf": n}} — multi-career dict.
+# job_id/job_rank/job_performance are kept in sync for the most recently worked career
+# (used by career arc scripts that run immediately after a shift).
+default active_careers  = {}     # multi-career: {cid: {"rank": int, "perf": int}}
+default job_id          = None   # most recently active career (display / arc scripts)
 default job_rank        = 0
 default job_performance = 0      # 0-100 Performance bar for the current rank
 default promotion_trials = {}    # {(job_id, from_rank): True} — trial completed

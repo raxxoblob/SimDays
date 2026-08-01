@@ -28,10 +28,10 @@ init python:
         if not c:
             return
         rank = max(0, min(rank, len(c["ranks"]) - 1))
-        store.job_id = cid
-        store.job_rank = rank
-        store.job_performance = 100
-        _sync_job()
+        _ac = dict(store.active_careers)
+        _ac[cid] = {"rank": rank, "perf": 100}
+        store.active_careers = _ac
+        _sync_job(cid)
         renpy.notify("%s — rank %d" % (c["name"], rank + 1))
 
     def _dbg_meet_all():
@@ -53,7 +53,17 @@ init python:
 
 
 screen debug_hotkey():
-    key "K_F9" action ToggleScreen("debug_menu")
+    # Several bindings — F9 is grabbed by macOS, so backtick ` and Shift+D also work.
+    key "K_F9"        action ToggleScreen("debug_menu")
+    key "K_BACKQUOTE" action ToggleScreen("debug_menu")
+    key "shift_K_d"   action ToggleScreen("debug_menu")
+    # Guaranteed fallback: a tiny always-on button in the bottom-left corner.
+    textbutton "DBG":
+        xpos 6 ypos 1048
+        action ToggleScreen("debug_menu")
+        background "#00000066"
+        padding (7, 3, 7, 3)
+        text_size 13 text_color "#ffdd44aa" text_hover_color "#ffffff"
 
 
 # ── Cheat menu ────────────────────────────────────────────────────────────

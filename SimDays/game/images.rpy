@@ -448,6 +448,7 @@ image natalie_angry  = "images/characters/natalie/natalie_angry.png"
 image elle_normal          = "images/characters/elle/elle_normal.png"
 image elle_talk            = "images/characters/elle/elle_talk.png"
 image elle_laugh           = "images/characters/elle/elle_laugh.png"
+image elle_angry           = "images/characters/elle/elle_angry.png"
 image elle_surprised       = "images/characters/elle/elle_surprised.png"
 image elle_sundress_normal = "images/characters/elle/elle_sundress_normal.png"
 

@@ -34,9 +34,17 @@ init python:
     # don't tower over / match Marcus. (Main cast is nearly all women — Sam, Eli
     # and Kai are all she/her; Marcus is the only man.)
     SPRITE_MEN   = {"marcus"}
-    FEMALE_SCALE = 0.87   # women 13% smaller than men
+    FEMALE_SCALE = 0.87   # women 13% smaller than men (default)
+    # Per-character overrides win over the gender default. Tune these freely.
+    SPRITE_SCALE = {
+        "marcus": 1.10,   # +10%
+        "sam":    0.70,   # thigh-crop art reads large — ~20% down from the women's default
+        "kai":    1.00,   # ~15% up from the women's default
+    }
 
     def sprite_display_scale(npc_id):
+        if npc_id in SPRITE_SCALE:
+            return SPRITE_SCALE[npc_id]
         return 1.0 if npc_id in SPRITE_MEN else FEMALE_SCALE
 
     # say  = the Character variable to speak as (defined in characters.rpy)
@@ -130,7 +138,7 @@ init python:
             "likes": ["ambition", "work", "travel"], "dislikes": ["sports"],
         },
         "elle": {
-            "name": "Elle", "portrait": "portrait_elle", "sprite": "elle_sundress_normal", "say": "el",
+            "name": "Elle", "portrait": "portrait_elle", "sprite": "elle_normal", "say": "el",
             "aff": "elle_affection", "trust": "elle_trust", "greet": "elle_greet",
             "world": True, "sched": [
                 ({1, 3}, (9,  13), "location_cafe"),
@@ -199,7 +207,7 @@ init python:
             },
         },
         "kai": {
-            "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_gym_normal", "say": "kai",
+            "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_neutral", "say": "kai",
             "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
             "sprites": {"sport": "kai_gym_normal", "casual": "kai_normal"},
             "world": True, "sched": [
