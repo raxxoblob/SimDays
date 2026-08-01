@@ -66,9 +66,11 @@ define CENTRUM_VENUES = [
     ("gym",         "Gym",         "location_gym"),
     ("library",     "Library",     "location_library"),
     ("bar",         "Bar",         "location_bar"),
-    ("restaurant_eleven", "Eleven", "location_kitchen"),
-    # Club moved to the Quayside nightlife strip; Car Dealer moved to the
-    # Warehouse District — both to unclutter Downtown (phone was overlapping it).
+    # ── HUB VENUE LIMIT: keep Downtown at ~7 icons. The phone peek (bottom-right)
+    #    overlaps the centred hub bar beyond that. Do NOT add more here — relocate
+    #    to the Mall / Quayside / Warehouse or a location sub-menu instead.
+    # Moved out to unclutter Downtown: Club → Quayside, Car Dealer → Warehouse,
+    # Eleven → Mall.
 ]
 
 # Mall shops (own backgrounds + icons). Shown as an icon bar inside the mall.
@@ -76,6 +78,7 @@ define MALL_SHOPS = [
     ("shop_clothing",    "Clothing",    "location_shop_clothing"),
     ("shop_electronics", "Electronics", "location_shop_electronics"),
     ("shop_lifestyle",   "Gifts",       "location_shop_gifts"),
+    ("restaurant_eleven", "Eleven",     "location_kitchen"),   # moved from Downtown
 ]
 
 init python:

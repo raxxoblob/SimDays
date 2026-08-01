@@ -51,6 +51,24 @@ init python:
         # ── Bar ──────────────────────────────────────────────────────────
         ("location_bar", "Have a drink"):         [("0.5h", "time"), ("-$ drink", "cost")],
         ("location_bar", "Socialize"):            [("1h", "time"), ("+Charisma", "gain"), ("needs Chr 25", "info")],
+        # ── Home ─────────────────────────────────────────────────────────
+        ("location_home", "Shower"):              [("0.5h", "time"), ("+40 Hygiene", "gain")],
+        ("location_home", "Nap"):                 [("3h", "time"), ("+45 Energy", "gain")],
+        ("location_home", "Sleep"):               [("To next morning", "time"), ("Energy fully restored", "gain")],
+        ("location_home", "Cook something"):       [("Meals restore Hunger", "info"), ("+Cooking with recipes", "gain")],
+        ("location_home", "Toast"):               [("0.25h", "time"), ("-$2", "cost"), ("+15 Hunger", "gain")],
+        ("location_home", "Instant noodles"):     [("0.25h", "time"), ("-$3", "cost"), ("+22 Hunger", "gain")],
+        ("location_home", "Scrambled eggs"):      [("0.5h", "time"), ("-$5", "cost"), ("+32 Hunger", "gain")],
+        ("location_home", "Pasta bolognese"):     [("0.5h", "time"), ("-$8", "cost"), ("+55 Hunger", "gain"), ("+Cook exp", "gain")],
+        ("location_home", "Chicken stir-fry"):    [("0.75h", "time"), ("-$10", "cost"), ("+65 Hunger", "gain"), ("+8 Energy", "gain")],
+        ("location_home", "Sunday roast"):        [("1h", "time"), ("-$18", "cost"), ("+80 Hunger", "gain"), ("+15 Energy", "gain")],
+        # ── Library ──────────────────────────────────────────────────────
+        ("location_library", "Study — general"):  [("2h", "time"), ("+Intellect", "gain")],
+        # ── College (courses) ────────────────────────────────────────────
+        ("location_college", "Programming"):       [("3h", "time"), ("-22 Energy", "need"), ("+1 course fee", "cost"), ("+Prog exp", "gain")],
+        ("location_college", "Medicine"):          [("3h", "time"), ("-22 Energy", "need"), ("+course fee", "cost"), ("+Med exp", "gain")],
+        ("location_college", "Business"):          [("3h", "time"), ("-22 Energy", "need"), ("+course fee", "cost"), ("+Biz exp", "gain")],
+        ("location_college", "Art"):               [("3h", "time"), ("-22 Energy", "need"), ("+course fee", "cost"), ("+Art exp", "gain")],
     }
 
     def activity_fx(caption):
@@ -70,8 +88,6 @@ transform act_item:
         zoom 1.0 xoffset 0
 
 screen activity(items):
-    default _hover_fx = None
-    default _hover_nm = None
     # left column, ~19% of a 1920 screen; height grows with item count.
     viewport:
         xpos 44
@@ -82,19 +98,20 @@ screen activity(items):
         scrollbars ("vertical" if len(items) > 7 else None)
         vbox:
             spacing 12
-            $ _in_debt = in_debt()
             for i in items:
                 if i.action is not None:
                     $ _nm, _cs = _split_caption(i.caption)
                     button:
                         action i.action
-                        sensitive (getattr(i, 'sensitive', True) and not (_in_debt and "$" in _cs))
+                        # Debt no longer disables the whole bar — try_spend gates per
+                        # category (essentials like food/study/gym stay affordable;
+                        # luxuries block themselves). See gains.rpy _DEBT_OK_CATEGORIES.
+                        sensitive getattr(i, 'sensitive', True)
                         xysize (360, 76)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         insensitive_background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-                        hovered [SetScreenVariable("_hover_fx", activity_fx(i.caption)), SetScreenVariable("_hover_nm", _nm)]
-                        unhovered SetScreenVariable("_hover_fx", None)
+                        tooltip i.caption
                         at act_item
                         fixed:
                             yalign 0.5
@@ -106,21 +123,32 @@ screen activity(items):
                                 text _cs:
                                     font ACT_FONT size 12 color "#527090" hover_color "#8ab0d0" insensitive_color "#3a4a56" xpos 212 xsize 128 yalign 0.5 line_leading 0
 
-    # Effects popup — appears to the right of the hovered activity bar.
-    if _hover_fx:
-        frame:
-            xpos 430 ypos 372
-            background Frame("images/ui/act_bar_idle.png", 24, 24, 24, 24)
-            padding (18, 14, 20, 14)
-            vbox:
-                spacing 7
-                text _hover_nm font ACT_FONT size 17 color "#ffffff"
-                null height 2
-                for _fx_txt, _fx_cat in _hover_fx:
-                    text _fx_txt:
-                        font ACT_FONT size 20 bold True
-                        color ACT_FX_COLOR.get(_fx_cat, "#cfe0f5")
-                        outlines [(2, "#000000cc", 0, 0)]
+    # Effects card — floats next to the hovered activity bar (nearrect), listing
+    # what the activity gives with colour-coded deltas.
+    $ _tt = GetTooltip()
+    if _tt:
+        $ _fx = activity_fx(_tt)
+        if _fx:
+            nearrect:
+                focus "tooltip"
+                prefer_top True
+                frame:
+                    background "#12161ef2"
+                    padding (16, 12, 18, 12)
+                    xmaximum 320
+                    vbox:
+                        spacing 6
+                        text _split_caption(_tt)[0] font ACT_FONT size 14 color "#8fa4bc"
+                        null height 1
+                        for _fx_txt, _fx_cat in _fx:
+                            hbox:
+                                spacing 8
+                                frame:
+                                    background ACT_FX_COLOR.get(_fx_cat, "#cfe0f5")
+                                    xysize (4, 22)
+                                text _fx_txt:
+                                    font ACT_FONT size 18 bold True yalign 0.5
+                                    color ACT_FX_COLOR.get(_fx_cat, "#cfe0f5")
 
     frame:
         xalign 0.5

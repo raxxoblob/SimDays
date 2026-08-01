@@ -249,17 +249,17 @@ init python:
         prereq = _BACH_REQ.get(deg_id)
         if prereq and prereq not in store.degrees:
             return False
+        # Study is an essential — allowed while in debt (still needs the cash).
         return (deg_id not in store.degrees
                 and skill_val(e["skill"]) >= e["min_lvl"]
-                and store.money >= e["cost"]
-                and not in_debt())
+                and store.money >= e["cost"])
 
     def sit_exam(deg_id):
         e = DEGREE_EXAMS[deg_id]
         # Charge BEFORE spend_time: an 8h exam can roll past DAY_END into a Monday,
         # whose rent debit could create a loan and make the later charge get refused
         # while the degree was granted anyway. can_sit_exam already ensured funds.
-        gain_money(-e["cost"])
+        gain_money(-e["cost"], "study")
         spend_time(e["hours"])
         store.degrees = store.degrees + [deg_id]
 
@@ -273,11 +273,9 @@ init python:
         lvl = skill_val(key)
         if lvl >= 10: return "max"
         cost = course_cost(key)
-        # in_debt() blocks all spending in try_spend, so gate on it here too —
-        # otherwise gain_money() is refused but the skill would still be granted.
-        if store.money < cost or in_debt(): return "money"
+        if store.money < cost: return "money"
         spend_time(3)
-        gain_money(-cost)
+        gain_money(-cost, "study")   # study bypasses the debt gate but still costs cash
         gain_skill(key, 10)
         store.need_energy = max(0, store.need_energy - 22)
         return "ok"

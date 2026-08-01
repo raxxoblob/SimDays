@@ -29,21 +29,16 @@ init python:
     ]
     TOPIC_LABEL = dict(TOPICS)
 
-    # Per-character down-scale for the centre interaction sprite. Only characters
-    # whose source art is cropped at the thigh/hip need this (their visible portion
-    # would otherwise fill the 900px box and look oversized). Value = fraction of
-    # the fit-contain size; head pins to the same top line as the full-body cast.
-    # See transform sprite_crop in images.rpy.
-    SPRITE_CROP_SCALE = {"zoe": 0.78, "sam": 0.64, "eli": 0.82, "rena": 0.76}
-
-    # Women are keyed to Nora's size (the reference); men render a touch larger so
-    # they read as slightly taller. Kept very light on purpose. Multiplies the
-    # interaction/solo sprite scale on top of any crop scale above.
+    # Sprite display scale. Everyone is feet-anchored (sprite_crop) so they fill
+    # the frame from the bottom. We deliberately do NOT down-scale thigh-cropped
+    # art any more: scaling it down left it sitting low ("in the floor"). A cropped
+    # sprite just fills the frame with a slightly larger head until its art is
+    # refreshed to full-body. Men still get a very light size nudge.
     SPRITE_MEN  = {"marcus", "eli", "sam", "kai"}
     MALE_SCALE  = 1.05
 
     def sprite_display_scale(npc_id):
-        return SPRITE_CROP_SCALE.get(npc_id, 1.0) * (MALE_SCALE if npc_id in SPRITE_MEN else 1.0)
+        return MALE_SCALE if npc_id in SPRITE_MEN else 1.0
 
     # say  = the Character variable to speak as (defined in characters.rpy)
     # world/met/min_status = availability (see npc_known)
@@ -804,6 +799,22 @@ init python:
         fs_record_social(npc_id, "talk")
         record_social_attention(npc_id, "talk")
 
+    def npc_expr_sprite(npc_id, expr):
+        """The NPC's <expr> sprite (talk/laugh/angry) if that image exists, else base."""
+        base = NPC_DATA[npc_id]["sprite"]
+        for _suf in ("_normal", "_neutral"):
+            if base.endswith(_suf):
+                cand = base[:-len(_suf)] + "_" + expr
+                return cand if renpy.has_image(cand) else base
+        return base
+
+    def show_npc_expr(npc_id, expr):
+        """Swap the live 1:1 interaction sprite to an expression reaction."""
+        if renpy.get_screen("npc_relbar") is None:
+            return
+        spr = npc_expr_sprite(npc_id, expr)
+        renpy.show(spr, at_list=[sprite_crop(sprite_display_scale(npc_id))], tag="npcsprite")
+
     def do_talk(npc_id, topic):
         d = NPC_DATA[npc_id]
         _do_talk_accounting(npc_id)
@@ -829,6 +840,9 @@ init python:
         store._topics_today[npc_id] = today
         _apply_aff(npc_id, delta)
         gain_aff(d["name"], delta)
+        # reaction expression: like→laugh, dislike→angry, neutral/burnout→talk
+        _expr = "talk" if (streak >= 3 or result == "neutral") else ("laugh" if result == "like" else "angry")
+        show_npc_expr(npc_id, _expr)
         line = renpy.random.choice(pool) % TOPIC_LABEL[topic]
         renpy.say(getattr(store, d["say"]), line)
 
@@ -1700,7 +1714,9 @@ init python:
         interests = GIFT_TYPES[gift_type][2]
         likes     = d.get("likes", [])
         dislikes  = d.get("dislikes", [])
+        _gexpr    = "talk"
         if any(i in likes for i in interests):
+            _gexpr = "laugh"
             # diminishing returns: track (week_index, count) per NPC
             gw   = store.npc_gift_week.get(npc_id, (-1, 0))
             week = store.day // 7
@@ -1722,6 +1738,7 @@ init python:
         elif any(i in dislikes for i in interests):
             delta = 1
             line = renpy.random.choice(GIFT_DISLIKE_LINES[gift_type])
+            _gexpr = "angry"
         else:
             delta = 3
             line = renpy.random.choice(GIFT_NEUTRAL_LINES[gift_type])
@@ -1745,6 +1762,7 @@ init python:
                 "trigger_location": store.current_loc,
                 "variant":          "immediate",
             }
+        show_npc_expr(npc_id, _gexpr)
         renpy.say(getattr(store, d["say"]), line)
 
 

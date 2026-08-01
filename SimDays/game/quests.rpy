@@ -6,17 +6,30 @@ init python:
     def _q(qid, title, body, show_fn, done_fn):
         return {"id": qid, "title": title, "body": body, "show": show_fn, "done": done_fn}
 
+    # Design: exactly ONE quest is visible at the very start — the onboarding.
+    # Every other quest is gated by its `show` lambda so it only appears once the
+    # player has *engaged* with the relevant content (met someone, taken a job,
+    # started a career track, gone into debt, …). Career-skill quests unlock by
+    # taking that job. See phone_goals_scr.
     QUESTS = [
-        _q("explore",
+        # ── Onboarding — the only quest shown at the start of a new game ──────
+        _q("onboarding",
            "Find Your Feet",
-           "Get out of the apartment. Visit the café and talk to your neighbor.",
+           "Settle in: head to Grounds café, meet your neighbour Marcus and the barista Nora, and pick up a shift for some cash. Zoe's around the city too — worth crossing paths.",
            lambda: True,
-           lambda: store.marcus_met and store.nora_met),
+           lambda: store.marcus_met and store.nora_met and (store.fs_grounds_shift_done or store.job_id is not None)),
+
+        # ── Everything below is unlocked by playing ──────────────────────────
+        _q("meet_zoe",
+           "Cross Paths with Zoe",
+           "Zoe turns up around the city — the park, the club, out at night. Find her.",
+           lambda: (store.marcus_met or store.nora_met) and not store.zoe_met,
+           lambda: store.zoe_met),
 
         _q("get_job",
            "Find Work",
            "Rent doesn't pay itself. Apply at Nexus Tower, The Hub, or the hospital.",
-           lambda: store.marcus_met or store.nora_met,
+           lambda: (store.marcus_met or store.nora_met) and store.job_id is None,
            lambda: store.job_id is not None),
 
         _q("first_pay",
@@ -87,7 +100,8 @@ init python:
         _q("buy_first_home_item",
            "Make It Home",
            "Buy something that makes your apartment feel less temporary.",
-           lambda: True,
+           # unlocks once you've earned some income of your own (not the starting cash)
+           lambda: store.job_id is not None or store.fs_grounds_shift_done,
            lambda: any([store.own_guitar, store.own_bed, store.own_programming_kit, store.own_coffee_machine, store.own_kitchen_set])),
 
         _q("recover_from_debt",
@@ -96,11 +110,31 @@ init python:
            lambda: store.loan > 0 or "recover_from_debt" in store.quests_completed,
            lambda: store.loan == 0 and store.money >= 0),
 
-        _q("build_skill_to_3",
-           "Build a Specialisation",
-           "Develop a professional skill to level 3.",
-           lambda: True,
-           lambda: any(getattr(store, "skill_" + s, 0) >= 3 for s in ["med","prog","biz","cook","fit"])),
+        # Career-track skill goals — each unlocks only when you take that job.
+        _q("prog_skill", "Sharpen Your Code",
+           "You're on the IT track. Push Programming to Lv3.",
+           lambda: store.job_id == "it",
+           lambda: store.skill_prog >= 3),
+
+        _q("biz_skill", "Learn the Business",
+           "You're in the corporate world. Push Business to Lv3.",
+           lambda: store.job_id == "corporate",
+           lambda: store.skill_biz >= 3),
+
+        _q("med_skill", "Bedside Manner",
+           "You're on the medical track. Push Medicine to Lv3.",
+           lambda: store.job_id == "hospital",
+           lambda: store.skill_med >= 3),
+
+        _q("cook_skill", "Find Your Palate",
+           "You're working the kitchen. Push Cooking to Lv3.",
+           lambda: store.job_id == "culinary",
+           lambda: store.skill_cook >= 3),
+
+        _q("fit_skill", "Train the Trainer",
+           "You're coaching clients. Push Fitness to Lv3.",
+           lambda: store.job_id == "trainer",
+           lambda: store.skill_fit >= 3),
 
         _q("reach_mentor_trust",
            "Earn Their Trust",

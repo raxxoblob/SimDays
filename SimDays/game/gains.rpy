@@ -73,9 +73,12 @@ init python:
         amount = int(amount)
         if amount <= 0:
             return True   # nothing to charge
-        if store.loan > 0:
+        # In debt, luxuries are blocked — but essentials (food, study, gym/fitness)
+        # must stay affordable or the game soft-locks. Those categories bypass the
+        # debt gate (they still require enough cash, checked below).
+        if store.loan > 0 and category not in _DEBT_OK_CATEGORIES:
             if toast:
-                _push_gain(kind="money", text="Card declined", color="#e86a55",
+                _push_gain(kind="money", text="Card declined — clear your loan", color="#e86a55",
                            icon="images/ui/icons/stat_money.png")
             return False
         if store.money < amount:
@@ -89,13 +92,18 @@ init python:
                        icon="images/ui/icons/stat_money.png")
         return True
 
-    def gain_money(amt):
+    # Spending categories that stay allowed while in debt (essentials). Everything
+    # else — luxuries, gifts, cosmetic, gambling, default discretionary — is blocked.
+    _DEBT_OK_CATEGORIES = {"food", "study", "fitness", "medical"}
+
+    def gain_money(amt, category="discretionary"):
         """Change money. Income (positive) is added directly; spending (negative)
         is routed through try_spend so the debt rule and no-negative-balance
         invariant hold for every legacy `gain_money(-cost)` call site too.
-        Returns True on success, False if a spend was refused."""
+        Pass category="food"/"study"/"fitness"/"medical" for essentials that should
+        remain purchasable while in debt. Returns True on success, False if refused."""
         if amt < 0:
-            return try_spend(-amt)
+            return try_spend(-amt, category)
         store.money += amt
         _push_gain(kind="money", text="+$%d" % amt, color="#39c07a",
                    icon="images/ui/icons/stat_money.png")

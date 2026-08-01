@@ -254,14 +254,11 @@ transform sprite_c:
     yalign 1.0
     yoffset 96
 
-# Sprite for characters whose source art is cropped at the thigh/hip (zoe, sam,
-# eli, rena). fit-contain would blow their visible portion up to the full 900 box
-# and make their heads oversized next to the full-body cast, so we scale down by a
-# per-character factor so head sizes match. Anchored at the FEET (bottom-centre) so
-# everyone rises from the bottom edge like the full-body cast — a cropped sprite's
-# thigh sits at the bottom (legs off-screen), never floating mid-screen. For a
-# full-body character (sc=1.0) this is identical to sprite_c. xp = screen x of the
-# standing spot (xalign * 1920). See SPRITE_CROP_SCALE in interact.rpy.
+# Feet-anchored (bottom-centre) sprite placement so everyone rises from the bottom
+# edge — a thigh-cropped sprite's crop sits at the bottom (legs off-screen), never
+# floating mid-screen. sc is only the light male size nudge now (see
+# sprite_display_scale in interact.rpy); with sc=1.0 this equals sprite_c.
+# xp = screen x of the standing spot (xalign * 1920).
 transform sprite_crop(sc, xp=960):
     fit "contain"
     xysize (660, 900)

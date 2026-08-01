@@ -13,6 +13,16 @@ Core principle: every job and every location has its own social circle. There's 
 ### Presentation
 One single city map image with clickable location icons. Clicking a location takes you directly to that location's background screen with its action menu. No district sub-screens — locations are just dots on the map. This keeps navigation fast and avoids extra screens that add little value.
 
+### ⚠️ HUB VENUE LIMIT (hard UI cap — do not exceed)
+
+Each hub screen (Downtown/`CENTRUM_VENUES`, Quayside/`NADBRZEZE_VENUES`, Mall/`MALL_SHOPS`) shows a **centred** bottom bar of venue icons. The phone "peek" lives at the bottom-right of the HUD, so once a hub bar grows past **~7 icons** it runs under the phone and the rightmost venues get covered.
+
+**Rule: keep every hub bar to ~7 icons or fewer. Do NOT add more venues to a full hub.** To add a new place when a hub is full, either:
+- relocate it to a hub with room (Mall/Quayside/Beach), or
+- make it a **sub-menu option inside another location** (zero hub-width cost — e.g. the Car Dealer is an option inside the Warehouse, not a hub icon).
+
+Relocations done for this reason so far: Club → Quayside, Car Dealer → Warehouse (sub-menu), Eleven → Mall.
+
 ### Locations
 
 **Home**

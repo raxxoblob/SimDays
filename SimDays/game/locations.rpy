@@ -22,6 +22,7 @@ label location_home:
     jump location_home_actions
 
 label location_home_actions:
+    $ current_loc = "location_home"   # so activity-effect tooltips key correctly
     $ activity_exit_jump = "location_hallway"
     $ activity_exit_name = "Hallway"
     scene expression home_bg()
@@ -133,7 +134,7 @@ label location_home_cook:
                 "Not enough cash."
                 jump location_home_actions
             $ spend_time(0.25)
-            $ gain_money(-2)
+            $ gain_money(-2, "food")
             $ need_hunger = min(100, need_hunger + 15)
             "Two slices of toast. Better than nothing."
             jump location_home_actions
@@ -142,7 +143,7 @@ label location_home_cook:
                 "Not enough cash."
                 jump location_home_actions
             $ spend_time(0.25)
-            $ gain_money(-3)
+            $ gain_money(-3, "food")
             $ need_hunger = min(100, need_hunger + 22)
             "Straight out of the packet, four minutes. Fine."
             jump location_home_actions
@@ -151,7 +152,7 @@ label location_home_cook:
                 "Not enough cash."
                 jump location_home_actions
             $ spend_time(0.5)
-            $ gain_money(-5)
+            $ gain_money(-5, "food")
             $ need_hunger = min(100, need_hunger + 32)
             "Oil, heat, three eggs. You feel a bit more human."
             jump location_home_actions
@@ -160,7 +161,7 @@ label location_home_cook:
                 "Not enough cash."
                 jump location_home_actions
             $ spend_time(0.5)
-            $ gain_money(-8)
+            $ gain_money(-8, "food")
             $ need_hunger = min(100, need_hunger + 55)
             $ gain_skill("cook", 2)
             "Proper sauce, actual garlic. Getting the hang of this."
@@ -170,7 +171,7 @@ label location_home_cook:
                 "Not enough cash."
                 jump location_home_actions
             $ spend_time(0.75)
-            $ gain_money(-10)
+            $ gain_money(-10, "food")
             $ need_hunger = min(100, need_hunger + 65)
             $ need_energy = min(100, need_energy + 8)
             $ gain_skill("cook", 2)
@@ -181,7 +182,7 @@ label location_home_cook:
                 "Not enough cash."
                 jump location_home_actions
             $ spend_time(1.0)
-            $ gain_money(-18)
+            $ gain_money(-18, "food")
             $ need_hunger = min(100, need_hunger + 80)
             $ need_energy = min(100, need_energy + 15)
             $ gain_skill("cook", 3)
@@ -302,7 +303,7 @@ label cafe_actions:
     menu (screen="activity"):
         "Buy a coffee ($3, 0.5h)":
             $ spend_time(0.5)
-            $ gain_money(-3)
+            $ gain_money(-3, "food")
             $ _coffee_e = 20 if has_event("cafe_energy") else 10
             $ need_energy = min(100, need_energy + _coffee_e)
             if has_event("cafe_energy"):
@@ -391,7 +392,7 @@ label gym_reception:
             if money < 40:
                 "Not enough cash."
                 jump gym_reception
-            $ gain_money(-40)
+            $ gain_money(-40, "fitness")
             $ gym_pass_expires = day + 7
             "She hands over a card. Seven days, unlimited access."
             jump gym_floor
@@ -399,7 +400,7 @@ label gym_reception:
             if money < 120:
                 "Not enough cash."
                 jump gym_reception
-            $ gain_money(-120)
+            $ gain_money(-120, "fitness")
             $ gym_pass_expires = day + 30
             "Better value if you actually show up. She seems mildly sceptical."
             jump gym_floor
@@ -407,7 +408,7 @@ label gym_reception:
             if money < 8:
                 "Not enough cash."
                 jump gym_reception
-            $ gain_money(-8)
+            $ gain_money(-8, "fitness")
             $ gym_pass_expires = day + 1
             "One day. Fair enough."
             jump gym_floor
@@ -536,7 +537,7 @@ label gym_floor:
             if money < 12:
                 "Not enough cash."
                 jump gym_floor
-            $ gain_money(-12)
+            $ gain_money(-12, "fitness")
             $ supplements["protein"] += 1
             "A vanilla protein powder. Mix with water after training. +50%% STR EXP on the next weights session."
             jump gym_floor
@@ -544,7 +545,7 @@ label gym_floor:
             if money < 20:
                 "Not enough cash."
                 jump gym_floor
-            $ gain_money(-20)
+            $ gain_money(-20, "fitness")
             $ supplements["preworkout"] += 1
             "The label is mostly warnings. +100%% STR EXP on the next weights session."
             jump gym_floor
@@ -839,7 +840,7 @@ label location_shop_clothing:
     show screen hud
     menu (screen="activity"):
         "Buy a casual outfit ($80)" if wardrobe_tier < 1:
-            if money < 80:
+            if money < 80 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-80)
@@ -849,7 +850,7 @@ label location_shop_clothing:
             jump location_shop_clothing
         "Upgrade your wardrobe (+status)" if 1 <= wardrobe_tier < 3:
             $ _wd_price = {2: 500, 3: 1000}[wardrobe_tier + 1]
-            if money < _wd_price:
+            if money < _wd_price or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-_wd_price)
@@ -864,7 +865,7 @@ label location_shop_electronics:
     show screen hud
     menu (screen="activity"):
         "Buy a gadget ($100)" if not own_programming_kit:
-            if money < 100:
+            if money < 100 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-100)
@@ -873,7 +874,7 @@ label location_shop_electronics:
                 "A new toy to tinker with. You spend a few evenings digging into it — and pick up a thing or two."
             jump location_shop_electronics
         "Buy a guitar ($150)" if not own_guitar:
-            if money < 150:
+            if money < 150 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-150)
@@ -881,7 +882,7 @@ label location_shop_electronics:
                 "A decent starter guitar. Now you can practice music at home."
             jump location_shop_electronics
         "Metal detector ($120)" if not own_metal_detector:
-            if money < 120:
+            if money < 120 or in_debt():
                 "You can't quite afford it right now."
             else:
                 $ gain_money(-120)
@@ -896,7 +897,7 @@ label location_shop_gifts:
     show screen hud
     menu (screen="activity"):
         "Treat yourself ($30, +energy)":
-            if money < 30:
+            if money < 30 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-30)
@@ -904,7 +905,7 @@ label location_shop_gifts:
                 "A small indulgence. You feel a little brighter."
             jump location_shop_gifts
         "Buy a coffee machine ($150)" if not own_coffee_machine:
-            if money < 150:
+            if money < 150 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-150)
@@ -912,7 +913,7 @@ label location_shop_gifts:
                 "Compact, capable, and immediately on the counter. You'll figure out the settings."
             jump location_shop_gifts
         "Buy a kitchen set ($200)" if not own_kitchen_set:
-            if money < 200:
+            if money < 200 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-200)
@@ -920,7 +921,7 @@ label location_shop_gifts:
                 "Good pans, proper knives, a cutting board that doesn't slide. Cooking becomes less miserable."
             jump location_shop_gifts
         "Buy a better bed ($400)" if not own_bed:
-            if money < 400:
+            if money < 400 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-400)
@@ -929,7 +930,7 @@ label location_shop_gifts:
             jump location_shop_gifts
         "Buy jewelry (+status)" if jewelry_tier < 3:
             $ _jw_price = [250, 650, 1500][jewelry_tier]
-            if money < _jw_price:
+            if money < _jw_price or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-_jw_price)
@@ -937,7 +938,7 @@ label location_shop_gifts:
                 "A tasteful piece that quietly says you've arrived."
             jump location_shop_gifts
         "Buy a book ($20)":
-            if money < 20:
+            if money < 20 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-20)
@@ -945,7 +946,7 @@ label location_shop_gifts:
                 "A well-chosen paperback. Thoughtful and personal."
             jump location_shop_gifts
         "Buy sweets ($15)":
-            if money < 15:
+            if money < 15 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-15)
@@ -953,7 +954,7 @@ label location_shop_gifts:
                 "A box of good chocolates. Hard to go wrong."
             jump location_shop_gifts
         "Buy a gadget ($35)":
-            if money < 35:
+            if money < 35 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-35)
@@ -961,7 +962,7 @@ label location_shop_gifts:
                 "A small tech gift. Practical and a little flashy."
             jump location_shop_gifts
         "Buy flowers ($25)":
-            if money < 25:
+            if money < 25 or in_debt():
                 "Not enough money."
             else:
                 $ gain_money(-25)
@@ -980,7 +981,7 @@ label location_cardealer:
         call expression _wed_amb
     menu (screen="activity"):
         "Buy a used runabout ($1500)" if car_tier < 1:
-            if money < 1500:
+            if money < 1500 or in_debt():
                 "Not enough money. The salesman's smile cools."
             else:
                 $ gain_money(-1500)
@@ -988,7 +989,7 @@ label location_cardealer:
                 "Nothing fancy, but it's yours. Wheels change how the city sees you."
             jump location_cardealer
         "Trade up to a nice car ($4000)" if car_tier == 1:
-            if money < 4000:
+            if money < 4000 or in_debt():
                 "Not enough money for the upgrade yet."
             else:
                 $ gain_money(-4000)
@@ -996,7 +997,7 @@ label location_cardealer:
                 "Clean lines, leather seats. People clock it in the parking lot."
             jump location_cardealer
         "Buy the luxury model ($12000)" if car_tier == 2:
-            if money < 12000:
+            if money < 12000 or in_debt():
                 "Not enough for the flagship. Come back richer."
             else:
                 $ gain_money(-12000)
@@ -1009,8 +1010,8 @@ label location_cardealer:
 
 # ── KITCHEN / Eleven (Culinary career) ────────────────────────────────
 label location_kitchen:
-    $ activity_exit_jump = "location_centrum"
-    $ activity_exit_name = "Downtown"
+    $ activity_exit_jump = "location_mall"
+    $ activity_exit_name = "Mall"
     scene kitchen
     show screen hud
     menu (screen="activity"):
@@ -1602,7 +1603,7 @@ label location_hospital:
     show screen people_here_dock("location_hospital")
     menu (screen="activity"):
         "Cosmetic treatment ($350, 2h)":
-            if money < 350:
+            if money < 350 or in_debt():
                 "The clinic coordinator slides the price sheet back. You can't cover $350 today."
             else:
                 $ spend_time(2)
