@@ -60,7 +60,7 @@ init python:
         "hospital": {
             "name": "Medicine - City Hospital", "location": "location_hospital",
             "ranks": [
-                {"title": "Clinical Assistant", "req": {"skill_med": 2, "stat_int": 30, "stat_chr": 15},              "pay": 80,  "hours": "Mon-Fri 08-16", "flex": False},
+                {"title": "Clinical Assistant", "req": {"skill_med": 2, "stat_int": 30, "stat_chr": 15},              "pay": 80,  "hours": "Mon-Fri 08-16", "flex": False, "trial": "hospital_trial_resident"},
                 {"title": "Resident",          "req": {"skill_med": 5, "stat_int": 45, "degree": "med_bach"},  "pay": 140, "hours": "long shifts",   "flex": False},
                 {"title": "Doctor",            "req": {"skill_med": 7, "stat_int": 58, "degree": "med_mast"},  "pay": 240, "hours": "shifts",        "flex": False},
                 {"title": "Attending",         "req": {"skill_med": 8, "stat_int": 68, "stat_chr": 45},        "pay": 350, "hours": "mostly set",    "flex": False},
@@ -256,8 +256,11 @@ init python:
 
     def sit_exam(deg_id):
         e = DEGREE_EXAMS[deg_id]
-        spend_time(e["hours"])
+        # Charge BEFORE spend_time: an 8h exam can roll past DAY_END into a Monday,
+        # whose rent debit could create a loan and make the later charge get refused
+        # while the degree was granted anyway. can_sit_exam already ensured funds.
         gain_money(-e["cost"])
+        spend_time(e["hours"])
         store.degrees = store.degrees + [deg_id]
 
     def course_cost(key):
@@ -270,7 +273,9 @@ init python:
         lvl = skill_val(key)
         if lvl >= 10: return "max"
         cost = course_cost(key)
-        if store.money < cost: return "money"
+        # in_debt() blocks all spending in try_spend, so gate on it here too —
+        # otherwise gain_money() is refused but the skill would still be granted.
+        if store.money < cost or in_debt(): return "money"
         spend_time(3)
         gain_money(-cost)
         gain_skill(key, 10)

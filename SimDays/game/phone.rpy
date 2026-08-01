@@ -176,7 +176,7 @@ screen phone_home():
                     ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_messages_scr")]),
                     ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_messages_scr")]),
                     ("app_map",       "Map",        Hide("phone_home")),
-                    ("app_jobs",      "Jobs",       Hide("phone_home")),
+                    ("app_jobs",      "Jobs",       [Hide("phone_home"), Show("phone_jobs_scr")]),
                     ("app_bank",      "Bank",       [Hide("phone_home"), Show("phone_bank_scr")]),
                     ("app_stocks",    "Stocks",     [Hide("phone_home"), Show("stock_market")]),
                     ("app_tips",      "Goals",      [Hide("phone_home"), Show("phone_goals_scr")]),
@@ -195,7 +195,8 @@ screen phone_home():
                             vbox:
                                 spacing 5
                                 add Transform("images/ui/icons/%s.png" % _icon, size=(82, 82)) xalign 0.5
-                                text _lbl font ACT_FONT size 13 color "#ffffff" xalign 0.5
+                                $ _app_lbl = _lbl + ((" (%d)" % len(gigs_board)) if (_icon == "app_jobs" and gigs_board) else "")
+                                text _app_lbl font ACT_FONT size 13 color ("#7fd06a" if (_icon == "app_jobs" and gigs_board) else "#ffffff") xalign 0.5
 
                 null height 12
                 $ _inv = phone_active_invitation()

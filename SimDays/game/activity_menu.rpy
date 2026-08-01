@@ -18,6 +18,46 @@ init python:
             return cap[:idx].rstrip(), cap[idx:]
         return cap, ""
 
+    # ── Activity effects (hover tooltip) ──────────────────────────────────────
+    # There is no in-engine effect list — each activity's effects are inline in its
+    # menu branch — so this table mirrors them. Keyed by (current_loc, name) where
+    # name is the caption before the "(...)". Each effect is (text, category);
+    # category picks the colour. Values are the BASE case (event/supplement bonuses
+    # still apply in-game but aren't spelled out). Unlisted activities show no panel.
+    ACT_FX_COLOR = {
+        "gain": "#7fd06a",   # stat/skill/need gains
+        "cost": "#e8704d",   # money out
+        "need": "#e8a24d",   # need drain (energy/hunger/hygiene down)
+        "time": "#8fb0d0",   # time spent
+        "info": "#b6c8dc",   # neutral note
+        "earn": "#ffd66a",   # money in
+    }
+    ACTIVITY_EFFECTS = {
+        # ── Grounds / café ───────────────────────────────────────────────
+        ("location_cafe", "Buy a coffee"):        [("0.5h", "time"), ("-$3", "cost"), ("+10 Energy", "gain")],
+        ("location_cafe", "Work a shift - Barista"): [("4h", "time"), ("+pay", "earn"), ("+Service exp", "gain"), ("-Energy", "need")],
+        # ── Gym ──────────────────────────────────────────────────────────
+        ("location_gym", "Train - weights"):      [("1.5h", "time"), ("-15 Energy", "need"), ("+20 Str exp", "gain"), ("+8 Appearance", "gain")],
+        ("location_gym", "Cardio"):               [("1h", "time"), ("-12 Energy", "need"), ("+10 Str exp", "gain"), ("+4 Appearance", "gain")],
+        ("location_gym", "Week pass"):            [("-$40", "cost"), ("7-day access", "info")],
+        ("location_gym", "Month pass"):           [("-$120", "cost"), ("30-day access", "info")],
+        ("location_gym", "Day rate"):             [("-$8", "cost"), ("1-day access", "info")],
+        ("location_gym", "Buy Protein Shake"):    [("-$12", "cost"), ("+1 Protein", "info")],
+        ("location_gym", "Work a shift"):         [("8h", "time"), ("+pay", "earn"), ("-Energy", "need")],
+        # ── Park ─────────────────────────────────────────────────────────
+        ("location_park", "Jog"):                 [("1h", "time"), ("+4 Str exp", "gain")],
+        ("location_park", "Read a book"):         [("1.5h", "time"), ("+3 Int exp", "gain")],
+        ("location_park", "Play basketball"):     [("1.5h", "time"), ("+8 Str exp", "gain")],
+        # ── Bar ──────────────────────────────────────────────────────────
+        ("location_bar", "Have a drink"):         [("0.5h", "time"), ("-$ drink", "cost")],
+        ("location_bar", "Socialize"):            [("1h", "time"), ("+Charisma", "gain"), ("needs Chr 25", "info")],
+    }
+
+    def activity_fx(caption):
+        """Effect list for an activity caption at the current location, or None."""
+        name = _split_caption(caption)[0]
+        return ACTIVITY_EFFECTS.get((store.current_loc, name))
+
 default activity_exit_jump = "map"
 default activity_exit_name = "City"
 
@@ -30,6 +70,8 @@ transform act_item:
         zoom 1.0 xoffset 0
 
 screen activity(items):
+    default _hover_fx = None
+    default _hover_nm = None
     # left column, ~19% of a 1920 screen; height grows with item count.
     viewport:
         xpos 44
@@ -51,6 +93,8 @@ screen activity(items):
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         insensitive_background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                        hovered [SetScreenVariable("_hover_fx", activity_fx(i.caption)), SetScreenVariable("_hover_nm", _nm)]
+                        unhovered SetScreenVariable("_hover_fx", None)
                         at act_item
                         fixed:
                             yalign 0.5
@@ -61,6 +105,22 @@ screen activity(items):
                             if _cs:
                                 text _cs:
                                     font ACT_FONT size 12 color "#527090" hover_color "#8ab0d0" insensitive_color "#3a4a56" xpos 212 xsize 128 yalign 0.5 line_leading 0
+
+    # Effects popup — appears to the right of the hovered activity bar.
+    if _hover_fx:
+        frame:
+            xpos 430 ypos 372
+            background Frame("images/ui/act_bar_idle.png", 24, 24, 24, 24)
+            padding (18, 14, 20, 14)
+            vbox:
+                spacing 7
+                text _hover_nm font ACT_FONT size 17 color "#ffffff"
+                null height 2
+                for _fx_txt, _fx_cat in _hover_fx:
+                    text _fx_txt:
+                        font ACT_FONT size 20 bold True
+                        color ACT_FX_COLOR.get(_fx_cat, "#cfe0f5")
+                        outlines [(2, "#000000cc", 0, 0)]
 
     frame:
         xalign 0.5

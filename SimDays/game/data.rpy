@@ -624,6 +624,7 @@ init python:
         _r.shuffle(pool)
         n = _r.choice([0, 0, 1, 1, 2])
         store.daily_events = pool[:n]
+        roll_gigs()   # refresh the phone's gig board (gigs.rpy)
 
     def in_debt():
         return store.loan > 0
@@ -669,8 +670,11 @@ init python:
         store.need_hunger  = max(0, store.need_hunger  - _hunger_loss)
         store.need_hygiene = max(0, store.need_hygiene - _hygiene_loss)
         store.warned_today = False
-        # topic streak: increment for topics used today, decay unused ones
-        for npc_id, used in store._topics_today.items():
+        # topic streak: increment for topics used today, decay unused ones.
+        # Iterate over the union of NPCs with a streak AND those talked to today —
+        # otherwise an NPC you ignore never decays and stays "burned out" forever.
+        for npc_id in set(store._topic_streak) | set(store._topics_today):
+            used = store._topics_today.get(npc_id, [])
             streak = dict(store._topic_streak.get(npc_id, {}))
             for t in used:
                 streak[t] = streak.get(t, 0) + 1
@@ -698,7 +702,7 @@ init python:
             if store.money < 0:
                 store.loan += -store.money
                 store.money = 0
-            # 10%/week interest on outstanding loan
+            # 5%/week interest on outstanding loan
             if store.loan > 0:
                 store.loan += max(1, int(store.loan * 0.05))
             # 2%/week interest on savings

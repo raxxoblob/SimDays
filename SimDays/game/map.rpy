@@ -66,9 +66,9 @@ define CENTRUM_VENUES = [
     ("gym",         "Gym",         "location_gym"),
     ("library",     "Library",     "location_library"),
     ("bar",         "Bar",         "location_bar"),
-    ("nightclub",   "Club",        "location_nightclub"),
-    ("garage",      "Car Dealer",  "location_cardealer"),
     ("restaurant_eleven", "Eleven", "location_kitchen"),
+    # Club moved to the Quayside nightlife strip; Car Dealer moved to the
+    # Warehouse District — both to unclutter Downtown (phone was overlapping it).
 ]
 
 # Mall shops (own backgrounds + icons). Shown as an icon bar inside the mall.
@@ -136,17 +136,19 @@ screen hallway_hub():
                     hover Transform("images/ui/icons/icon_door_12.png", size=(132, 132))
                     action Jump("location_home")
                 text "Your Place" xalign 0.5 size 16 color "#ffffff"
-            # Marcus's door
-            if marcus_met and (not move_in_complete or npc_here("marcus")):
+            # Marcus's door — always available once you've met him. When he's out,
+            # the door is dimmed and knocking just gets no answer (it never vanishes).
+            if marcus_met:
+                $ _marcus_home = (not move_in_complete or npc_here("marcus"))
                 vbox:
                     xsize 150
                     spacing 4
                     imagebutton:
                         xalign 0.5
-                        idle  Transform("images/ui/icons/icon_door_14.png", size=(120, 120))
+                        idle  Transform("images/ui/icons/icon_door_14.png", size=(120, 120), alpha=(1.0 if _marcus_home else 0.5))
                         hover Transform("images/ui/icons/icon_door_14.png", size=(132, 132))
-                        action Jump("marcus_talk")
-                    text "Marcus (14)" xalign 0.5 size 16 color "#ffffff"
+                        action (Jump("marcus_talk") if _marcus_home else Function(renpy.notify, "You knock on 14. No answer — Marcus is out."))
+                    text ("Marcus (14)" if _marcus_home else "Marcus (14) — out") xalign 0.5 size 16 color ("#ffffff" if _marcus_home else "#9a9a9a")
             # City Map — locked until player enters their apartment
             $ _city_locked = not move_in_complete
             vbox:
@@ -217,11 +219,12 @@ screen centrum_hub():
 
 define NADBRZEZE_VENUES = [
     # (venue_key for venue_open/hours, icon filename, label, jump target)
-    ("bar",     "anchor",     "The Anchor",     "location_anchor"),
-    ("terrace", "terrace",    "Terrace",         "location_terrace"),
-    ("casino",  "casino",     "Casino",          "location_casino"),
-    ("lombard", "lombard",    "Lombard",         "location_lombard"),
-    ("diner",   "restaurant", "Late-Night Diner", "location_diner"),
+    ("bar",       "anchor",     "The Anchor",      "location_anchor"),
+    ("terrace",   "terrace",    "Terrace",          "location_terrace"),
+    ("casino",    "casino",     "Casino",           "location_casino"),
+    ("nightclub", "nightclub",  "Club",             "location_nightclub"),   # moved from Downtown
+    ("lombard",   "lombard",    "Lombard",          "location_lombard"),
+    ("diner",     "restaurant", "Late-Night Diner", "location_diner"),
 ]
 
 screen nadbrzeze_hub():

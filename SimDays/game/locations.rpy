@@ -971,8 +971,8 @@ label location_shop_gifts:
 
 # ── CAR DEALER (status via car_tier) ──────────────────────────────────
 label location_cardealer:
-    $ activity_exit_jump = "location_centrum"
-    $ activity_exit_name = "Downtown"
+    $ activity_exit_jump = "location_warehouse"
+    $ activity_exit_name = "Warehouse"
     scene cardealer_day
     show screen hud
     $ _wed_amb = wed_poll_ambient("location_cardealer")
@@ -1079,8 +1079,8 @@ label location_kitchen:
 # ── NIGHTCLUB ─────────────────────────────────────────────────────────
 label location_nightclub:
     $ current_loc = "location_nightclub"
-    $ activity_exit_jump = "location_centrum"
-    $ activity_exit_name = "Downtown"
+    $ activity_exit_jump = "location_nadbrzeze"
+    $ activity_exit_name = "Quayside"
     hide screen people_here_dock
     # Priority 3: Zoe spontaneous moment (major, night only)
     if (zoe_moment_deflected_pending and major_scene_last_day != day
@@ -1578,6 +1578,8 @@ label location_warehouse:
             nat "Come back when you can actually lift. STR 25, minimum. Next."
             hide natalie_normal
             jump location_warehouse
+        "Visit the Car Dealership":   # relocated here from Downtown
+            jump location_cardealer
 
 # ── HOSPITAL ──────────────────────────────────────────────────────────
 label location_hospital:
