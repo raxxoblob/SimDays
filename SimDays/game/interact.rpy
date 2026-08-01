@@ -392,6 +392,15 @@ init python:
                 "trigger_day": store.day,
             }
 
+    def _rel_toast(npc_id, amount, label, up_col, down_col):
+        """Top-left toast for a relationship change during a live interaction —
+        guaranteed-visible feedback alongside the relbar's floating number."""
+        _p = NPC_DATA[npc_id].get("portrait", "")
+        _pi = "images/ui/icons/%s.png" % _p
+        _icon = _pi if (_p and renpy.loadable(_pi)) else "images/ui/icons/stat_social.png"
+        _push_gain(kind="rel", text=("%+d %s" % (amount, label)),
+                   color=(up_col if amount > 0 else down_col), icon=_icon)
+
     def _apply_aff(npc_id, delta):
         av = NPC_DATA[npc_id]["aff"]
         _old = getattr(store, av)
@@ -400,6 +409,7 @@ init python:
         setattr(store, av, _new)
         if _actual != 0 and store._npc_panel_npc_id == npc_id:
             store._rel_feedback_aff = _actual
+            _rel_toast(npc_id, _actual, "Affection", "#ffd76a", "#e86a55")
         if delta > 0:
             _check_relationship_thresholds(npc_id)
 
@@ -411,6 +421,7 @@ init python:
         setattr(store, tv, _new)
         if _actual != 0 and store._npc_panel_npc_id == npc_id:
             store._rel_feedback_tr = _actual
+            _rel_toast(npc_id, _actual, "Trust", "#7fe0ff", "#e86a55")
         if delta > 0:
             _check_relationship_thresholds(npc_id)
 

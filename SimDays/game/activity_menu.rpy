@@ -136,7 +136,7 @@ screen activity(items):
         if _fx:
             nearrect:
                 focus "tooltip"
-                prefer_top True
+                prefer_top False   # show BELOW the bar so the top items clear the people dock
                 frame:
                     background "#12161ef2"
                     padding (16, 12, 18, 12)
