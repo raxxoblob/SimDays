@@ -2086,7 +2086,16 @@ label map:
     show screen hud
     if not tip_map_shown:
         $ tip_map_shown = True
-        call screen tutorial_overlay("CITY MAP", "Choose a district or location to travel there immediately. Travel does not advance time, but locations have schedules and opening hours.")
+        # First trip out: walk the player through the HUD and needs, then the map.
+        $ _tut_skip = renpy.call_screen("tutorial_overlay", "YOUR HUD",
+            "The bar along the top tracks your day — the date and time, your cash, and three needs: Hunger, Hygiene and Energy.",
+            area=(139, 8, 1641, 129))
+        if not _tut_skip:
+            $ _tut_skip = renpy.call_screen("tutorial_overlay", "KEEP YOUR NEEDS UP",
+                "Watch those three needs. Low Energy blocks demanding things like work and training. Low Hygiene drops how others read your Appearance. If Hunger bottoms out, everything's a slog. Eat, shower and sleep to recover — the 'Me' panel (top-right) shows your full stats.")
+        if not _tut_skip:
+            $ renpy.call_screen("tutorial_overlay", "CITY MAP",
+                "Pick a district or venue to travel there instantly. Travel is free — it doesn't advance time — but venues keep their own schedules and opening hours.")
     call screen city_map
 
 # ── NORA - CLOSING TIME ────────────────────────────────────────────────
@@ -2789,17 +2798,22 @@ label location_terrace:
     menu (screen="activity"):
         "Sit and watch the water (1h)":
             $ spend_time(1)
-            $ gain_stat("int", 6)
-            "The city hum fades here. You think more clearly."
+            $ need_energy = min(100, need_energy + 18)
+            "The city hum fades here. The tension leaves your shoulders — you feel rested."
+            jump location_terrace
+        "Socialize (1h)":
+            $ spend_time(1)
+            $ gain_stat("chr", 6)
+            "You fall into easy conversation with the after-work crowd. Unhurried, pleasant."
             jump location_terrace
         "Have a coffee ($4)":
             if money < 4:
                 "Not enough cash."
                 jump location_terrace
             $ spend_time(0.5)
-            $ gain_money(-4)
-            $ gain_stat("chr", 4)
-            "Outdoor table, river smell, decent espresso."
+            $ gain_money(-4, "food")
+            $ need_energy = min(100, need_energy + 12)
+            "Outdoor table, river smell, decent espresso. You feel a little sharper."
             jump location_terrace
         "Read (1h, +INT)":
             $ spend_time(1)

@@ -29,16 +29,15 @@ init python:
     ]
     TOPIC_LABEL = dict(TOPICS)
 
-    # Sprite display scale. Everyone is feet-anchored (sprite_crop) so they fill
-    # the frame from the bottom. We deliberately do NOT down-scale thigh-cropped
-    # art any more: scaling it down left it sitting low ("in the floor"). A cropped
-    # sprite just fills the frame with a slightly larger head until its art is
-    # refreshed to full-body. Men still get a very light size nudge.
-    SPRITE_MEN  = {"marcus", "eli", "sam", "kai"}
-    MALE_SCALE  = 1.05
+    # Sprite display scale. Everyone is feet-anchored (sprite_crop) so they rise
+    # from the bottom of the frame. Women render ~13% smaller than the men so they
+    # don't tower over / match Marcus. (Main cast is nearly all women — Sam, Eli
+    # and Kai are all she/her; Marcus is the only man.)
+    SPRITE_MEN   = {"marcus"}
+    FEMALE_SCALE = 0.87   # women 13% smaller than men
 
     def sprite_display_scale(npc_id):
-        return MALE_SCALE if npc_id in SPRITE_MEN else 1.0
+        return 1.0 if npc_id in SPRITE_MEN else FEMALE_SCALE
 
     # say  = the Character variable to speak as (defined in characters.rpy)
     # world/met/min_status = availability (see npc_known)
@@ -799,13 +798,26 @@ init python:
         fs_record_social(npc_id, "talk")
         record_social_attention(npc_id, "talk")
 
+    # Fallback chains — different characters have different expression art, so
+    # try the best match first and degrade gracefully (Marcus has _worried, not
+    # _angry; some have _smile instead of _laugh).
+    _EXPR_ALTS = {
+        "angry": ["angry", "worried", "cold", "sad", "surprised"],
+        "laugh": ["laugh", "smile", "happy"],
+        "talk":  ["talk", "smile"],
+    }
+
     def npc_expr_sprite(npc_id, expr):
-        """The NPC's <expr> sprite (talk/laugh/angry) if that image exists, else base."""
+        """The NPC's best available <expr> sprite (talk/laugh/angry), else base."""
         base = NPC_DATA[npc_id]["sprite"]
         for _suf in ("_normal", "_neutral"):
             if base.endswith(_suf):
-                cand = base[:-len(_suf)] + "_" + expr
-                return cand if renpy.has_image(cand) else base
+                root = base[:-len(_suf)]
+                for _alt in _EXPR_ALTS.get(expr, [expr]):
+                    cand = root + "_" + _alt
+                    if renpy.has_image(cand):
+                        return cand
+                return base
         return base
 
     def show_npc_expr(npc_id, expr):
@@ -2263,6 +2275,7 @@ label kai_greet:
 
 label do_hug_interaction(npc_id):
     $ _hug_text = do_hug(npc_id)
+    $ show_npc_expr(npc_id, "laugh" if store._last_hug_accepted else "angry")
     $ _hug_cg_name = "cg_" + npc_id + "_hug"
     # Only show the embrace CG when the hug was actually accepted — otherwise the
     # image (a full hug) would contradict a rejection/cooldown line.
@@ -2277,6 +2290,7 @@ label do_hug_interaction(npc_id):
 
 label do_kiss_interaction(npc_id):
     $ (_kiss_outcome, _kiss_text) = do_kiss(npc_id)
+    $ show_npc_expr(npc_id, "laugh" if _kiss_outcome in ("first_kiss", "warm", "repeat") else "angry")
     if _kiss_outcome == "first_kiss":
         $ _fk_label = "scene_first_kiss_" + npc_id
         if renpy.has_label(_fk_label):

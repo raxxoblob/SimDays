@@ -51,6 +51,11 @@ init python:
         # ── Bar ──────────────────────────────────────────────────────────
         ("location_bar", "Have a drink"):         [("0.5h", "time"), ("-$ drink", "cost")],
         ("location_bar", "Socialize"):            [("1h", "time"), ("+Charisma", "gain"), ("needs Chr 25", "info")],
+        # ── Riverside Terrace ────────────────────────────────────────────
+        ("location_terrace", "Sit and watch the water"): [("1h", "time"), ("+18 Energy", "gain")],
+        ("location_terrace", "Socialize"):        [("1h", "time"), ("+Charisma", "gain")],
+        ("location_terrace", "Have a coffee"):    [("0.5h", "time"), ("-$4", "cost"), ("+12 Energy", "gain")],
+        ("location_terrace", "Read"):             [("1h", "time"), ("+Intellect", "gain")],
         # ── Home ─────────────────────────────────────────────────────────
         ("location_home", "Shower"):              [("0.5h", "time"), ("+40 Hygiene", "gain")],
         ("location_home", "Nap"):                 [("3h", "time"), ("+45 Energy", "gain")],
