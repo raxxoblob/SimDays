@@ -1188,21 +1188,25 @@ label location_park:
     $ activity_exit_jump = "map"
     $ activity_exit_name = "City Map"
     $ _sam_marcus_fired = False
-    # Priority 2: pending conflict scenes
+    scene expression ("parknight" if hour >= 20 else "parkday")
+    show screen hud
+    hide screen people_here_dock
+    # Priority 2: pending conflict scenes (after scene so bg is established first)
     if marcus_missed_pending and marcus_affection >= 30:
         call scene_marcus_missed_commitment
+        scene expression ("parknight" if hour >= 20 else "parkday")
+        show screen hud
     # Priority 3: Sam × Marcus crossover (MAJOR; weekday morning only)
     if (sam_marcus_scene_pending and npc_here("sam") and npc_here("marcus")
             and 6 <= hour < 10 and major_scene_last_day != day):
         call scene_sam_marcus_park
         $ _sam_marcus_fired = True
+        scene expression ("parknight" if hour >= 20 else "parkday")
+        show screen hud
     # Priority 5: Zoe rain shelter (auto-trigger, Thu/Fri afternoon, minor)
     if (not zoe_rain_done and zoe_met and zoe_affection >= 15
             and day % 7 in [3, 4] and 14 <= hour <= 18):
         call scene_zoe_rain_shelter
-    scene expression ("parknight" if hour >= 20 else "parkday")
-    show screen hud
-    hide screen people_here_dock
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_park")
     if _wed_amb:

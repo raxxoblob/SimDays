@@ -408,7 +408,7 @@ screen phone_thread_scr():
         $ _tname  = NPC_DATA[_tnpc]["name"] if (_tnpc and _tnpc in NPC_DATA) else ""
         $ _texted = _tnpc in npc_texted_today if _tnpc else True
         vbox:
-            xsize (PHONE_SCR_W - 8)
+            xsize (PHONE_SCR_W - 24)
             xalign 0.5
             spacing 0
             # Header
