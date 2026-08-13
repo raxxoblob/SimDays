@@ -395,3 +395,104 @@ label wev_trainer_tex_client_shortcut:
     "The client gestures toward the walk from the changing room."
     mc "We're keeping the warm-up."
     return
+
+
+# ── Phase 64: paid group class ──────────────────────────────────────────────────
+# The fitness half of the generalist income fix. Not a career: an occasional
+# stand-in slot the gym offers you once you visibly know what you are doing.
+# Capped around $50/week EV — a trainer shift still pays several times more.
+
+default gym_class_last_day = -99
+default gym_classes_led    = 0
+
+init python:
+
+    GYM_CLASS_HOURS      = 1.5
+    GYM_CLASS_ENERGY     = 18
+    GYM_CLASS_COOLDOWN   = 3      # days
+    GYM_CLASS_MIN_FIT    = 4
+    _GYM_CLASS_CHANCE    = 0.60   # ~1-2 slots a week once off cooldown
+    _GYM_CLASS_DIFFICULTY = 45
+
+    # A class that goes badly still gets paid — the members turned up and the
+    # hour happened. It just pays the floor (Phase 60/61 forward-progress rule).
+    _GYM_CLASS_PAY_MULT = {"critical_failure": 0.60, "weak": 0.80,
+                           "success": 1.00, "great": 1.15, "critical": 1.30}
+
+    def gym_class_base_pay():
+        # fit4 -> $34, fit6 -> $42, fit8 -> $50, fit10 -> $55 (hard ceiling).
+        # Tuned so EV/hour at mid skill (fit 6) stays under the Phase 63 $30/h
+        # benchmark: $42 / 1.5h = $28/h.
+        return min(55, 18 + skill_val("fit") * 4)
+
+    def gym_class_available():
+        """Stable per day — seeded on the day number, so it cannot be rerolled
+        by walking out of the gym and back in."""
+        if skill_val("fit") < GYM_CLASS_MIN_FIT:
+            return False
+        if store.day - store.gym_class_last_day < GYM_CLASS_COOLDOWN:
+            return False
+        import random as _r
+        return _r.Random(store.day * 733 + 29).random() <= _GYM_CLASS_CHANCE
+
+    def _gym_class_mods():
+        mods = []
+        if skill_val("fit") >= 7:            mods.append(("Experienced coach", +6))
+        if store.gym_classes_led >= 3:       mods.append(("Regulars know you", +4))
+        if has_player_state("confident"):    mods.append(("Confident", +5))
+        if store.need_energy < 30:           mods.append(("Low energy", -8))
+        return mods
+
+    def gym_class_pay_range():
+        base = gym_class_base_pay()
+        return (int(round(base * min(_GYM_CLASS_PAY_MULT.values()))),
+                int(round(base * max(_GYM_CLASS_PAY_MULT.values()))))
+
+    def gym_class_chance():
+        return calculate_check_chance("gym_class", skill_val("fit"),
+                                      _GYM_CLASS_DIFFICULTY, _gym_class_mods())
+
+    def do_gym_class():
+        """Charges time + energy, rolls the session, pays out. No cash cost."""
+        spend_time(GYM_CLASS_HOURS)
+        store.need_energy = max(0, store.need_energy - GYM_CLASS_ENERGY)
+        result = roll_check("gym_class", skill_val("fit"), _GYM_CLASS_DIFFICULTY,
+                            _gym_class_mods(), stable=False)
+        tier = result["tier"]
+        pay = int(round(gym_class_base_pay() * _GYM_CLASS_PAY_MULT[tier]))
+        gain_money(pay, "fitness")
+        store.gym_class_last_day = store.day
+        store.gym_classes_led   += 1
+        xp = gain_skill_practice("fit", 8, 1)
+        gain_stat("str", 6)
+        record_game_event("gym_class_day%d" % store.day, "career",
+                          "Led a group class at the gym", summary=True, journal=False,
+                          metadata={"pay": pay, "tier": tier})
+        return {"roll": result, "tier": tier, "pay": pay, "xp": xp}
+
+    def _gym_class_lines(res):
+        return [("Paid", "$%d" % res["pay"]), ("Fitness XP", "+%d" % res["xp"]),
+                ("STR", "+6")]
+
+
+label gym_class_flow:
+    if not gym_class_available():
+        "No class needs covering today."
+        return
+    $ _gc_lo, _gc_hi = gym_class_pay_range()
+    $ _gc_chance = gym_class_chance()["success_or_better"]
+    $ _gc_hrs = ("%g" % GYM_CLASS_HOURS)
+    "The desk flags you down. \"Our circuit instructor called in sick. Can you take the class?\""
+    menu:
+        "[_gc_hrs]h. Pays $[_gc_lo]-[_gc_hi]. [_gc_chance]% to run it well."
+        "Take the class":
+            pass
+        "Not today":
+            return
+    $ _gc_res = do_gym_class()
+    call screen check_result_scr(_gc_res["roll"], title="Group Class", xtra_lines=_gym_class_lines(_gc_res))
+    if _gc_res["tier"] in ("critical_failure", "weak"):
+        "You lose the room somewhere in the middle and never quite get it back. They still clap."
+    else:
+        "You read the room, scale the moves, and finish them on the floor. Two people ask when you're on next."
+    return

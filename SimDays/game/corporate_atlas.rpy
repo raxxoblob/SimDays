@@ -89,7 +89,7 @@ label corporate_atlas_research:
                 $ atlas_score += 1
             $ atlas_score += 2
             $ atlas_risk += 1
-            $ job_performance = min(100, job_performance + 3)
+            $ _work_perf("corporate", 3)
         "Send Caroline a quick holding email." if corporate_style != "reliable":
             "You flag the issue. You haven't solved it yet, but she'll know you've seen it."
             show caroline_normal at sprite_r
@@ -262,7 +262,7 @@ label corporate_atlas_presentation:
             "She's waiting to see what you do with this moment."
             hide martha_neutral
         hide caroline_normal
-        $ job_performance = min(100, job_performance + 15)
+        $ _work_perf("corporate", 15)
         $ corp_review_score += 2
         $ gain_skill("biz", 8)
     elif _atlas_result >= 3:
@@ -274,7 +274,7 @@ label corporate_atlas_presentation:
         caro "The growth projections will need to be revisited. I'll set up a follow-up call with their team."
         "She's not pleased. She's also not shutting it down."
         hide caroline_normal
-        $ job_performance = min(100, job_performance + 8)
+        $ _work_perf("corporate", 8)
         $ corp_review_score += 1
         $ gain_skill("biz", 5)
     else:
@@ -288,7 +288,7 @@ label corporate_atlas_presentation:
         caro "We'll regroup this week. I need to understand what happened on the research side."
         "It's not a firing. It's something more uncomfortable — an open question."
         hide caroline_normal
-        $ job_performance = max(0, job_performance - 5)
+        $ _work_perf("corporate", -5)
         $ gain_skill("biz", 3)
     $ atlas_presentation_done = True
     $ atlas_stage = 5
@@ -388,7 +388,7 @@ label corporate_atlas_aftermath:
         "\"It was my project. I own the outcome either way.\"":
             "You mean it in both directions — the wins and the gaps."
             if _atlas_result >= 6:
-                $ job_performance = min(100, job_performance + 3)
+                $ _work_perf("corporate", 3)
                 $ _apply_trust("martha", -2)
             else:
                 "Martha hears it. Says nothing. The nothing means something."

@@ -11,6 +11,29 @@ init python:
     _DBG_CAREERS = [("corporate", "Corporate"), ("it", "IT"), ("hospital", "Hospital"),
                     ("culinary", "Culinary"), ("trainer", "Trainer")]
 
+    def _dbg_skill_balance_report():
+        lines = []
+        for key in PRO_SKILLS:
+            lvl  = skill_val(key)
+            xp   = store.skill_exp.get(key, 0)
+            need = skill_exp_needed(lvl)
+            gated_info = ""
+            if lvl < 10:
+                next_gated = next((l for l in sorted(_GATED_LEVELS) if l > lvl), None)
+                if next_gated:
+                    done = skill_gate_completed(key, next_gated)
+                    gated_info = "  gate@%d:%s" % (next_gated, "OPEN" if done else "LOCKED")
+            lines.append("%s Lv%d  %d/%d XP%s" % (key.upper(), lvl, xp, need, gated_info))
+        lines.append("---")
+        for cid in store.active_careers:
+            c = _migrate_career_entry(store.active_careers[cid])
+            promote_ok = can_promote(cid)
+            req = _RANK_SHIFT_REQ[c["rank"]] if c["rank"] < len(_RANK_SHIFT_REQ) else 20
+            lines.append("%s r%d perf%d shifts%d/%d %s" % (
+                cid, c["rank"], c["perf"], c["rank_shifts"], req,
+                "PROMOTE-READY" if promote_ok else ""))
+        renpy.notify("  |  ".join(lines))
+
     def _dbg_set_stats(v):
         for _s in ("str", "int", "chr", "app"):
             setattr(store, "stat_" + _s, v)
@@ -29,10 +52,13 @@ init python:
             return
         rank = max(0, min(rank, len(c["ranks"]) - 1))
         _ac = dict(store.active_careers)
-        _ac[cid] = {"rank": rank, "perf": 100}
+        _ac[cid] = {"rank": rank, "perf": 100, "rank_shifts": 99, "total_shifts": 99, "joined_day": store.day, "last_shift_day": -1}
         store.active_careers = _ac
         _sync_job(cid)
         renpy.notify("%s — rank %d" % (c["name"], rank + 1))
+
+    def _dbg_add_money(amount):
+        gain_money(amount)   # gain_money returns True; wrapper swallows it so Function() doesn't end the interaction
 
     def _dbg_meet_all():
         for _n in _DBG_NPCS:
@@ -48,6 +74,34 @@ init python:
         setattr(store, NPC_DATA[nid]["aff"], v)
         setattr(store, NPC_DATA[nid]["trust"], min(v, 100))
         renpy.notify("%s — aff/trust %d" % (NPC_DATA[nid]["name"], v))
+
+    def _dbg_expire_states():
+        store.player_states = []
+        renpy.notify("Player states cleared")
+
+    def _dbg_gen_city_events():
+        generate_city_events_for_week(store.day // 7)
+        renpy.notify("City events generated for week %d" % (store.day // 7))
+
+    def _dbg_add_test_invitation():
+        inv = {
+            "id": "dbg_marcus_01_%d" % store.day,
+            "template_id": "marcus_static_01",
+            "npc_id": "marcus",
+            "location": "location_bar",
+            "day": store.day,
+            "start_hour": 21,
+            "end_hour": 23,
+            "title": "Marcus: Grab a drink at the bar",
+            "status": "pending",
+        }
+        store.active_npc_invitations = list(store.active_npc_invitations) + [inv]
+        renpy.notify("Test invitation added")
+
+    def _dbg_show_clients():
+        count = len(store.client_profiles)
+        names = ", ".join(store.client_profiles.keys()) if count else "none"
+        renpy.notify("Client profiles (%d): %s" % (count, names))
 
     config.overlay_screens.append("debug_hotkey")
 
@@ -96,10 +150,18 @@ screen debug_menu():
                     text "RESOURCES" font PROFILE_FONT size 16 color "#5bcafa"
                     hbox:
                         spacing 8
-                        textbutton "+$1,000"  action Function(gain_money, 1000)  text_size 16
-                        textbutton "+$10,000" action Function(gain_money, 10000) text_size 16
+                        textbutton "+$1,000"  action Function(_dbg_add_money, 1000)  text_size 16
+                        textbutton "+$10,000" action Function(_dbg_add_money, 10000) text_size 16
                         textbutton "Clear loan" action SetVariable("loan", 0) text_size 16
                         textbutton "Refill needs" action Function(_dbg_refill) text_size 16
+
+                    null height 6
+                    text "COMPUTER OS" font PROFILE_FONT size 16 color "#5bcafa"
+                    hbox:
+                        spacing 8
+                        textbutton "Open Desktop" action [Hide("debug_menu"), Function(renpy.call_in_new_context, "computer_desktop_session")] text_size 16
+                        textbutton "Badge counts" action Function(debug_print_badges) text_size 16
+                        text ("visual tier %d" % computer_visual_tier()) font ACT_FONT size 15 color "#8ea4bc" yalign 0.5
 
                     null height 6
                     text "STATS & SKILLS" font PROFILE_FONT size 16 color "#5bcafa"
@@ -143,8 +205,52 @@ screen debug_menu():
                             textbutton "Rel 80" action Function(_dbg_set_rel, _nid, 80) text_size 14
                             textbutton "Talk →" action [SetVariable("_dbg_talk_npc", _nid), Hide("debug_menu"), Jump("debug_talk")] text_size 14 text_color "#ffd66a"
 
+                    null height 6
+                    text "SKILL BALANCE" font PROFILE_FONT size 16 color "#5bcafa"
+                    hbox:
+                        spacing 8
+                        textbutton "Skill/Gate report" action Function(_dbg_skill_balance_report) text_size 16 text_color "#ffd66a"
+                        textbutton "Clear gates" action [SetVariable("skill_gates_completed", {}), Notify("Gates cleared")] text_size 16
+                        textbutton "Clear courses" action [SetVariable("completed_courses", []), Notify("Courses cleared")] text_size 16
+                        textbutton "Reset DR" action [SetVariable("daily_activity_load", {}), Notify("Daily DR reset")] text_size 16
+
+                    null height 4
+                    textbutton "▶  Balance report" action [Hide("debug_menu"), Show("debug_balance_scr")] text_size 18 text_color "#ffd66a"
+
+                    null height 10
+                    text "PHASE 57-59 SYSTEMS" font PROFILE_FONT size 16 color "#5bcafa"
+                    hbox:
+                        spacing 8
+                        textbutton "Focused state" action Function(_add_player_state_wrapper, "focused", "debug") text_size 15
+                        textbutton "Stressed state" action Function(_add_player_state_wrapper, "stressed", "debug") text_size 15
+                        textbutton "Expire states" action Function(_dbg_expire_states) text_size 15
+                    hbox:
+                        spacing 8
+                        textbutton "Gen city events" action Function(_dbg_gen_city_events) text_size 15
+                        textbutton "Test invitation" action Function(_dbg_add_test_invitation) text_size 15
+                        textbutton "Client profiles" action Function(_dbg_show_clients) text_size 15
+                        textbutton "Unlock gallery" action Function(unlock_location, "future_gallery", "debug") text_size 15
+
+                    null height 10
+                    textbutton "▶  Scene Tester (launch authored scenes)" action [Hide("debug_menu"), Show("debug_scene_tester")] text_size 18 text_color "#ffd66a"
+
+                    null height 10
+                    textbutton "▶  NPC Schedules" action [Hide("debug_menu"), Show("debug_schedule_scr")] text_size 18 text_color "#7fd06a"
+
                     null height 10
                     textbutton "▶  Character size viewer" action [Hide("debug_menu"), Show("debug_char_viewer")] text_size 18 text_color "#7fd06a"
+
+                    null height 10
+                    textbutton "▶  Phase 61 (cooking / mechanics / market)" action [Hide("debug_menu"), Show("debug_p61_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Phase 62 (home / items / wardrobe)" action [Hide("debug_menu"), Show("debug_p62_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Phase 64 self-check (balance assertions)" action [Hide("debug_menu"), Show("debug_p64_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Phase 65 (capabilities / painting)" action [Hide("debug_menu"), Show("debug_p65_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Phase 69 (possessions / bests)" action [Hide("debug_menu"), Show("debug_p69_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Phase 66 (relationship depth)" action [Hide("debug_menu"), Show("debug_p66_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Phase 67 (world pulse / ambient)" action [Hide("debug_menu"), Show("debug_p67_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Phase 68 (NPC initiative / lives)" action [Hide("debug_menu"), Show("debug_p68_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Rare outcomes (variance / cooldowns)" action [Hide("debug_menu"), Show("debug_rare_scr")] text_size 18 text_color "#7fd06a"
+                    textbutton "▶  Downtown Summer Festival" action [Hide("debug_menu"), Show("debug_sf_scr")] text_size 18 text_color "#7fd06a"
 
 
 # ── Talk-to-anyone (from debug) ───────────────────────────────────────────
@@ -188,15 +294,17 @@ screen debug_char_viewer():
                 for _nid in _DBG_NPCS:
                     $ _spr = NPC_DATA[_nid]["sprite"]
                     $ _sc  = sprite_display_scale(_nid)
+                    $ _yfix = sprite_display_y_offset(_nid)
                     vbox:
                         spacing 2
-                        # feet-aligned box; height scales with the character's display scale
                         fixed:
                             xysize (230, 820)
                             add Solid("#181c22") xysize (230, 820)
                             add _spr:
                                 fit "contain"
-                                xysize (230, int(800 * _sc))
+                                xysize (230, 800)
+                                zoom _sc
                                 xalign 0.5
                                 yalign 1.0
+                                yoffset _yfix
                         text ("%s  x%.2f" % (NPC_DATA[_nid]["name"], _sc)) font ACT_FONT size 15 color "#cfe0f5" xalign 0.5

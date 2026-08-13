@@ -27,6 +27,7 @@ label location_home_actions:
     $ activity_exit_name = "Hallway"
     scene expression home_bg()
     show screen hud
+    call check_levelup_notices
     # Commitment triggers for home-visit scenes
     if commitment_available("eli_side_project_1"):
         call home_eli_side_project_scene
@@ -56,12 +57,27 @@ label location_home_actions:
         call expression _wed_per
         jump location_home_actions
 
+    # Phase 62: caption helpers (menu captions can only interpolate variables).
+    $ _p62_morning_label = ("Make %s (0.5h)" % ITEM_CATALOG[morning_item()]["label"]) if morning_item() else "Make coffee (0.5h)"
+    $ _p62_strings_cost  = GUITAR_STRINGS_COST
+    $ _p62_has_guitar    = (own_guitar or equipped_in("music_corner", "instrument") is not None)
+    $ _p65_art_menu_label = ("Paint..." if has_home_capability("painting")
+                             else "Sketching and artwork" if has_home_capability("sketching")
+                             else "Your artworks")
+    # Ambient line about how the flat currently looks — flavour only, once a day.
+    if check_home_ambient():
+        "[_p62_home_flavor]"
+
     menu (screen="activity"):
         "Sleep":
             jump action_sleep_menu
 
-        "Cook something" if need_hunger < 90:
+        "Cook something":
             jump location_home_cook
+
+        "A catering order came in" if catering_offer() is not None:
+            call do_catering_flow
+            jump location_home_actions
 
         "Shower (0.5h)" if need_hygiene < 90:
             scene cheap_home_shower
@@ -88,7 +104,20 @@ label location_home_actions:
         "Use computer" if own_computer:
             jump use_computer
 
-        "Practice guitar (2h)" if own_guitar:
+        "Repair bench":
+            call repair_bench
+            jump location_home_actions
+
+        # Phase 65: ONE line for the whole painting system. The gate is a
+        # capability, never an item id — buying a studio easel instead of a
+        # basic one changes nothing here.
+        "[_p65_art_menu_label]" if (has_home_capability("painting")
+                                    or has_home_capability("sketching")
+                                    or len(player_artworks) > 0):
+            call painting_menu
+            jump location_home_actions
+
+        "Practice guitar (2h)" if _p62_has_guitar:
             $ _guitar_owarn = _overlap_warning_text(2)
             if _guitar_owarn:
                 menu:
@@ -100,11 +129,13 @@ label location_home_actions:
             $ _guitar_uses = activity_use_count_today("home_guitar")
             $ mark_activity_used_today("home_guitar")
             $ spend_time(2)
+            $ _guitar_e = max(1, int(15 * apply_skill_music_energy_modifier() * (1.0 - home_upgrade_effect("guitar_energy"))))
+            $ need_energy = max(0, need_energy - _guitar_e)
             if _guitar_uses == 0:
-                $ gain_skill("music", 5)
+                $ gain_skill_practice("music", 5, 2)
                 "You run scales and a couple of songs. Fingers sore, ear sharper."
             elif _guitar_uses == 1:
-                $ gain_skill("music", 2)
+                $ gain_skill_practice("music", 2, 2)
                 "A second session. Progress is slower, but you find a cleaner chord shape."
             else:
                 "You noodle for a bit. Your fingers aren't interested today."
@@ -124,93 +155,105 @@ label location_home_actions:
             call home_dinner_invite_menu
             jump location_home_actions
 
+        "Home workout (1h)" if owns_home_upgrade("basic_home_gym"):
+            $ spend_time(1)
+            $ need_energy = max(0, need_energy - 25)
+            $ gain_stat("str", 12)
+            "You put in a solid hour on the equipment. Sweat is honest."
+            jump location_home_actions
+
+        "Invite someone over" if (hour < 23 and any(can_invite_npc_home(n) for n in NPC_HOME_COMPATIBILITY)):
+            call location_home_invite_menu
+            jump location_home_actions
+
+        # ── Phase 62 ─────────────────────────────────────────────────────
+        "[_p62_morning_label]" if morning_item_available():
+            $ spend_time(0.5)
+            $ _p62_drink = use_morning_item()
+            if _p62_drink:
+                $ _p62_drink_name, _p62_drink_gain = _p62_drink
+                "You make yourself something with the [_p62_drink_name]. +[_p62_drink_gain] Energy."
+            jump location_home_actions
+
+        "Put a record on (0.5h)" if owns_item("record_player"):
+            $ spend_time(0.5)
+            $ add_player_state("inspired", "record_player")
+            "You drop the needle and let the first side play out. The flat feels like yours."
+            jump location_home_actions
+
+        "Change guitar strings ($[_p62_strings_cost])" if (_p62_has_guitar and can_refresh_strings()):
+            $ refresh_strings()
+            "You strip the old set off and put fresh strings on. Everything rings again."
+            jump location_home_actions
+
+        "Look around your place":
+            call screen home_rooms_scr
+            jump location_home_actions
+
+        # Phase 64: world_challenges_scr existed since Phase 60D but was reachable
+        # only from the debug menu. Home is the entry point because it is the one
+        # location every player can always reach (the gym needs a paid pass).
+        # The screen is Return-based, so it must be `call screen`, not Show().
+        "Your challenges":
+            call screen world_challenges_scr
+            jump location_home_actions
+
+
+label location_home_invite_menu:
+    $ _available_guests = [n for n in NPC_HOME_COMPATIBILITY if can_invite_npc_home(n)]
+    if not _available_guests:
+        "Nobody's free to come over right now."
+        jump location_home_actions
+    # ponytail: time/energy/rel spent inside home_visit screen via complete_home_visit
+    call screen home_visit_scr(_available_guests)
+    if _return is not None:
+        $ _hv_res_npc, _hv_res_act = _return
+        if _hv_res_act == "cook_together":
+            call cook_together_flow(_hv_res_npc)
+        else:
+            $ _hv_flavour = _home_visit_act_label(_hv_res_npc, _hv_res_act)
+            "[_hv_flavour]"
+    jump location_home_actions
+
 
 label location_home_cook:
-    scene cheap_home_cook
-    show screen hud
-    menu (screen="activity"):
-        "Toast ($2, +15 hunger)":
-            if money < 2:
-                "Not enough cash."
-                jump location_home_actions
-            $ spend_time(0.25)
-            $ gain_money(-2, "food")
-            $ need_hunger = min(100, need_hunger + 15)
-            "Two slices of toast. Better than nothing."
-            jump location_home_actions
-        "Instant noodles ($3, +22 hunger)":
-            if money < 3:
-                "Not enough cash."
-                jump location_home_actions
-            $ spend_time(0.25)
-            $ gain_money(-3, "food")
-            $ need_hunger = min(100, need_hunger + 22)
-            "Straight out of the packet, four minutes. Fine."
-            jump location_home_actions
-        "Scrambled eggs ($5, +32 hunger)":
-            if money < 5:
-                "Not enough cash."
-                jump location_home_actions
-            $ spend_time(0.5)
-            $ gain_money(-5, "food")
-            $ need_hunger = min(100, need_hunger + 32)
-            "Oil, heat, three eggs. You feel a bit more human."
-            jump location_home_actions
-        "Pasta bolognese ($8, +55 hunger) [[Cooking Lv 2]]" if skill_cook >= 2:
-            if money < 8:
-                "Not enough cash."
-                jump location_home_actions
-            $ spend_time(0.5)
-            $ gain_money(-8, "food")
-            $ need_hunger = min(100, need_hunger + 55)
-            $ gain_skill("cook", 2)
-            "Proper sauce, actual garlic. Getting the hang of this."
-            jump location_home_actions
-        "Chicken stir-fry ($10, +65 hunger, +8 energy) [[Cooking Lv 4]]" if skill_cook >= 4:
-            if money < 10:
-                "Not enough cash."
-                jump location_home_actions
-            $ spend_time(0.75)
-            $ gain_money(-10, "food")
-            $ need_hunger = min(100, need_hunger + 65)
-            $ need_energy = min(100, need_energy + 8)
-            $ gain_skill("cook", 2)
-            "Fast, hot, loud. A proper meal - you feel it in the energy too."
-            jump location_home_actions
-        "Sunday roast ($18, +80 hunger, +15 energy) [[Cooking Lv 7]]" if skill_cook >= 7:
-            if money < 18:
-                "Not enough cash."
-                jump location_home_actions
-            $ spend_time(1.0)
-            $ gain_money(-18, "food")
-            $ need_hunger = min(100, need_hunger + 80)
-            $ need_energy = min(100, need_energy + 15)
-            $ gain_skill("cook", 3)
-            "An afternoon's prep. The apartment smells like a real home. You feel genuinely full for the first time in a while."
-            jump location_home_actions
-        "Close the fridge.":
-            jump location_home_actions
+    # Phase 61: routed through the real Cooking system (recipes, mastery, quality).
+    call do_cook_flow
+    jump location_home_actions
 
 # ponytail: reuses home_bg - swap for a desk/monitor screen background later.
 label use_computer:
+    $ current_loc = "location_home"
     scene expression home_bg()
     show screen hud
+    # Show project result if one is pending from freelance submit
+    if store._pending_project_result is not None:
+        call show_project_result
+    $ _prog_eff = current_practice_efficiency("prog")
+    $ _prog_lbl = ("Programming Practice (3h)  [%s eff]" % _prog_eff) if _prog_eff != "100%" else "Programming Practice (3h)"
     menu (screen="activity"):
-        "Practice coding (3h)":
+        "Open Desktop":
+            call computer_desktop_session
+            jump use_computer
+        "[_prog_lbl]":
             $ spend_time(3)
-            $ gain_skill("prog", 7 if own_programming_kit else 5)
-            $ need_energy = max(0, need_energy - 15)
-            "Three hours deep in a side project. The docs finally click."
+            $ _prog_xp_base = 7 if own_programming_kit else 5
+            $ _prog_xp_base = int(round(_prog_xp_base * (1.0 + float(equipment_modifier("computer", "prog_xp")))))
+            $ gain_skill_practice("prog", _prog_xp_base, 3)
+            $ _prog_e = max(1, int(15 * apply_skill_prog_energy_modifier() * (1.0 - home_upgrade_effect("desk_efficiency")) * (1.0 - float(equipment_modifier("computer", "project_energy")))))
+            if active_player_state_effect("prog_energy_up") > 0:
+                $ _prog_e = int(_prog_e * (1.0 + active_player_state_effect("prog_energy_up")))
+            $ need_energy = max(0, need_energy - _prog_e)
+            "You work through a few exercises. Good for keeping the fundamentals sharp."
             jump use_computer
         "Trade stocks":
             $ store._stock_session_charged = False
             call screen stock_market
             jump use_computer
-        "Browse the web (0.5h)":
-            $ spend_time(0.5)
-            "You fall down a few rabbit holes. Nothing productive."
+        "Home Upgrades":
+            call screen home_upgrades_scr
             jump use_computer
-        "Get up":
+        "Turn off computer":
             jump location_home_actions
 
 # ── CAFE ──────────────────────────────────────────────────────────────
@@ -221,9 +264,23 @@ label location_cafe:
     # nora_last_seen_day is set in nora_greet (on actual interaction), not on location entry
     # After-hours commitment (Nora closing) fires at/after close — exempt from the
     # open-check below, since it is by design an out-of-hours meeting.
-    if commitment_available("nora_closing_1"):
+    if _nora_closing_commitment_accepted():
         call phone_nora_closing_scene
         jump map
+    # Priority 1b: after-hours authored Nora scenes. The closing scene is written
+    # for a locked-up café (chairs stacked, one lamp, she hands you the last cup
+    # and turns the lights off), so it belongs AFTER 19:00 — it cannot be moved
+    # into opening hours. Without this exemption it was unreachable: cafe_actions,
+    # where the gate lives, sits behind the venue-open check.
+    # Narrow by design — three authored labels only, 19:00-21:00, and it does NOT
+    # open cafe_actions or any generic café activity.
+    if hour >= 19 and hour < 21:
+        if _nora_auto_closing_eligible():
+            jump nora_closing_scene
+        elif _nora_romance_reopen_eligible():
+            call scene_nora_romance_reopen
+            jump map
+        # else: fall through to the venue-open check → "the café is closed"
     # Venue-open gate FIRST: no ambient scene should stage in a closed café
     # (a scene playing, then "the café is closed" afterwards, is the bug this fixes).
     if not venue_open("coffee_shop"):
@@ -242,6 +299,19 @@ label location_cafe:
     # Priority 5: Kai café quiet (defers when nora_kai_pending has priority)
     if kai_cafe_quiet_pending and npc_here("kai") and not nora_kai_pending:
         call scene_kai_cafe_quiet
+    # Priority 6: Tier A contextual location beats (location_beats.rpy).
+    # Lowest story priority — never pre-empts an authored pending scene.
+    if check_nora_cover_scene():
+        jump nora_cover_shift_scene
+    # Priority 7: contextual Tier A beats (location_beats_tier_a.rpy).
+    # Chained — at most one can fire per entry, and the global daily budget
+    # inside the check functions stops a second one firing anywhere else today.
+    if check_cross_zoe_nora():
+        jump cross_zoe_nora_scene
+    elif check_nora_exhausted():
+        jump nora_exhausted_scene
+    elif check_nora_walk_out():
+        jump nora_walk_out_scene
     scene expression cafe_bg()
     show screen hud
     if not nora_met:
@@ -273,14 +343,15 @@ label cafe_first_visit:
 label cafe_actions:
     if commitment_available("martha_coffee_1"):
         call phone_martha_coffee_scene
-    if nora_affection >= 40 and hour >= 19 and not nora_closing_done:
+    # Same gates as the after-hours entry exemption in location_cafe — this path
+    # is reached when a shift runs past close (e.g. start 15:00, +4h → 19:00).
+    if hour >= 19 and _nora_auto_closing_eligible():
         jump nora_closing_scene
     if nora_trust >= 30 and nora_affection >= 30 and not nora_rent_done and nora_closing_done:
         jump nora_rent_scene
     # Romance reopen — offered once, after the closing scene, if the player let it
     # go ambiguous/platonic and later rebuilt momentum (see can_offer_romance_reopen).
-    if (nora_closing_done and not nora_reopen_done and major_scene_last_day != day
-            and can_offer_romance_reopen("nora") and hour >= 19):
+    if hour >= 19 and _nora_romance_reopen_eligible():
         call scene_nora_romance_reopen
     if hour >= 19:
         "The café lights are going off. Time to head out."
@@ -297,6 +368,34 @@ label cafe_actions:
     $ _wed_per = wed_poll_personal("location_cafe")
     if _wed_per:
         call expression _wed_per
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_cafe")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_cafe")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
+    # NPC encounter check
+    $ _cur_enc = check_location_encounter("location_cafe")
+    if _cur_enc:
+        call run_encounter(_cur_enc)
+    # City event check
+    $ _loc_evts = active_city_events_at("location_cafe")
+    if _loc_evts:
+        $ _cur_city_evt = _loc_evts[0]
+        $ _cev_title = _cur_city_evt["title"]
+        $ _cev_dur   = _cur_city_evt["duration"]
+        "[_cev_title] is happening here."
+        menu:
+            "Attend ([_cev_dur]h)":
+                $ _attend_city_event_wrapper(_cur_city_evt["id"])
+            "Skip it":
+                pass
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("cafe_actions")
@@ -428,6 +527,34 @@ label gym_floor:
     $ _wed_per = wed_poll_personal("location_gym")
     if _wed_per:
         call expression _wed_per
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_gym")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_gym")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
+    # NPC encounter check
+    $ _cur_enc = check_location_encounter("location_gym")
+    if _cur_enc:
+        call run_encounter(_cur_enc)
+    # City event check
+    $ _loc_evts = active_city_events_at("location_gym")
+    if _loc_evts:
+        $ _cur_city_evt = _loc_evts[0]
+        $ _cev_title = _cur_city_evt["title"]
+        $ _cev_dur   = _cur_city_evt["duration"]
+        "[_cev_title] is happening here."
+        menu:
+            "Attend ([_cev_dur]h)":
+                $ _attend_city_event_wrapper(_cur_city_evt["id"])
+            "Skip it":
+                pass
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("gym_floor")
@@ -481,6 +608,20 @@ label gym_floor:
                     "Back-to-back sessions. You finish knowing exactly what you did today."
             if _work_event_roll("trainer"):
                 call work_event_trainer
+            $ _inc = _career_incident_check("trainer", career_rank("trainer"))
+            if _inc:
+                $ store._inc_incident = _inc
+                $ store._inc_cid = "trainer"
+                call career_incident_handler
+            # Promotion roll (probabilistic, separate from arc narrative promotions)
+            $ _ptr, _prd = do_promotion_roll("trainer")
+            if _ptr == "rolled":
+                $ _prbd = promotion_chance_breakdown("trainer")
+                call screen career_promotion_status_scr("trainer", _prd, _prbd)
+                if _prd["success"] and not _prd.get("opportunity_only"):
+                    $ promote("trainer")
+            elif _ptr == "not_eligible":
+                pass   # requirements screen can be shown via career menu, not every shift
             jump gym_floor
         "Apply as a Personal Trainer" if "trainer" not in active_careers:
             if can_apply("trainer"):
@@ -489,6 +630,9 @@ label gym_floor:
             else:
                 "Kai checks your profile. \"STR and the Athletic Training cert minimum. The college runs the course — come back when you're there.\""
                 $ _fs_career_rejection()
+            jump gym_floor
+        "Lead a group class (1.5h)" if gym_class_available():
+            call gym_class_flow
             jump gym_floor
         "Train - weights (1.5h, -15 energy)":
             if too_tired():
@@ -518,6 +662,25 @@ label gym_floor:
                 "A solid session. You can feel it already."
             $ fs_mark("study_done")
             $ fs_mark("outside_activity")
+            menu:
+                "Head back to the floor":
+                    pass
+                "Push for a personal best (+0.5h)":
+                    $ _pb_mods = [("Energy", -10 if need_energy < 40 else 0)]
+                    $ _pb_result = roll_check("fitness_pb", skill_val=skill_val("fit"),
+                                              difficulty=60, modifiers=_pb_mods, stable=False)
+                    $ record_personal_best("best_fitness_pb_tier", _pb_result["tier"], "tier")
+                    if _pb_result["tier"] in ("great", "critical"):
+                        "You push through and hit a new personal best."
+                        $ gain_skill("fit", 15)
+                        $ add_player_state("confident", "pb_%d" % day)
+                    elif _pb_result["tier"] == "success":
+                        "You finish strong. Not a record, but close."
+                        $ gain_skill("fit", 8)
+                    else:
+                        "Not today. You finish the session anyway."
+                    call screen check_result_scr(_pb_result, title="Personal Best Attempt")
+                    $ spend_time(0.5)
             jump gym_floor
         "Cardio (1h, -12 energy)":
             if too_tired():
@@ -562,9 +725,40 @@ label location_library:
     scene expression ("librarynight" if hour >= 20 else "libraryday")
     show screen hud
     hide screen people_here_dock
+    # Contextual Tier A beat (location_beats_tier_a.rpy).
+    if check_eli_favor():
+        jump eli_favor_scene
     $ _wed_amb = wed_poll_ambient("location_library")
     if _wed_amb:
         call expression _wed_amb
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_library")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_library")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
+    # NPC encounter check
+    $ _cur_enc = check_location_encounter("location_library")
+    if _cur_enc:
+        call run_encounter(_cur_enc)
+    # City event check
+    $ _loc_evts = active_city_events_at("location_library")
+    if _loc_evts:
+        $ _cur_city_evt = _loc_evts[0]
+        $ _cev_title = _cur_city_evt["title"]
+        $ _cev_dur   = _cur_city_evt["duration"]
+        "[_cev_title] is happening here."
+        menu:
+            "Attend ([_cev_dur]h)":
+                $ _attend_city_event_wrapper(_cur_city_evt["id"])
+            "Skip it":
+                pass
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_library")
@@ -608,23 +802,23 @@ label location_library:
                 "Medicine":
                     $ spend_time(2)
                     $ store.need_energy = max(0, store.need_energy - 18)
-                    $ gain_skill("med", 2)
+                    $ gain_skill_practice("med", 2, 2)
                     "Dense textbooks, clinical notes. Slower than a real course, but it sticks."
                 "Programming":
                     $ spend_time(2)
                     $ store.need_energy = max(0, store.need_energy - 18)
                     $ _prog_gain = 3 if own_programming_kit else 2
-                    $ gain_skill("prog", _prog_gain)
+                    $ gain_skill_practice("prog", _prog_gain, 2)
                     "Tutorials, docs, Stack Overflow rabbit holes. You get somewhere."
                 "Business":
                     $ spend_time(2)
                     $ store.need_energy = max(0, store.need_energy - 18)
-                    $ gain_skill("biz", 2)
+                    $ gain_skill_practice("biz", 2, 2)
                     "Case studies and frameworks. Dry but useful."
                 "Art":
                     $ spend_time(2)
                     $ store.need_energy = max(0, store.need_energy - 18)
-                    $ gain_skill("art", 2)
+                    $ gain_skill_practice("art", 2, 2)
                     "Theory, references, sketching. You can feel the improvement in small ways."
             $ fs_mark("study_done")
             $ fs_mark("outside_activity")
@@ -677,6 +871,11 @@ label location_bar:
                 m "Good. Don't be late."
             "Maybe another time.":
                 m "Your loss."
+    # Priority 6: contextual Tier A beats (location_beats_tier_a.rpy).
+    if check_marcus_one_game():
+        jump marcus_one_game_scene
+    elif check_marcus_zoe_bar():
+        jump marcus_zoe_bar_scene
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_bar")
     if _wed_amb:
@@ -684,6 +883,34 @@ label location_bar:
     $ _wed_per = wed_poll_personal("location_bar")
     if _wed_per:
         call expression _wed_per
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_bar")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_bar")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
+    # NPC encounter check
+    $ _cur_enc = check_location_encounter("location_bar")
+    if _cur_enc:
+        call run_encounter(_cur_enc)
+    # City event check
+    $ _loc_evts = active_city_events_at("location_bar")
+    if _loc_evts:
+        $ _cur_city_evt = _loc_evts[0]
+        $ _cev_title = _cur_city_evt["title"]
+        $ _cev_dur   = _cur_city_evt["duration"]
+        "[_cev_title] is happening here."
+        menu:
+            "Attend ([_cev_dur]h)":
+                $ _attend_city_event_wrapper(_cur_city_evt["id"])
+            "Skip it":
+                pass
     $ _vis = location_sprites()
     call show_public_sprites
     $ _drink_cost = 4 if has_event("bar_happy") else 8
@@ -694,6 +921,18 @@ label location_bar:
             $ spend_time(0.5)
             $ gain_money(-_drink_cost)
             "The noise and the drinks do their job."
+            jump location_bar
+        "Open Mic (2h) [[Guitar 4 / Rep 8]]" if own_guitar and skill_music >= 4 and music_reputation >= 8 and hour >= 20:
+            if too_tired():
+                "You're too worn out to perform tonight."
+                jump location_bar
+            call open_mic_performance
+            jump location_bar
+        "Bar Games (pool, darts, arm wrestling)":
+            call screen bar_games_scr
+            if _return:
+                $ _bg_type, _bg_opp_id = _return
+                call bar_game_play(_bg_type, _bg_opp_id)
             jump location_bar
         "Socialize (1h)":
             if stat_chr >= 25:
@@ -747,6 +986,18 @@ label location_office:
     $ _wed_amb = wed_poll_ambient("location_office")
     if _wed_amb:
         call expression _wed_amb
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_office")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_office")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_office")
@@ -1053,6 +1304,17 @@ label location_kitchen:
                     "A brutal service, but you kept your station clean and fast. Chef almost nodded."
             if _work_event_roll("culinary"):
                 call work_event_culinary
+            $ _inc = _career_incident_check("culinary", career_rank("culinary"))
+            if _inc:
+                $ store._inc_incident = _inc
+                $ store._inc_cid = "culinary"
+                call career_incident_handler
+            $ _ptr, _prd = do_promotion_roll("culinary")
+            if _ptr == "rolled":
+                $ _prbd = promotion_chance_breakdown("culinary")
+                call screen career_promotion_status_scr("culinary", _prd, _prbd)
+                if _prd["success"] and not _prd.get("opportunity_only"):
+                    $ promote("culinary")
             jump location_kitchen
 
         "Ask about a promotion" if "culinary" in active_careers and career_perf("culinary") >= 100:
@@ -1094,6 +1356,18 @@ label location_nightclub:
         call scene_zoe_romance_reopen
     scene nightclub
     show screen hud
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_nightclub")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_nightclub")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_nightclub")
@@ -1207,6 +1481,12 @@ label location_park:
     if (not zoe_rain_done and zoe_met and zoe_affection >= 15
             and day % 7 in [3, 4] and 14 <= hour <= 18):
         call scene_zoe_rain_shelter
+    # Priority 6: contextual Tier A beats (location_beats_tier_a.rpy).
+    # Windows don't overlap (Marcus 07-11, Zoe 14-18) but chain anyway.
+    if check_marcus_park_favor():
+        jump marcus_park_favor_scene
+    elif check_zoe_walk():
+        jump zoe_walk_scene
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_park")
     if _wed_amb:
@@ -1214,6 +1494,34 @@ label location_park:
     $ _wed_per = wed_poll_personal("location_park")
     if _wed_per:
         call expression _wed_per
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_park")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_park")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
+    # NPC encounter check
+    $ _cur_enc = check_location_encounter("location_park")
+    if _cur_enc:
+        call run_encounter(_cur_enc)
+    # City event check
+    $ _loc_evts = active_city_events_at("location_park")
+    if _loc_evts:
+        $ _cur_city_evt = _loc_evts[0]
+        $ _cev_title = _cur_city_evt["title"]
+        $ _cev_dur   = _cur_city_evt["duration"]
+        "[_cev_title] is happening here."
+        menu:
+            "Attend ([_cev_dur]h)":
+                $ _attend_city_event_wrapper(_cur_city_evt["id"])
+            "Skip it":
+                pass
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_park")
@@ -1261,6 +1569,12 @@ label location_park:
         "Play guitar (Zoe's here) (2h)" if own_guitar and skill_music >= 3 and zoe_affection >= 30 and zoe_met and not zoe_park_guitar_done and (day % 7 in [3, 4]) and hour >= 14 and hour <= 17:
             call scene_guitar_zoe_busking
             jump location_park
+        "Busk (1.5h)" if own_guitar and skill_music >= 1 and activity_use_count_today("busking") < BUSK_DAILY_CAP:
+            if too_tired():
+                "Not today — you're running on empty."
+                jump location_park
+            call busking_performance
+            jump location_park
 
 # ── BEACH ─────────────────────────────────────────────────────────────
 label location_beach:
@@ -1302,6 +1616,21 @@ label location_sandbeach:
         jump zoe_beach_night_scene
     scene expression ("sandbeach_night" if hour >= 19 else "sandbeach_day")
     show screen hud
+    # Contextual Tier A beat (location_beats_tier_a.rpy).
+    if check_zoe_outdoor():
+        jump zoe_outdoor_scene
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_sandbeach")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_sandbeach")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_sandbeach")
@@ -1514,6 +1843,14 @@ label location_centrum:
     $ _wed_amb = wed_poll_ambient("location_centrum")
     if _wed_amb:
         call expression _wed_amb
+    # Summer festival: the street itself is the event. Opt-in, re-askable.
+    if summer_festival_open_now():
+        menu:
+            "The road is barricaded off past the crossing. Stalls, cabling, a stage at the far end — the Downtown Summer Festival, in full swing."
+            "Head in.":
+                jump summer_festival_main
+            "Not tonight.":
+                pass
     # bottom bar of venue icons (screen handles navigation)
     call screen centrum_hub
     jump map   # safety: if screen returns without a Jump (should not happen)
@@ -1530,6 +1867,18 @@ label location_warehouse:
         jump location_warehouse
     scene warehouse
     show screen hud
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_warehouse")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_warehouse")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_warehouse")
@@ -1603,6 +1952,18 @@ label location_hospital:
     $ _wed_amb = wed_poll_ambient("location_hospital")
     if _wed_amb:
         call expression _wed_amb
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_hospital")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_hospital")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_hospital")
@@ -1679,6 +2040,17 @@ label location_hospital:
                     "There are things to review. But not tonight."
             if _work_event_roll("hospital"):
                 call work_event_hospital
+            $ _inc = _career_incident_check("hospital", career_rank("hospital"))
+            if _inc:
+                $ store._inc_incident = _inc
+                $ store._inc_cid = "hospital"
+                call career_incident_handler
+            $ _ptr, _prd = do_promotion_roll("hospital")
+            if _ptr == "rolled":
+                $ _prbd = promotion_chance_breakdown("hospital")
+                call screen career_promotion_status_scr("hospital", _prd, _prbd)
+                if _prd["success"] and not _prd.get("opportunity_only"):
+                    $ promote("hospital")
             if not lena_rooftop_done and career_rank("hospital") >= 1 and lena_trust >= 25 and hour >= 22:
                 jump lena_rooftop_scene
             jump location_hospital
@@ -1736,9 +2108,24 @@ label location_hub:
             call scene_eli_deploy_hug
     scene expression ("hub_night" if (hour >= 20 or hour < 6) else "hub_day")
     show screen hud
+    # Contextual Tier A beat (location_beats_tier_a.rpy).
+    if check_eli_after_shift():
+        jump eli_after_shift_scene
     $ _wed_amb = wed_poll_ambient("location_hub")
     if _wed_amb:
         call expression _wed_amb
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_hub")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_hub")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     menu (screen="activity"):
         "Work a shift (8h)" if "it" in active_careers:
             $ _it_h = 6 if skill_prog >= 5 else 8
@@ -1788,6 +2175,17 @@ label location_hub:
                     "Headphones on, heads down. A good day's work shipped."
             if _work_event_roll("it"):
                 call work_event_it
+            $ _inc = _career_incident_check("it", career_rank("it"))
+            if _inc:
+                $ store._inc_incident = _inc
+                $ store._inc_cid = "it"
+                call career_incident_handler
+            $ _ptr, _prd = do_promotion_roll("it")
+            if _ptr == "rolled":
+                $ _prbd = promotion_chance_breakdown("it")
+                call screen career_promotion_status_scr("it", _prd, _prbd)
+                if _prd["success"] and not _prd.get("opportunity_only"):
+                    $ promote("it")
             jump location_hub
 
         "Ask about a promotion" if "it" in active_careers and can_promote("it"):
@@ -1843,6 +2241,18 @@ label location_college:
     $ _wed_amb = wed_poll_ambient("location_college")
     if _wed_amb:
         call expression _wed_amb
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_college")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_college")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_college")
@@ -1977,6 +2387,10 @@ label college_course(key):
 label action_sleep_menu:
     scene cheap_home_sleep
     show screen hud
+    # Phase 62: partial-sleep gains scale with bedroom gear (capped +25%).
+    $ _sleep_b6 = int(round(60 * (1.0 + sleep_recovery_modifier())))
+    $ _sleep_b4 = int(round(40 * (1.0 + sleep_recovery_modifier())))
+    $ _sleep_b2 = int(round(20 * (1.0 + sleep_recovery_modifier())))
     menu (screen="activity"):
         "Until morning (8h) — new day, full rest":
             $ _sleep_owarn = _overlap_warning_text(8)
@@ -1988,7 +2402,7 @@ label action_sleep_menu:
                     "Go back":
                         jump action_sleep_menu
             jump action_sleep
-        "6 hours (+60 energy)":
+        "6 hours (+[_sleep_b6] energy)":
             $ _sleep_owarn = _overlap_warning_text(6)
             if _sleep_owarn:
                 menu:
@@ -1998,10 +2412,10 @@ label action_sleep_menu:
                     "Go back":
                         jump action_sleep_menu
             $ spend_time(6)
-            $ need_energy = min(100, need_energy + 60)
+            $ need_energy = min(100, need_energy + int(round(60 * (1.0 + sleep_recovery_modifier()))))
             "Six hours. You wake in the dark, properly rested."
             jump location_home_actions
-        "4 hours (+40 energy)":
+        "4 hours (+[_sleep_b4] energy)":
             $ _sleep_owarn = _overlap_warning_text(4)
             if _sleep_owarn:
                 menu:
@@ -2011,10 +2425,10 @@ label action_sleep_menu:
                     "Go back":
                         jump action_sleep_menu
             $ spend_time(4)
-            $ need_energy = min(100, need_energy + 40)
+            $ need_energy = min(100, need_energy + int(round(40 * (1.0 + sleep_recovery_modifier()))))
             "Four hours. Functional, if not fresh."
             jump location_home_actions
-        "2 hours (+20 energy)":
+        "2 hours (+[_sleep_b2] energy)":
             $ _sleep_owarn = _overlap_warning_text(2)
             if _sleep_owarn:
                 menu:
@@ -2024,7 +2438,7 @@ label action_sleep_menu:
                     "Go back":
                         jump action_sleep_menu
             $ spend_time(2)
-            $ need_energy = min(100, need_energy + 20)
+            $ need_energy = min(100, need_energy + int(round(20 * (1.0 + sleep_recovery_modifier()))))
             "Two hours. Takes the edge off, nothing more."
             jump location_home_actions
         "Stay up":
@@ -2052,7 +2466,7 @@ label check_collapse:
         $ need_energy = 70
         if active_careers:
             $ active_careers = {k: {"rank": v["rank"], "perf": max(0, v["perf"] - 15)} for k, v in active_careers.items()}
-            $ job_performance = active_careers.get(job_id, {}).get("perf", job_performance) if job_id else job_performance
+            $ _sync_job()
         $ new_day()
         return
     # energy==0 no longer causes collapse - demanding activities become unavailable instead.
@@ -2091,11 +2505,11 @@ label map:
         $ tip_map_shown = True
         # First trip out: walk the player through the HUD and needs, then the map.
         $ _tut_skip = renpy.call_screen("tutorial_overlay", "YOUR HUD",
-            "The bar along the top tracks your day — the date and time, your cash, and three needs: Hunger, Hygiene and Energy.",
-            area=(139, 8, 1641, 129))
+            "Two panels sit at the top. Left: the date, the time and where you are. Right: your cash, Energy, Hunger and any temporary state. Click any of them for detail.",
+            area=(28, 22, 1864, 92))
         if not _tut_skip:
             $ _tut_skip = renpy.call_screen("tutorial_overlay", "KEEP YOUR NEEDS UP",
-                "Watch those three needs. Low Energy blocks demanding things like work and training. Low Hygiene drops how others read your Appearance. If Hunger bottoms out, everything's a slog. Eat, shower and sleep to recover — the 'Me' panel (top-right) shows your full stats.")
+                "Low Energy blocks demanding things like work and training. If Hunger bottoms out, everything's a slog. Hygiene isn't on the top bar — it drops how others read your Appearance, and the Energy panel shows where it stands. Eat, shower and sleep to recover — the 'Me' button (bottom-left) shows your full stats.")
         if not _tut_skip:
             $ renpy.call_screen("tutorial_overlay", "CITY MAP",
                 "Pick a district or venue to travel there instantly. Travel is free — it doesn't advance time — but venues keep their own schedules and opening hours.")
@@ -2706,11 +3120,11 @@ label it_trial_team_lead:
                 "Your lead calls. \"Team Lead. Effective today.\""
             else:
                 "Too much to parse. You guess wrong. The rollback takes down two other services."
-                $ store.job_performance = 80
+                $ set_career_perf("it", 80)
                 "\"You almost had it. Come back sharper.\""
         "Roll back the last deploy immediately":
             "Wrong call — the rollback cascades and takes down two other services."
-            $ store.job_performance = 80
+            $ set_career_perf("it", 80)
             "Morning comes with a very quiet Slack. \"You almost had it. A few more days.\""
     return
 
@@ -2735,11 +3149,11 @@ label hospital_trial_resident:
                 "Board approval comes that afternoon. Resident. Finally."
             else:
                 lena "We need someone who can commit to a diagnosis. Come back sharper."
-                $ store.job_performance = 80
+                $ set_career_perf("hospital", 80)
                 "A week later: \"When you're ready.\""
         "Admit you'd need more tests first":
             lena "That's honest. But in a crisis I need decisiveness. Go home. Rest."
-            $ store.job_performance = 80
+            $ set_career_perf("hospital", 80)
             "You leave before sunrise."
     hide drlena_normal
     return
@@ -2840,6 +3254,18 @@ label location_diner:
     if (rena_met and cul_npc1_done and not rena_diner_first_done
             and npc_here("rena") and major_scene_last_day != day):
         call scene_rena_diner_first
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_diner")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_diner")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
     $ _vis = location_sprites()
     call show_public_sprites
     show screen people_here_dock("location_diner")

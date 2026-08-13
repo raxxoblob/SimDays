@@ -7,8 +7,8 @@ label group_interact(npc_a, npc_b):
     $ _gna  = NPC_DATA[npc_a]["name"]
     $ _gnb  = NPC_DATA[npc_b]["name"]
     $ _gused = []   # topics used this session
-    show expression NPC_DATA[npc_a]["sprite"] as npcsprite  at sprite_r
-    show expression NPC_DATA[npc_b]["sprite"] as npcsprite2 at sprite_l
+    show expression NPC_DATA[npc_a]["sprite"] as npcsprite  at sprite_crop(sprite_display_scale(npc_a), _SPRITE_XP_R, sprite_display_y_offset(npc_a))
+    show expression NPC_DATA[npc_b]["sprite"] as npcsprite2 at sprite_crop(sprite_display_scale(npc_b), _SPRITE_XP_L, sprite_display_y_offset(npc_b))
     show screen hud
     "[_gna] and [_gnb] make room as you join them."
 

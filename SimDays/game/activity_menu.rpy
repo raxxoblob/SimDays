@@ -59,6 +59,9 @@ init python:
         # ── Home ─────────────────────────────────────────────────────────
         ("location_home", "Shower"):              [("0.5h", "time"), ("+40 Hygiene", "gain")],
         ("location_home", "Nap"):                 [("3h", "time"), ("+45 Energy", "gain")],
+        ("location_home", "Put a record on"):     [("0.5h", "time"), ("Inspired", "gain")],
+        ("location_home", "Change guitar strings"):[("-$12", "cost"), ("+4% busking for 7 days", "gain")],
+        ("location_home", "Look around your place"):[("Free", "info"), ("Room-by-room overview", "info")],
         ("location_home", "Sleep"):               [("To next morning", "time"), ("Energy fully restored", "gain")],
         ("location_home", "Cook something"):       [("Meals restore Hunger", "info"), ("+Cooking with recipes", "gain")],
         ("location_home", "Toast"):               [("0.25h", "time"), ("-$2", "cost"), ("+15 Hunger", "gain")],
@@ -180,7 +183,8 @@ screen people_here_dock(return_location):
                         "location_office", "location_warehouse", "location_diner", "location_college")
             and not renpy.get_screen("profile")
             and not renpy.get_screen("phone_home")
-            and not renpy.get_screen("npc_relbar")):
+            and not renpy.get_screen("npc_relbar")
+            and _hud2_expanded is None):   # HUD V2 left panel occupies this spot
         $ _dock_npcs = [n for n in public_talkable_npcs_here() if NPC_DATA[n].get("portrait")]
         $ _dock_vis  = _dock_npcs[:4]
         $ _dock_extra = len(_dock_npcs) - 4

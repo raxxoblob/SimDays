@@ -30,16 +30,30 @@ init python:
         unseen = [e for e in pool if e not in seen]
         return renpy.random.choice(unseen if unseen else pool)
 
-    def _work_perf(delta):
+    def _work_perf(cid_or_delta, delta=None):
+        # Accepts _work_perf(delta) or _work_perf("corporate", delta).
         # corporate_style modifiers: ambitious gets +2 on positive events when fresh;
         # reliable gets -2 damage reduction on negative events (never below 1 loss).
-        if store.job_id == "corporate":
+        if delta is None:
+            cid   = store.job_id
+            delta = cid_or_delta
+        else:
+            cid = cid_or_delta
+        if cid is None or cid not in store.active_careers:
+            return
+        if cid == "corporate":
             style = store.corporate_style
             if delta > 0 and style == "ambitious" and not worn_out():
                 delta += 2
             elif delta < 0 and style == "reliable":
                 delta = min(-1, delta + 2)
-        store.job_performance = max(0, min(100, store.job_performance + delta))
+        _ac = dict(store.active_careers)
+        _c  = dict(_ac[cid])
+        _c["perf"] = max(0, min(100, _c["perf"] + delta))
+        _ac[cid] = _c
+        store.active_careers = _ac
+        store.job_performance = _c["perf"]
+        _check_career_perf_threshold(_c["perf"], cid)
 
     def _wev_relbar_open(npc_id):
         store._rel_feedback_aff = 0

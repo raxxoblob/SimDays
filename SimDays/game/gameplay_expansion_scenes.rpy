@@ -415,8 +415,7 @@ label scene_nora_hug_school:
     hide nora_cafe_normal
     scene cg_nora_hug_school    # CG: Nora hug at café
     show screen hud
-    $ _hug_text = do_hug("nora")
-    "[_hug_text]"
+    $ record_forced_hug("nora")
     $ spend_time(0.5)
     scene expression cafe_bg()    # return to café bg after CG
     show screen hud
@@ -1316,8 +1315,8 @@ label scene_elle_portugal_payoff:
 label scene_sam_marcus_park:
     scene basketball_court_day
     show screen hud
-    show marcus_park_neutral at sprite_l
-    show sam_normal at sprite_r
+    show marcus_park_neutral at sprite_crop(sprite_display_scale("marcus"), _SPRITE_XP_L, sprite_display_y_offset("marcus"))
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "You arrive at the park early. Sam and Marcus are already at the court — mid-argument, low-stakes, the kind they've clearly had before."
     m "You count every rep. That's why you plateau."
     sam "You stop counting and you get sloppy."
@@ -1363,8 +1362,8 @@ label scene_sam_marcus_park:
                 sam "They're right."
     scene basketball_court_day
     show screen hud
-    show marcus_park_neutral at sprite_l
-    show sam_normal at sprite_r
+    show marcus_park_neutral at sprite_crop(sprite_display_scale("marcus"), _SPRITE_XP_L, sprite_display_y_offset("marcus"))
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "You play. It's nothing serious — three-person casual shooting, the kind where score doesn't matter."
     "By the end both of them are more interested in the next coffee than the argument."
     sam "Same time tomorrow?"

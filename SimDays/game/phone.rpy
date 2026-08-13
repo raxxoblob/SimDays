@@ -29,12 +29,18 @@ init python:
         renpy.restart_interaction()
 
     def phone_where_is(npc_id):
-        loc = npc_location_now(npc_id)
-        name = NPC_DATA[npc_id]["name"]
         _add_player_message(npc_id, "Where are you right now?")
-        if loc:
-            place = LOCATION_NAMES.get(loc, loc.replace("location_", "").replace("_", " ").title())
-            reply = "I'm at %s." % place
+        # Use the public availability helper — never exposes private location IDs.
+        avail = npc_public_availability_text(npc_id)
+        # Rephrase from third-person to first-person for the NPC's reply.
+        if avail.startswith("At "):
+            reply = "I'm " + avail[0].lower() + avail[1:]
+        elif avail.startswith("Currently"):
+            reply = "I'm tied up at the moment."
+        elif avail.startswith("Around"):
+            reply = "I'm around but a bit tied up right now."
+        elif avail.startswith("Likely"):
+            reply = "Home for the night. You okay?"
         else:
             reply = "Not sure where I'll end up today."
         send_npc_message(npc_id, reply)
@@ -126,7 +132,12 @@ init python:
     # Any phone surface open? (home OR any app screen). The HUD peek uses this so
     # it hides while an app is open — not just while phone_home is up.
     _PHONE_SCREENS = ("phone_home", "phone_messages_scr", "phone_contacts_scr", "phone_thread_scr",
-                      "phone_goals_scr", "phone_settings", "phone_bank_scr", "phone_help_scr", "stock_market")
+                      "phone_goals_scr", "phone_settings", "phone_bank_scr", "phone_help_scr", "stock_market",
+                      "phone_mail_scr", "phone_mail_detail_scr", "phone_map_scr",
+                      "portfolio_scr", "journal_scr",
+                      "phone_calendar_scr", "phone_social_scr",
+                      "phone_marketplace_scr", "equipment_scr", "market_negotiate_scr",
+                      "phone_possessions_scr")
     def phone_open():
         return any(renpy.get_screen(s) for s in _PHONE_SCREENS)
 
@@ -214,17 +225,37 @@ screen phone_home():
                 $ _apps = [
                     ("app_messages",  "Messages",  [Hide("phone_home"), Show("phone_messages_scr")]),
                     ("app_contacts",  "Contacts",  [Hide("phone_home"), Show("phone_contacts_scr")]),
-                    ("app_map",       "Map",        Hide("phone_home")),
+                    ("app_tips",      "Mail",       [Hide("phone_home"), Show("phone_mail_scr")]),
+                    ("app_map",       "Map",        [Hide("phone_home"), Show("phone_map_scr")]),
                     ("app_jobs",      "Jobs",       [Hide("phone_home"), Show("phone_jobs_scr")]),
                     ("app_bank",      "Bank",       [Hide("phone_home"), Show("phone_bank_scr")]),
                     ("app_stocks",    "Stocks",     [Hide("phone_home"), Show("stock_market")]),
                     ("app_tips",      "Goals",      [Hide("phone_home"), Show("phone_goals_scr")]),
+                    ("app_contacts",  "Portfolio",  [Hide("phone_home"), Show("portfolio_scr")]),
+                    ("app_tips",      "Calendar",   [Hide("phone_home"), Show("phone_calendar_scr")]),
+                    ("app_contacts",  "Social",     [Hide("phone_home"), Show("phone_social_scr")]),
+                    ("app_bank",      "Market",     [Hide("phone_home"), Show("phone_marketplace_scr")]),
+                    ("app_contacts",  "Gear",       [Hide("phone_home"), Show("equipment_scr")]),
+                    ("app_tips",      "Things",     [Hide("phone_home"), Show("phone_possessions_scr")]),
+                    ("app_tips",      "Home",       [Hide("phone_home"), Show("home_shop_scr")]),
                     ("app_settings",  "Settings",   [Hide("phone_home"), Show("phone_settings")]),
                 ]
+                $ _mail_badge = unread_mail_count()
+                # Invitations arrive as an unread message; without a badge the
+                # player has no reason to open Messages before it expires.
+                $ _msg_badge = unread_message_count() + sum(
+                    1 for _i in active_npc_invitations if _i.get("status") == "pending")
+                $ _cal_badge = _calendar_badge_count()
+                $ _social_badge = _social_badge_count()
+                # vpgrid IS a viewport: give it a height and it scrolls itself.
+                # Needed since the app list passed 5 rows (Phase 69).
                 vpgrid:
                     cols 3
                     spacing 12
                     xalign 0.5
+                    ysize 500
+                    mousewheel True
+                    scrollbars None
                     for _icon, _lbl, _act in _apps:
                         button:
                             xysize (104, 118)
@@ -234,10 +265,23 @@ screen phone_home():
                             vbox:
                                 spacing 5
                                 add Transform("images/ui/icons/%s.png" % _icon, size=(82, 82)) xalign 0.5
-                                $ _app_lbl = _lbl + ((" (%d)" % len(gigs_board)) if (_icon == "app_jobs" and gigs_board) else "")
-                                text _app_lbl font ACT_FONT size 13 color ("#7fd06a" if (_icon == "app_jobs" and gigs_board) else "#ffffff") xalign 0.5
+                                $ _app_lbl = (_lbl + (" (%d)" % len(gigs_board))   if (_icon == "app_jobs"   and gigs_board)
+                                         else _lbl + (" (%d)" % _msg_badge)         if (_lbl == "Messages"    and _msg_badge > 0)
+                                         else _lbl + (" (%d)" % _mail_badge)        if (_icon == "app_tips"   and _lbl == "Mail" and _mail_badge > 0)
+                                         else _lbl + (" (%d)" % _cal_badge)         if (_lbl == "Calendar"    and _cal_badge > 0)
+                                         else _lbl + (" (%d)" % _social_badge)      if (_lbl == "Social"      and _social_badge > 0)
+                                         else _lbl)
+                                text _app_lbl font ACT_FONT size 13 color ("#7fd06a" if ((_icon == "app_jobs" and gigs_board) or (_lbl == "Messages" and _msg_badge > 0) or (_icon == "app_tips" and _lbl == "Mail" and _mail_badge > 0)) else "#ffffff") xalign 0.5
 
                 null height 12
+                $ _sav = savings_target_text()
+                if _sav:
+                    frame:
+                        xfill True
+                        background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
+                        padding (10, 6, 10, 6)
+                        text _sav font ACT_FONT size 11 color "#ffd66a" xalign 0.5
+                    null height 6
                 $ _inv = phone_active_invitation()
                 if _inv:
                     frame:
@@ -294,7 +338,9 @@ screen phone_messages_scr():
                     spacing 8
                     xfill True
                     # ── Upcoming commitments ──────────────────────────
-                    use commitments_list(compact=True)
+                    use commitments_list
+                    # ── NPC invitations (accept / decline) ────────────
+                    use npc_invitation_cards
                     # ── City News ─────────────────────────────────────
                     if daily_events:
                         for _ev in daily_events:
@@ -368,7 +414,7 @@ screen phone_contacts_scr():
                     $ _known = [k for k in npc_contacts if k in NPC_DATA]
                     if _known:
                         for _k in _known:
-                            $ _loc    = npc_location_now(_k)
+                            $ _avail  = npc_public_availability_text(_k)
                             $ _np_cir = _chat_circle(_npc_chat_portrait(_k))
                             frame:
                                 xfill True
@@ -383,10 +429,22 @@ screen phone_contacts_scr():
                                         yalign 0.5
                                         spacing 2
                                         text NPC_DATA[_k]["name"] font PROFILE_FONT size 15 color "#cfe0f5"
-                                        if _loc:
-                                            $ _pname = LOCATION_NAMES.get(_loc, "")
-                                            if _pname:
-                                                text ("@ " + _pname) font ACT_FONT size 11 color "#4a8a6a"
+                                        # Phase 66: all four axes. Attraction is
+                                        # shown only for romance-capable NPCs and
+                                        # only once it is actually non-zero.
+                                        $ _rx = [("Aff", npc_rel(_k, "affection"), "#ffd76a"),
+                                                 ("Tru", npc_rel(_k, "trust"), "#7fe0ff"),
+                                                 ("Res", npc_rel(_k, "respect"), "#b8a0ff"),
+                                                 ("Fam", npc_rel(_k, "familiarity"), "#8fe0a0")]
+                                        if npc_is_romance_capable(_k) and npc_rel(_k, "attraction") > 0:
+                                            $ _rx = _rx + [("Att", npc_rel(_k, "attraction"), "#ff9ab8")]
+                                        text npc_relationship_stage_label(_k) font ACT_FONT size 11 color "#9fb6d6"
+                                        hbox:
+                                            spacing 8
+                                            for _lbl, _val, _col in _rx:
+                                                text "%s %d" % (_lbl, _val) font ACT_FONT size 11 color _col
+                                        if _avail and _avail != "Currently unavailable." and _avail != "Likely home for the evening.":
+                                            text _avail font ACT_FONT size 11 color "#4a8a6a"
                                     button:
                                         xysize (70, 36)
                                         background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
@@ -462,6 +520,16 @@ screen phone_thread_scr():
                                         background "#16202ae8"
                                         padding (10, 7, 10, 7)
                                         text _tm["text"] font ACT_FONT size 13 color "#cfe0f5"
+                                    # Invitation announcement → the card in the
+                                    # Messages list is where accept/decline live.
+                                    $ _tm_inv = invitation_for_message(_tm)
+                                    if _tm_inv:
+                                        textbutton ("View invitation ›" if _tm_inv.get("status") == "pending" else invitation_card_lines(_tm_inv)[3]):
+                                            action [Hide("phone_thread_scr"), Show("phone_messages_scr")]
+                                            text_font ACT_FONT
+                                            text_size 11
+                                            text_color ("#5bcafa" if _tm_inv.get("status") == "pending" else "#4a8a6a")
+                                            text_hover_color "#ffffff"
                                     # Actionable responses
                                     $ _has_r = bool(_tm.get("responses")) and not _tm.get("replied")
                                     $ _is_r  = _tm.get("replied", False)
@@ -686,3 +754,35 @@ screen phone_bank_scr():
                         text "Withdraw all  +$[savings]" font ACT_FONT size 17 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             null height 8
             textbutton "Back" action [Hide("phone_bank_scr"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
+
+
+screen phone_map_scr():
+    modal True
+    use phone_shell:
+        vbox:
+            xsize (PHONE_SCR_W - 24)
+            xalign 0.5
+            spacing 14
+            null height 8
+            text "Map" font PROFILE_FONT size 24 color "#ffffff" xalign 0.5
+            null height 4
+            $ _loc_display = current_loc.replace("location_", "").replace("_", " ").title() if current_loc else "Unknown"
+            text "Now:  [_loc_display]" font ACT_FONT size 17 color "#9fb6d6" xalign 0.5
+            null height 16
+            # City Map button — only active during free-roam (activity menu visible).
+            # Jumping mid-dialogue would break the current scene.
+            $ _in_freeroom = bool(renpy.get_screen("activity"))
+            button:
+                xfill True ysize 62
+                sensitive _in_freeroom
+                background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
+                insensitive_background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                action [Hide("phone_map_scr"), Hide("people_here_dock"), Jump("map")]
+                text ("Go to City Map" if _in_freeroom else "City Map  (leave scene first)"):
+                    font ACT_FONT size 17 align (0.5, 0.5)
+                    color ("#cfe0f5" if _in_freeroom else "#4e606e")
+                    hover_color "#ffffff"
+                    insensitive_color "#4e606e"
+            null height 8
+            textbutton "Back" action [Hide("phone_map_scr"), Show("phone_home")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"

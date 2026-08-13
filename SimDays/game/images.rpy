@@ -247,6 +247,12 @@ init python:
 # each into a box preserving aspect; yalign 1.0 anchors feet to the bottom.
 # yoffset 96 pushes the head clear of the topbar HUD (crops a little at the
 # shoes, which is fine for standing full-body sprites).
+# X-centre positions for sprite_crop matching sprite_r / sprite_l visual centres.
+# sprite_r uses xalign 0.82 (= xpos 0.82, xanchor 0.82); with xanchor 0.5 on a
+# 660px element the visual centre is 1574 - 0.82*660 + 0.5*660 ≈ 1363.
+define _SPRITE_XP_R = 1363
+define _SPRITE_XP_L = 557
+
 transform sprite_c:
     fit "contain"
     xysize (660, 900)
@@ -259,12 +265,12 @@ transform sprite_c:
 # floating mid-screen. sc is only the light male size nudge now (see
 # sprite_display_scale in interact.rpy); with sc=1.0 this equals sprite_c.
 # xp = screen x of the standing spot (xalign * 1920).
-transform sprite_crop(sc, xp=960):
+transform sprite_crop(sc=1.0, xp=960, yfix=0):
     fit "contain"
     xysize (660, 900)
     transform_anchor True
     xanchor 0.5 yanchor 1.0
-    xpos xp ypos 1176          # box bottom at 1080 + 96 yoffset (crops shoes, like sprite_c)
+    xpos xp ypos (1176 + yfix)
     zoom sc
 
 transform sprite_r:
@@ -410,6 +416,11 @@ image zoe_street_angry     = "images/characters/zoe/zoe_street_angry.png"
 # legacy aliases — older scenes still `show zoe_street_smile` / reference the punk sprite
 image zoe_street_smile     = "images/characters/zoe/zoe_street_laugh.png"
 image zoe_punk_smile       = "images/characters/zoe/zoe_street_neutral.png"
+# Beach outfit (zoe_beach_night scene and any future beach/summer content)
+image zoe_beach_neutral    = "images/characters/zoe/zoe_beach_neutral.png"
+image zoe_beach_talk       = "images/characters/zoe/zoe_beach_talk.png"
+image zoe_beach_laugh      = "images/characters/zoe/zoe_beach_laugh.png"
+image zoe_beach_angry      = "images/characters/zoe/zoe_beach_angry.png"
 
 # ── Nora sprites ───────────────────────────────────────────────────────
 # Work outfit (behind the counter)

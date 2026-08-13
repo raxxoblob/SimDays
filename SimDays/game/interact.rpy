@@ -47,6 +47,13 @@ init python:
             return SPRITE_SCALE[npc_id]
         return 1.0 if npc_id in SPRITE_MEN else FEMALE_SCALE
 
+    SPRITE_Y_OFFSET = {
+        "sam": -80,   # thigh-crop: lift 80px so feet aren't buried off-screen
+    }
+
+    def sprite_display_y_offset(npc_id):
+        return SPRITE_Y_OFFSET.get(npc_id, 0)
+
     # say  = the Character variable to speak as (defined in characters.rpy)
     # world/met/min_status = availability (see npc_known)
     # likes/dislikes = which of the 9 topics land well / badly
@@ -61,11 +68,7 @@ init python:
             "aff": "nora_affection", "trust": "nora_trust", "greet": "nora_greet",
             "sprites": {"work": "nora_cafe_normal", "casual": "nora_casual_normal"},
             "world": True,
-            "sched": [
-                (MON_FRI, (7,  16), "location_cafe"),
-                ({1, 4},  (17, 22), "location_bar"),
-                (WKD,     (10, 14), "location_cafe"),
-            ],
+            "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["food", "ambition", "movies"], "dislikes": ["nightlife"],
             "topic_arcs": {
                 "food": [
@@ -82,12 +85,7 @@ init python:
             "name": "Marcus", "portrait": "portrait_marcus", "sprite": "marcus_casual_normal", "say": "m",
             "aff": "marcus_affection", "trust": "marcus_trust", "greet": "marcus_greet",
             "sprites": {"casual": "marcus_casual_normal", "evening": "marcus_bar_normal", "sport": "marcus_park_neutral"},
-            "world": True, "sched": [
-                (None, (6,  10), "location_park"),
-                ({1},  (15, 17), "location_cafe"),    # Tuesday coffee stop (15–16 mutual with Nora)
-                (None, (17, 24), "location_bar"),
-                (WKD,  (24, 27), "location_nightclub"),
-            ],
+            "world": True, "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["sports", "food", "nightlife"], "dislikes": ["art"],
             "topic_arcs": {
                 "sports": [
@@ -103,49 +101,33 @@ init python:
         "caroline": {
             "name": "Caroline", "portrait": "portrait_caroline", "sprite": "caroline_normal", "say": "caro",
             "aff": "caroline_affection", "trust": "caroline_trust", "greet": "caroline_greet",
-            "met": "caroline_met", "sched": [
-                (MON_FRI, (9,  18), "location_office"),
-                ({3},     (20, 23), "location_bar"),   # Thursday professional visit
-            ],
+            "met": "caroline_met", "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["work", "ambition", "nightlife"], "dislikes": ["sports"],
         },
         "lena": {
             "name": "Dr. Lena", "portrait": "portrait_lena", "sprite": "drlena_normal", "say": "lena",
             "aff": "lena_affection", "trust": "lena_trust", "greet": "lena_greet",
-            "met": "lena_met", "sched": [
-                (MON_FRI, (8,  16), "location_hospital"),
-                ({2, 4},  (18, 22), "location_bar"),
-            ],
+            "met": "lena_met", "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["work", "travel", "food"], "dislikes": ["nightlife"],
         },
         "natalie": {
             "name": "Natalie", "portrait": "portrait_natalie", "sprite": "natalie_normal", "say": "nat",
             "aff": "natalie_affection", "trust": "natalie_trust", "greet": "natalie_greet",
-            "met": "natalie_met", "sched": [
-                (MON_SAT, (7,  15), "location_warehouse"),
-                (WKD,     (17, 21), "location_bar"),
-            ],
+            "met": "natalie_met", "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["sports", "work", "ambition"], "dislikes": ["art"],
         },
         "martha": {
             "name": "Martha", "portrait": "portrait_martha", "sprite": "martha_neutral", "say": "ma",
             "aff": "martha_affection", "trust": "martha_trust", "greet": "martha_greet",
             "sprites": {"work": "martha_neutral", "evening": "martha_dress_normal"},
-            "met": "martha_met", "story_gate": "caroline_met", "sched": [
-                (MON_FRI, (9,  18), "location_office"),
-                ({3},     (19, 23), "location_bar"),
-            ],
+            "met": "martha_met", "story_gate": "caroline_met",
+            "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["ambition", "work", "travel"], "dislikes": ["sports"],
         },
         "elle": {
             "name": "Elle", "portrait": "portrait_elle", "sprite": "elle_normal", "say": "el",
             "aff": "elle_affection", "trust": "elle_trust", "greet": "elle_greet",
-            "world": True, "sched": [
-                ({1, 3}, (9,  13), "location_cafe"),
-                ({2},    (16, 19), "location_sandbeach"),
-                (WKD,    (13, 18), "location_sandbeach"),
-                (WKD,    (21, 25), "location_nightclub"),
-            ],
+            "world": True, "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["travel", "music", "art"], "dislikes": ["work"],
             "topic_arcs": {
                 "travel": [
@@ -158,13 +140,7 @@ init python:
             "name": "Zoe", "portrait": "portrait_zoe", "sprite": "zoe_street_neutral", "say": "z",
             "sprite_angry": "zoe_street_angry",
             "aff": "zoe_affection", "trust": "zoe_trust", "greet": "zoe_greet",
-            "world": True, "sched": [
-                (WKD,    (12, 18), "location_sandbeach"),
-                ({3, 4}, (14, 18), "location_park"),
-                ({2},    (14, 17), "location_cafe"),        # Wednesday sketching at Grounds
-                (WKD,    (19, 24), "location_sandbeach"),  # covers zoe_beach_night_scene window
-                (FRISUN, (24, 27), "location_nightclub"),
-            ],
+            "world": True, "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["art", "music", "nightlife"], "dislikes": ["ambition"],
             "topic_arcs": {
                 "art": [
@@ -182,22 +158,14 @@ init python:
         "sam": {
             "name": "Sam", "portrait": "portrait_sam", "sprite": "sam_normal", "say": "sam",
             "aff": "sam_affection", "trust": "sam_trust", "greet": "sam_greet",
-            "world": True, "sched": [
-                (MON_FRI, (6,  10), "location_park"),
-                (MON_FRI, (10, 14), "location_gym"),
-                (WKD,     (9,  13), "location_gym"),
-                ({4},     (16, 18), "location_park"),  # Friday outdoor exercise (aligns with Zoe park Thu–Fri 14–18)
-            ],
+            "world": True, "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["sports", "work", "food"], "dislikes": ["nightlife"],
         },
         "eli": {
             "name": "Eli", "portrait": "portrait_eli", "sprite": "eli_normal", "say": "eli",
             "sprite_angry": "eli_angry",
             "aff": "eli_affection", "trust": "eli_trust", "greet": "eli_greet",
-            "world": True, "sched": [
-                (None,      (12, 20), "location_library"),
-                ({1, 2, 3}, (20, 23), "location_bar"),
-            ],
+            "world": True, "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["work", "movies", "music"], "dislikes": ["sports"],
             "topic_arcs": {
                 "work": [
@@ -210,15 +178,14 @@ init python:
             "name": "Kai", "portrait": "portrait_kai", "sprite": "kai_neutral", "say": "kai",
             "aff": "kai_affection", "trust": "kai_trust", "greet": "kai_greet",
             "sprites": {"sport": "kai_gym_normal", "casual": "kai_normal"},
-            "world": True, "sched": [
-                ({1, 3}, (10, 14), "location_cafe"),
-                (WKD,    (10, 14), "location_gym"),
-                (WKD,    (14, 18), "location_sandbeach"),
-                (WKD,    (18, 22), "location_bar"),
-                (FRISUN, (22, 27), "location_nightclub"),
-            ],
+            "world": True, "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
             "likes": ["sports", "music", "nightlife"], "dislikes": ["work"],
         },
+        # julia: planned future NPC — no active content yet.
+        # Defaults (julia_affection, julia_trust, julia_met) kept in data.rpy for
+        # save-file compatibility. NPC_DATA entry, NPC_HOME_LOCATIONS, and
+        # NPC_FULL_SCHEDULES entries removed until she has real story content.
+
         # Chef Rena — career mentor, off-duty at the nadbrzeze diner Mon/Wed nights.
         # aff/trust move only via culinary_arc scenes; no_decay exempts her from
         # the 7-day ignore decay (she's never in the world NPC interaction pool).
@@ -228,7 +195,7 @@ init python:
             "sprites": {"casual": "rena_casual_normal"},
             "aff": "rena_affection", "trust": "rena_trust",
             "met": "rena_met", "no_decay": True,
-            "sched": [({0, 2}, (21, 26), "location_diner")],
+            "sched": [],  # superseded by NPC_FULL_SCHEDULES in npc_schedules.rpy
         },
     }
 
@@ -269,26 +236,9 @@ init python:
             sched = list(sched) + [({6}, (14, 18), "location_gallery")]
         return sched
 
-    def npc_here(npc_id):
-        if npc_is_temporarily_unavailable(npc_id):
-            return False
-        sched = npc_schedule_entries(npc_id)
-        if sched is None:   # no schedule key → NPC is unrestricted
-            return True
-        if not sched:       # schedule key present but all entries filtered → not here
-            return False
-        wd = store.day % 7
-        for entry in sched:
-            days = entry[0]
-            h0, h1 = entry[1]
-            loc = entry[2] if len(entry) > 2 else None
-            if not (days is None or wd in days):
-                continue
-            if not (h0 <= store.hour < h1):
-                continue
-            if loc is None or store.current_loc == loc:
-                return True
-        return False
+    # ponytail: canonical npc_here() lives in npc_schedules.rpy (loads after this file).
+    # The living-world override there accepts an optional location_id kwarg and uses
+    # resolve_npc_state() for richer visibility logic. Do not re-define here.
 
     def npc_known(npc_id):
         d = NPC_DATA[npc_id]
@@ -336,22 +286,15 @@ init python:
         return topic in store._topics_today.get(npc_id, [])
 
     # ── Relationship memory helpers ────────────────────────────────────────
-
-    def add_relationship_memory(npc_id, memory_id, title):
-        mems = dict(store.relationship_memories)
-        lst  = list(mems.get(npc_id, []))
-        if any(m["id"] == memory_id for m in lst):
-            return
-        lst.append({"id": memory_id, "title": title, "day": store.day})
-        mems[npc_id] = lst
-        store.relationship_memories = mems
+    # Canonical add_relationship_memory is in npc_schedules.rpy (loads after this
+    # file; its definition shadows this block at runtime). These helpers read from
+    # the same {npc_id}_memories storage used by that canonical version.
 
     def relationship_memory_exists(npc_id, memory_id):
-        return any(m["id"] == memory_id
-                   for m in store.relationship_memories.get(npc_id, []))
+        return has_relationship_memory(npc_id, memory_id)
 
     def relationship_memories_for(npc_id):
-        return list(store.relationship_memories.get(npc_id, []))
+        return list(getattr(store, npc_id + "_memories", []))
 
     # ── Relationship threshold notifications ───────────────────────────────
 
@@ -625,21 +568,7 @@ init python:
         "location_anchor":     "The Anchor",
     }
 
-    def npc_location_now(npc_id):
-        if npc_is_temporarily_unavailable(npc_id):
-            return None
-        sched = npc_schedule_entries(npc_id)
-        if not sched:
-            return None
-        wd = store.day % 7
-        for entry in sched:
-            days, (h0, h1) = entry[0], entry[1]
-            loc = entry[2] if len(entry) > 2 else None
-            if not (days is None or wd in days):
-                continue
-            if h0 <= store.hour < h1:
-                return loc
-        return None
+    # ponytail: canonical npc_location_now() lives in npc_schedules.rpy.
 
     def send_npc_message(npc_id, text):
         _tag = "hi_%s_%d" % (npc_id, store.day)
@@ -1773,9 +1702,19 @@ init python:
         else:
             delta = 3
             line = renpy.random.choice(GIFT_NEUTRAL_LINES[gift_type])
-        if delta > 0:
-            _apply_aff(npc_id, delta)
-            gain_aff(d["name"], delta)
+        # Phase 66: the numeric outcome now comes from evaluate_gift() — item
+        # value curve x gift_receptiveness, thoughtfulness bonus, boundary
+        # check, repetition penalty and the "gift" source cap. The like/dislike
+        # LINE chosen above is unchanged; only the numbers moved.
+        _ge = evaluate_gift(npc_id, gift_type)
+        _applied = apply_relationship_change(npc_id, "gift_" + gift_type, "gift",
+                                             affection=_ge["affection"],
+                                             respect=_ge["respect"])
+        if _applied.get("affection", 0) > 0:
+            gain_aff(d["name"], _applied["affection"])
+        if _ge["reaction"] == "uncomfortable":
+            _gexpr = "angry"
+            line = "They turn it over once, then set it down. \"This is... a lot. For where we're at.\""
         record_social_attention(npc_id, "gift")
         # Martha gift accusation — set pending on exactly the 3rd gift.
         # gift_log already includes the current gift so count == 3 means this IS the 3rd.
@@ -2191,6 +2130,11 @@ label nora_greet:
     # Track actual interaction (café + bar) — not location entry.
     # Feeds the 8-day ignore timer in new_day().
     $ nora_last_seen_day = day
+    # Tier A beat callback (location_beats.rpy): acknowledged once, in person.
+    if covered_nora_shift and not nora_cover_thanks_said:
+        $ nora_cover_thanks_said = True
+        n "I haven't forgotten that I owe you one."
+        return
     if nora_affection >= 50:
         n "Hey, you. I was hoping you'd come in today."
     elif nora_affection >= 25:

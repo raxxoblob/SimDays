@@ -1,15 +1,25 @@
-# Always-on HUD: single decorative top bar (hud_topbar.png), centred near top.
-# Holds date/time, money, and the three need bars. Top-left screen corner left free.
+# Always-on HUD. The visuals live in hud_v2.rpy (two floating islands, top-left
+# and top-right, empty centre). This screen keeps the name `hud` because ~414
+# `show screen hud` statements across the script reference it.
+#
+# What stays here: the global key bindings, the bottom-corner phone peek and
+# "Me" button, the tooltip line and the next-commitment reminder — i.e. the
+# non-island chrome that already existed.
 
 screen hud():
     zorder 10
-    $ datestr = "%s . Day %d" % (day_name(day), day + 1)
-    $ timestr = time_label(hour)
 
     key "K_c" action ToggleScreen("profile")
+    key "K_p" action Show("phone_home")
+
+    if hud_mode == "full":
+        use hud_v2
+    elif hud_mode == "minimal":
+        use hud_v2_minimal
+    else:
+        null   # "hidden" — islands suppressed; null prevents empty-branch lint warning
 
     # phone peek — hidden whenever any phone surface (home or an app) is open
-    key "K_p" action Show("phone_home")
     if not phone_open():
         imagebutton:
             xpos 1460 ypos 986
@@ -20,53 +30,10 @@ screen hud():
             $ _hud_uc = unread_message_count()
             text ("(" + ("9+" if _hud_uc > 9 else str(_hud_uc)) + ")") xpos 1875 ypos 988 font "fonts/Quicksand-SemiBold.ttf" size 20 color "#e05533" outlines [(2, "#000000", 0, 0)]
 
-    fixed:
-        xalign 0.5
-        ypos 8
-        xysize (1641, 129)
-        add "images/ui/hud_topbar.png"
-
-        add "images/ui/icons/stat_time.png" xpos 100 ypos 34 xysize (58, 58)
-        text "[datestr]" xpos 168 ypos 28 size 19 color "#143c6e" font "fonts/VarelaRound.ttf"
-        text "[timestr]" xpos 168 ypos 54 size 30 color "#0a285a" font "fonts/VarelaRound.ttf"
-
-        add "images/ui/icons/stat_money.png" xpos 380 ypos 34 xysize (58, 58)
-        text "$[money]" xpos 448 ypos 48 size 30 color "#8a5a00" font "fonts/VarelaRound.ttf"
-
-        # ── Needs: icon + label + bar + value ─────────────────────────────
-        add "images/ui/icons/stat_hunger.png" xpos 680 ypos 44 xysize (50, 50)
-        text "HUNGER" xpos 740 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_hunger, 100) xpos 740 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_chr.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_hunger]" xpos 900 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
-
-        add "images/ui/icons/stat_hygiene.png" xpos 970 ypos 44 xysize (50, 50)
-        text "HYGIENE" xpos 1030 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_hygiene, 100) xpos 1030 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_hygiene.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_hygiene]" xpos 1190 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
-
-        add "images/ui/icons/stat_energy.png" xpos 1260 ypos 44 xysize (50, 50)
-        text "ENERGY" xpos 1320 ypos 38 size 13 color "#3a6090" font "fonts/VarelaRound.ttf"
-        bar value StaticValue(need_energy, 100) xpos 1320 ypos 62 xysize (150, 22) left_bar Frame("images/ui/bar_fill_energy.png", 16, 0) right_bar Frame("images/ui/bar_track.png", 16, 0) thumb Null()
-        text "[need_energy]" xpos 1480 ypos 60 size 22 color "#143c6e" font "fonts/VarelaRound.ttf"
-
-        button:
-            xpos 676 ypos 28 xysize (264, 72)
-            action NullAction()
-            tooltip "Hunger - eat at home or order from your phone."
-        button:
-            xpos 966 ypos 28 xysize (264, 72)
-            action NullAction()
-            tooltip "Hygiene - shower at home. Low: Appearance drops."
-        button:
-            xpos 1256 ypos 28 xysize (270, 72)
-            action NullAction()
-            tooltip "Energy - sleep to refill. Below 20 you can't do demanding activities."
-
-    # "Me" / stats button — declared after the fixed frame so it renders on top
-    # and is not obscured by hud_topbar.png or blocked by the needs tooltip buttons.
-    # xpos 1672: clear of the energy tooltip right edge (absolute ~1666).
+    # "Me" / stats button — moved to the bottom-left corner so it no longer
+    # collides with the right HUD island.
     button:
-        xpos 1672 ypos 22
+        xpos 28 ypos 1004
         xysize (104, 52)
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         action ToggleScreen("profile")
@@ -75,7 +42,7 @@ screen hud():
     $ _tt = GetTooltip()
     if _tt:
         text "[_tt]":
-            xalign 0.5 ypos 146 size 17 color "#ffffff"
+            xalign 0.5 ypos 132 size 17 color "#ffffff"
             font "fonts/Quicksand-SemiBold.ttf"
             outlines [(2, "#000000cc", 0, 0)]
 
@@ -87,7 +54,6 @@ screen hud():
         $ _nc_time = "in 30min" if _nc_hrs < 0.5 else ("in %dh" % int(_nc_hrs) if _nc_hrs >= 1 else "in 30min")
         $ _nc_txt  = _nc["title"] + " — " + _nc_time
         text "[_nc_txt]":
-            xalign 0.5 ypos 170 size 14 color "#5bcafa"
+            xalign 0.5 ypos 158 size 14 color "#5bcafa"
             font "fonts/Quicksand-SemiBold.ttf"
             outlines [(2, "#000000cc", 0, 0)]
-

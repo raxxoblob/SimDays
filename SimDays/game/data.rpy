@@ -15,9 +15,10 @@ init python:
     def day_name(day_int):
         return DAY_NAMES[day_int % 7]
 
-default money    = 500
+default money    = 350  # STARTING_MONEY — first-week pressure without softlock
 default day      = 0       # days since game start (0 = Day 1, Monday)
 default hour     = 8.0     # current hour (float, 7.0-27.0)
+default hud_mode = "full"  # "full" | "minimal" (left island only) | "hidden" — see hud_v2.rpy
 
 # Core stats (0-100)
 default stat_str = 10
@@ -41,6 +42,10 @@ default skill_mech = 0   # Mechanics  -> garage / warehouse
 default skill_art  = 0   # Art        -> creative / gallery (Zoe's world)
 default skill_music = 0  # Music      -> guitar practice, busking / gigs later
 default skill_exp = {}   # key -> exp banked toward the NEXT level (see gain_skill)
+default skill_gates_completed = {}   # {"prog_3_fl_complete_42": True, ...} — mastery gate proof
+default completed_courses = []       # ["prog_intro", "med_inter", ...] — one-time course IDs
+default daily_activity_load = {}     # {"prog": 3.5, ...} — hours trained today per skill (renamed from daily_skill_training)
+default daily_activity_load_day = -1 # day number the above dict was last reset
 
 default mc_name = "Alex"   # player's name; set during the intro, personalizable
 default current_loc = ""  # which location label the player is currently in
@@ -70,6 +75,8 @@ default kai_affection      = 0
 default kai_trust          = 0
 default rena_affection     = 0
 default rena_trust         = 0
+default julia_affection    = 0
+default julia_trust        = 0
 
 # Progression flags
 default zoe_met       = False
@@ -86,6 +93,7 @@ default kai_met       = False
 default sam_met       = False
 default rena_met           = False
 default rena_diner_first_done = False
+default julia_met             = False
 # Migration-safe encounter dict — tracks world NPCs met without an explicit met flag.
 default npc_encountered = {}
 # Transient dock state — need defaults so npc_interact_from_dock never reads None uninitialised.
@@ -105,6 +113,75 @@ default stat_exp        = {}   # key -> EXP banked toward next level
 default supplements     = {"protein": 0, "preworkout": 0}
 # Passive STR boost on next gain_stat("str",...) call; auto-resets to 1.0
 default stat_boost_str  = 1.0
+
+# ── Phase 56 — event logger, day summary, portfolio, journal ─────────────────
+default current_day_activity  = []   # list of event dicts for the current day
+default pending_day_summary   = None # aggregated dict of yesterday built by new_day()
+default day_summary_visible   = False
+default player_portfolio      = {}   # event_id -> entry dict
+default player_journal        = []   # list of journal entry dicts
+default skill_routines        = {}   # {"prog": {"streak": 3, "last_day": 14}}
+default _pending_levelup_notices = [] # queued level-up notice dicts
+
+# ── Phases 57-59 ──────────────────────────────────────────────────────────────
+default client_profiles             = {}   # client_id -> profile dict
+default home_upgrades               = []   # list of owned upgrade IDs
+default home_visit_today            = False
+default npc_home_visit_cooldowns    = {}   # npc_id -> last visit day
+default home_visit_history          = []
+default npc_invitation_history      = []
+default active_npc_invitations      = []
+default npc_invitation_week_counts  = {}   # week -> count
+default _inv_effects_applied        = []   # [inv_id, ...] — guards _apply_inv_completion_effects
+default player_states               = []   # active buff/debuff entries
+default city_event_schedule         = []
+default city_event_history          = []
+default city_event_generation_week  = -1
+default npc_encounter_history       = []
+default npc_encounter_last_day      = -1
+default npc_encounter_daily_count   = 0
+default unlocked_locations          = []
+default discovered_locations        = []
+# Section 23/24 — schedule, ambient, social systems
+default npc_schedule_overrides      = []
+default workplace_context_applied   = {}   # {career_id: last_day_applied} — daily guard
+default location_ambient_history    = {}
+default location_ambient_today      = {}
+default _crossover_history          = {}
+default location_visit_history      = {}
+default _lw_visit_tokens            = {}   # {location_id: visit_token} — per-visit living-world guard
+default story_scene_active          = False  # set True during scripted scenes; blocks living-world pipeline
+default social_feed_posts           = []
+default social_feed_generated_week  = -1
+default _pending_phone_reminders    = []
+default _sent_phone_reminders       = []
+default _pending_project_result     = None  # set by freelance_submit; consumed by show_project_result
+
+# ── Computer OS shell (presentation only — no game state of its own) ─────────
+default computer_active_app         = None  # None = desktop; reset on every session start
+default _capp_market_seen_period    = -1    # marketplace badge: last market_listings_period seen
+default _capp_freelance_seen_day    = -2    # freelance badge: last freelance_last_refresh_day seen
+default _capp_market_cat            = "all" # marketplace category filter (UI only)
+
+# ── Phase 60 — resolution engine ──────────────────────────────────────────────
+default _check_pity            = {}    # {check_id: accumulated pity bonus}
+default _check_attempts        = {}    # {check_id: total attempts}
+default _daily_condition       = {}    # current day's condition dict
+default _daily_condition_day   = -1   # day number when _daily_condition was generated
+default _breakthrough_sessions = {}   # {skill_key: sessions_without_breakthrough}
+default _pending_breakthrough  = None # {skill, bonus} set by _check_learning_breakthrough
+default show_check_odds        = True  # show pre-roll odds to player
+default activity_mastery       = {}    # {activity_id: mastery_points 0-100}
+default activity_mastery_wins  = {}    # {activity_id: total_wins}
+default _inc_incident          = None  # active career incident dict (for handler label)
+default _inc_cid               = None  # career id for active incident
+# Phase 60B
+default _fl_session_choice     = "normal"  # current session approach
+# Phase 60C
+default pending_promotion_opportunity = None  # {career_id, expires_day}
+# Phase 60D
+# world_challenge_history is in world_challenges.rpy
+# certifications_earned and exam_attempts are in exams.rpy
 
 # Social status assets (0-3 tiers). Status = how the city reads you; gates some
 # people and raises how far relationships can go.
@@ -389,6 +466,16 @@ default nora_school_start_day            = -1
 default nora_life_state                  = "cafe"
 default nora_school_started_message_done = False
 default nora_school_first_week_followup_done = False
+# Tier A location beat (location_beats.rpy) — fired-once flag + outcome flag.
+default nora_cover_shift_triggered       = False
+default covered_nora_shift               = False
+default nora_cover_thanks_said           = False
+# ── Contextual Tier A location beats (location_beats_tier_a.rpy) ──────────────
+# Global anti-spam: at most one contextual beat per in-game day, whole city.
+default last_tier_a_beat_day     = -1
+default tier_a_beat_last_day     = {}   # {beat_id: day it last fired}   -> per-beat cooldown
+default tier_a_beat_miss_count   = {}   # {beat_id: consecutive missed valid opportunities}
+default tier_a_beat_roll_cache   = {}   # {beat_id: [day, bool]} -> one frozen roll per beat per day
 default elle_decision_day                = -1
 default elle_life_state                  = "city"
 default elle_life_state_day              = -1
@@ -656,6 +743,33 @@ init python:
         notify_available_commitments()
 
     def new_day():
+        # ── Phase 56: build day summary BEFORE clearing activity log ──────────
+        _acts = list(store.current_day_activity)
+        if _acts:
+            _summary_day = store.day
+            _money_earned = sum(e["metadata"].get("amount", 0) for e in _acts
+                                if e["category"] == "money" and e["metadata"].get("amount", 0) > 0)
+            _money_spent  = abs(sum(e["metadata"].get("amount", 0) for e in _acts
+                                    if e["category"] == "money" and e["metadata"].get("amount", 0) < 0))
+            _skills = {}
+            for _ev in _acts:
+                if _ev["category"] == "skill":
+                    _sk = _ev["metadata"].get("key", "")
+                    if _sk:
+                        _skills[_sk] = _skills.get(_sk, 0) + _ev["metadata"].get("xp", 0)
+            _notable = [_ev["title"] for _ev in _acts
+                        if _ev["category"] in ("career", "project") and _ev.get("title")]
+            store.pending_day_summary = {
+                "day": _summary_day,
+                "money_earned": _money_earned,
+                "money_spent":  _money_spent,
+                "skills":       _skills,
+                "notable":      _notable,
+            }
+            store.day_summary_visible = True
+        store.current_day_activity = []
+        # ─────────────────────────────────────────────────────────────────────
+
         # Capture how depleted the player was at the END of the previous day,
         # BEFORE sleep restores energy — scenes that react to a hard day (e.g.
         # nora_bad_day) must read this, not worn_out(), which post-sleep is
@@ -664,12 +778,23 @@ init python:
         store.day  += 1
         store.hour  = DAY_START + 1.0   # wake up 8 AM
         base_energy = 100 if store.own_bed else 95
+        base_energy = min(100, base_energy + int(home_upgrade_effect("sleep_energy")))
         if store.skill_fit >= 4:   # Metabolic Engine perk: sleep recovery +15%
             base_energy = min(100, int(base_energy * 1.15))
+        # Phase 62: bedroom gear (mattress, curtains, AC) — capped at +25%.
+        # The full-night baseline is unchanged; this only multiplies it, and the
+        # 100 ceiling still applies, so a good bedroom mostly matters for PARTIAL
+        # sleep (see action_sleep_menu) and for the overnight need decay below.
+        _sleep_mod = sleep_recovery_modifier()
+        base_energy = min(100, int(base_energy * (1.0 + _sleep_mod)))
         store.need_energy  = base_energy
+        store.home_visit_today = False
         _tier = store.apartment_tier
         _hunger_loss  = 15 if _tier == 1 else (10 if _tier == 2 else 5)
         _hygiene_loss = 10 if _tier == 1 else (8  if _tier == 2 else 5)
+        # A comfortable bedroom means you wake up less depleted overall.
+        _hunger_loss  = int(round(_hunger_loss  * (1.0 - _sleep_mod)))
+        _hygiene_loss = int(round(_hygiene_loss * (1.0 - _sleep_mod)))
         store.need_hunger  = max(0, store.need_hunger  - _hunger_loss)
         store.need_hygiene = max(0, store.need_hygiene - _hygiene_loss)
         store.warned_today = False
@@ -694,11 +819,26 @@ init python:
         deliver_due_messages()
         stocks_step()
         roll_daily_events()
+        # Pre-generate daily condition; show flavor text if non-empty
+        _dc = daily_condition()
+        if _dc.get("text"):
+            renpy.notify(_dc["text"])
         wed_preroll_day()
+        deliver_due_mail()
+        check_freelance_deadlines()
+        process_freelance_payments()
+        refresh_freelance_offers()
+        # Sunday: rent reminder email
+        if store.day % 7 == 6:
+            _rent_amt = RENT_BY_TIER.get(store.apartment_tier, 220)
+            queue_mail("Crane Street Property Management", "Rent due tomorrow",
+                       "Your weekly rent of $%d will be collected tomorrow morning." % _rent_amt,
+                       "housing", store.day, "rent_reminder_w%d" % (store.day // 7))
         # Monday: rent + car (direct debit, bypasses debt block) + interest
         if store.day % 7 == 0:
-            RENT = {1: 220, 2: 550, 3: 1300}
-            store.money -= RENT.get(store.apartment_tier, 100)
+            _rent_amt = RENT_BY_TIER.get(store.apartment_tier, 100)
+            _money_before = store.money
+            store.money -= _rent_amt
             if store.car_tier > 0:
                 store.money -= store.car_tier * 40
             # auto-loan if balance went negative
@@ -711,6 +851,16 @@ init python:
             # 2%/week interest on savings
             if store.savings > 0:
                 store.savings += min(50, max(1, int(store.savings * 0.02)))
+            _shortfall = max(0, _rent_amt - _money_before)
+            _week_n = store.day // 7
+            if _shortfall > 0:
+                queue_mail("Crane Street Property Management", "Rent payment shortfall",
+                           "Your rent was processed, but the account balance was insufficient. $%d has been added to your outstanding debt." % _shortfall,
+                           "housing", store.day, "rent_shortfall_w%d" % _week_n)
+            else:
+                queue_mail("Crane Street Property Management", "Payment received",
+                           "We received your rent payment of $%d. Thank you." % _rent_amt,
+                           "housing", store.day, "rent_receipt_w%d" % _week_n)
             # Ignore decay: -2 affection for each NPC not seen in the last 7 days
             # (NPC_DATA defined in interact.rpy, accessible at runtime)
             for _nid, _d in NPC_DATA.items():
@@ -908,6 +1058,34 @@ init python:
             store.npc_invitation_pending = None
 
         _check_npc_initiative()
+        # Phases 57-59: new daily calls
+        expire_player_states()
+        expire_city_events()
+        _expire_schedule_overrides()   # must run before process_missed_invitations
+        check_city_events_new_week()
+        refresh_market_listings()   # Phase 61: rotate second-hand listings
+        refresh_mech_jobs()         # Phase 61: rotate repair jobs
+        # Phase 67: world pulse runs BEFORE invitations and initiative, so both
+        # can react to today's events. Idempotent per day.
+        process_world_pulse_day()
+        sync_summer_festival()   # authored major event — schedules/announces/expires
+        generate_npc_invitations()
+        process_missed_invitations()
+        # Phase 68: NPC initiative / personal lives / follow-ups / word of mouth.
+        # Runs after the pulse so an NPC can invite you to a real event.
+        process_npc_lives_day()
+        store.workplace_context_applied = {}   # reset per-day workplace context guard
+        ensure_default_locations_unlocked()
+        check_returning_client_offers()
+        # Section 23/24 — schedule and world reactivity hooks
+        store.location_ambient_today = {}
+        store._lw_visit_tokens = {}   # reset on new day so day-1 tokens don't leak into day+1
+        check_npc_milestones()
+        generate_social_posts_for_week(store.day // 7)
+        check_phone_reminders()
+        # Phase 56: show day summary overlay if there's data
+        if store.day_summary_visible:
+            renpy.show_screen("day_summary_overlay")
 
     def cosmetic_days_left():
         return max(0, store.cosmetic_boost_until - store.day)

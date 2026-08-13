@@ -103,10 +103,17 @@ init python:
         Pass category="food"/"study"/"fitness"/"medical" for essentials that should
         remain purchasable while in debt. Returns True on success, False if refused."""
         if amt < 0:
-            return try_spend(-amt, category)
+            result = try_spend(-amt, category)
+            if result and amt != 0:
+                record_game_event("money_%d_day%d" % (amt, store.day), "money", "",
+                                  summary=True, metadata={"amount": amt, "source": category})
+            return result
         store.money += amt
         _push_gain(kind="money", text="+$%d" % amt, color="#39c07a",
                    icon="images/ui/icons/stat_money.png")
+        if amt != 0:
+            record_game_event("money_%d_day%d" % (amt, store.day), "money", "",
+                              summary=True, metadata={"amount": amt, "source": category})
         return True
 
     def gain_aff(npc_name, delta):

@@ -186,6 +186,18 @@ init python:
                 and store.nora_school_start_day >= 0
                 and store.day >= store.nora_school_start_day):
             store.nora_life_state = "school"
+            # Sweep any live closing commitment — player accepted it before
+            # Nora's start date was known to be today. No Trust penalty:
+            # this is her life event, not a broken player promise.
+            for _c in store.player_commitments:
+                if _c["id"] == "nora_closing_1" and _c_active(_c):
+                    _c["cancelled"] = True
+                    if not message_already_queued("nora_closing_cancelled_school"):
+                        queue_phone_message(
+                            "nora",
+                            "About tonight — orientation ran longer than I thought. First real day. Can't do the close. Sorry.",
+                            store.day, "nora_closing_cancelled_school")
+                    break
             if not message_already_queued("nora_school_started"):
                 queue_phone_message(
                     "nora",

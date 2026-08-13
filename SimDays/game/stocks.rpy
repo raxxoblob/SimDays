@@ -68,7 +68,18 @@ init python:
             store.stock_owned[sym] -= n
 
     def portfolio_value():
-        return sum(int(store.stock_price[s]) * store.stock_owned[s] for s in store.stock_owned)
+        # ponytail: stock_price can be missing a symbol that exists in stock_owned
+        # on an old save where a stock was removed from market data. Treat as $0.
+        # Upgrade path: have stocks_init() backfill missing keys at save load.
+        total = 0
+        for sym, qty in store.stock_owned.items():
+            price = store.stock_price.get(sym, None)
+            if price is None:
+                if renpy.config.developer:
+                    renpy.log("portfolio_value: unknown symbol %r on old save — treating as $0" % sym)
+                continue
+            total += qty * int(price)
+        return total
 
     # ── Line-chart displayable (last 14 days) ──────────────────────────
     class StockChart(renpy.Displayable):

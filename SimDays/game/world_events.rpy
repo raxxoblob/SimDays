@@ -910,7 +910,7 @@ label wevent_sam_off_routine:
     else:
         scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_r
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "Sam is here. Wrong day, wrong time. Her coffee is half-finished and she's staring at it."
     menu:
         "\"Thought you were a park person.\"":
@@ -1214,7 +1214,7 @@ label wevent_gym_sam_last_rep:
     $ wed_fire("gym_sam_last_rep")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_r
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     sam "One more."
     mc "That was the last one."
     sam "That was the last one you planned."
@@ -1241,7 +1241,7 @@ label wevent_gym_sam_bad_advice:
     $ wed_fire("gym_sam_bad_advice")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_r
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "A man near the mirrors gives an increasingly complicated explanation of how to avoid warming up."
     mc "Is any of that true?"
     sam "Some of the words are real."
@@ -1257,7 +1257,7 @@ label wevent_gym_sam_water_break:
     $ wed_fire("gym_sam_water_break")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_r
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     sam "Water."
     mc "I'm fine."
     sam "That wasn't a question."
@@ -1622,8 +1622,8 @@ label wevent_crossover_sam_zoe_park:
     $ wed_fire("crossover_sam_zoe_park")
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    show zoe_street_neutral at sprite_r
-    show sam_normal at sprite_l
+    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     "Zoe watches Sam repeat the same movement near the court."
     z "Do that again."
     sam "The shot?"
@@ -1734,8 +1734,8 @@ label wevent_crossover_sam_zoe_repeat:
     return
 
 label wevent_cross_sz_shadow:
-    show zoe_street_neutral at sprite_r
-    show sam_normal at sprite_l
+    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     "Zoe is looking at the ground rather than her sketchbook."
     sam "Are you drawing shadows?"
     z "I'm drawing what the light avoids."
@@ -1748,8 +1748,8 @@ label wevent_cross_sz_shadow:
     return
 
 label wevent_cross_sz_pace:
-    show zoe_street_neutral at sprite_r
-    show sam_normal at sprite_l
+    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     sam "I'm running a different loop today."
     z "I know."
     sam "You've been here forty minutes."
@@ -1761,8 +1761,8 @@ label wevent_cross_sz_pace:
     return
 
 label wevent_cross_sz_stop:
-    show zoe_street_neutral at sprite_r
-    show sam_normal at sprite_l
+    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     "Sam stops beside the bench where Zoe is sitting."
     sam "You're always here."
     z "So are you."
@@ -2388,8 +2388,8 @@ label wevent_crossover_sam_kai_gym:
     $ wed_fire("crossover_sam_kai_gym")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_r
-    show kai_gym_normal at sprite_l
+    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show kai_gym_normal at sprite_crop(sprite_display_scale("kai"), _SPRITE_XP_L, sprite_display_y_offset("kai"))
     "Sam is checking her phone between sets. Kai walks over."
     kai "You skipped the cool-down again."
     sam "I had time for one more set."

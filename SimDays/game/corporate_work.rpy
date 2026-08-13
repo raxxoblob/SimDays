@@ -66,6 +66,17 @@ label corp_regular_work:
             "A long day of meetings and spreadsheets. The pay is solid."
     if _work_event_roll("corporate"):
         call work_event_corporate
+    $ _inc = _career_incident_check("corporate", career_rank("corporate"))
+    if _inc:
+        $ store._inc_incident = _inc
+        $ store._inc_cid = "corporate"
+        call career_incident_handler
+    $ _ptr, _prd = do_promotion_roll("corporate")
+    if _ptr == "rolled":
+        $ _prbd = promotion_chance_breakdown("corporate")
+        call screen career_promotion_status_scr("corporate", _prd, _prbd)
+        if _prd["success"] and not _prd.get("opportunity_only"):
+            $ promote("corporate")
     return
 
 

@@ -862,7 +862,22 @@ label phone_reply_eli_side_invite:
 
 label phone_reply_eli_side_remote:
     $ queue_phone_message("eli", "Repository link sent. Push when you have something.", day, "eli_side_project_remote")
-    $ gain_skill("prog", 3)
+    python:
+        # Create a special Eli freelance project (2h, no pay — reward via process_freelance_payments is_eli)
+        store.freelance_active_project = {
+            "template_id": "eli_side_remote",
+            "title": "Eli's feature branch",
+            "client": "Eli",
+            "required_skill": 2,
+            "accepted_day": store.day,
+            "deadline_day": store.day + 5,
+            "required_hours": 2,
+            "worked_hours": 0,
+            "pay": 0,
+            "exp": 8,
+            "status": "active",
+            "is_eli": True,
+        }
     return
 
 label phone_reply_eli_side_decline:
