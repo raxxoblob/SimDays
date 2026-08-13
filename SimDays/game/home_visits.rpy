@@ -171,9 +171,7 @@ init python:
         # work on the wall. Returns None for everyone else, so nothing changes.
         art_line = displayed_artwork_comment(npc_id)
         if art_line:
-            line += "
-
-" + art_line
+            line += "\n\n" + art_line
         return line
 
 
