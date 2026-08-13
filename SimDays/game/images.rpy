@@ -45,6 +45,12 @@ init python:
     renpy.image("pov_chef",         Transform("images/locations/kitchen_pov.png",              size=(1920, 1080)))
     renpy.image("pov_trainer",      Transform("images/locations/pov_gym_work_trainer.png",     size=(1920, 1080)))
     renpy.image("pov_gym_weights",  Transform("images/locations/pov_gym_weights.png",          size=(1920, 1080)))
+    # MISSING ASSET: there is no generic Nexus Tower "at your desk" work POV.
+    # Recommended path: images/locations/nexus_pov.png (to match hub_pov /
+    # kitchen_pov / warehouse_pov / doctor_pov). FALLBACK until the art exists:
+    # the goodoffice1 plate, so a corporate shift still renders something.
+    # Swap the path on this one line when the POV lands — no call site changes.
+    renpy.image("pov_corporate",    Transform("images/locations/goodoffice1.webp",             size=(1920, 1080)))
     renpy.image("gym_cardio",       Transform("images/locations/gym_cardio.png",               size=(1920, 1080)))
 
     # Nadbrzeze zone + new venues + activity CG backgrounds
@@ -242,6 +248,25 @@ init python:
         renpy.image("z_%s_idle" % _z, "images/ui/z_%s_idle.png" % _z)
         renpy.image("z_%s_hi" % _z, "images/ui/z_%s_hi.png" % _z)
 
+# ── FOCUSED SPRITE CONTRACT (read before writing a scene) ────────────
+# Character images are single-token names (nora_cafe_talk, zoe_street_laugh…),
+# so each one is its OWN image tag. `show nora_cafe_talk` followed by
+# `show nora_cafe_laugh` therefore puts TWO Noras on screen — the second does
+# not replace the first. That was the project-wide double-sprite bug.
+#
+# CANONICAL PATTERN — one stable `as` tag per participant, for the whole scene:
+#     show nora_cafe_normal as focus_nora at sprite_r
+#     show nora_cafe_talk   as focus_nora at sprite_r, react_lean_in   # replaces
+#     hide focus_nora
+# For a runtime-chosen sprite path:
+#     show expression npc_sprite("nora") as focus_nora at sprite_r
+#
+# Tag naming: focus_<npc_id> (focus_nora, focus_zoe, focus_martha…). The public
+# location slots are a separate, reserved family: npcsprite / npcsprite2 /
+# npcsprite3 / npcsprite4 (see show_public_sprites in interact.rpy). A focused
+# scene must clear those four before showing its own sprites, or the location
+# render and the scene render coexist.
+#
 # ── Sprite positioning transforms ─────────────────────────────────────
 # Sprites are tall portraits (~1086x1448 / 1024x1535). 'fit contain' scales
 # each into a box preserving aspect; yalign 1.0 anchors feet to the bottom.
@@ -272,6 +297,22 @@ transform sprite_crop(sc=1.0, xp=960, yfix=0):
     xanchor 0.5 yanchor 1.0
     xpos xp ypos (1176 + yfix)
     zoom sc
+
+# ── SCALE CONTRACT: two families, one tuning table ────────────────────
+# SPRITE_SCALE / SPRITE_Y_OFFSET / SPRITE_CROP_LEFT (interact.rpy + above) are
+# the single tuning source. Three consumers read them and agree:
+#   * public location view   -> sprite_crop(...) via show_public_sprites
+#   * focused conversation   -> sprite_crop(...) via npc_interact
+#   * contextual encounters  -> sprite_crop(...) via run_encounter /
+#                               run_contextual_encounter
+#   * debug Character Viewer -> same functions, thumbnail-sized cells
+# KNOWN EXCEPTION (documented, not fixed in this pass): authored scenes place
+# sprites with the fixed sprite_r / sprite_l / sprite_c boxes below, which do
+# NOT apply SPRITE_SCALE — every NPC renders into the same 660x900 fit box. An
+# NPC with a non-default scale (Marcus 1.00 vs the 0.87 women's default) is
+# therefore slightly larger in a location than in an authored scene. Closing it
+# means giving these transforms a scale parameter and threading the NPC id
+# through ~380 call sites, which cannot be verified without a runtime.
 
 transform sprite_r:
     fit "contain"
@@ -359,21 +400,20 @@ transform sprite_quad_a:
 
 # ── Sprite micro-animation transforms ────────────────────────────────────
 # Compose with a position transform: show sprite at sprite_r, react_bounce
-# Each animation starts and ends at the base yoffset (96) or xoffset (0) so
-# no permanent offset accumulates across repeated show statements or rollback.
-# Only yoffset/xoffset are touched — xalign/yalign/xysize/fit come from
-# the position transform (sprite_r/l/c) and are never overridden here.
 #
-# ponytail: yoffset-based transforms hard-code the base value (96) that
-# sprite_r/l/c all share. If that base ever changes, every transform below
-# needs updating or the sprite will jump one frame on entry. Upgrade path:
-# define a named constant and reference it, or switch to OffsetMatrix.
+# CONTRACT: a reaction is a TEMPORARY DELTA and nothing else. It starts at
+# yoffset/xoffset 0 and ends at yoffset/xoffset 0. It must NEVER repeat the
+# base placement offset (sprite_r/l/c carry yoffset 96) — `at sprite_r,
+# react_x` composes the two transforms, so a base value in here is ADDED to
+# the base value in sprite_r and the sprite sinks 96px per reaction.
+# Only yoffset/xoffset are touched — xalign/yalign/xysize/fit come from
+# the position transform and are never overridden here.
 
 transform react_bounce:
     # Quick upward pop and settle — cheerful reactions, surprise, emphasis
-    yoffset 96
-    ease 0.09 yoffset 84
-    ease 0.14 yoffset 96
+    yoffset 0
+    ease 0.09 yoffset -12
+    ease 0.14 yoffset 0
 
 transform react_shake:
     # Small horizontal rattle — irritation, disbelief, awkward refusal
@@ -385,27 +425,27 @@ transform react_shake:
 
 transform react_step_back:
     # Brief downward sink and return — surprise, discomfort, boundary rejection
-    yoffset 96
-    ease 0.10 yoffset 106
-    ease 0.16 yoffset 96
+    yoffset 0
+    ease 0.10 yoffset 10
+    ease 0.16 yoffset 0
 
 transform react_lean_in:
     # Small upward rise and return — warm attention, teasing, romantic tension
-    yoffset 96
-    ease 0.12 yoffset 87
-    ease 0.16 yoffset 96
+    yoffset 0
+    ease 0.12 yoffset -9
+    ease 0.16 yoffset 0
 
 transform react_nod:
     # Tiny downward dip and return — controlled acknowledgement (Martha, Lena)
-    yoffset 96
-    ease 0.08 yoffset 103
-    ease 0.10 yoffset 96
+    yoffset 0
+    ease 0.08 yoffset 7
+    ease 0.10 yoffset 0
 
 transform react_sigh:
     # Slow downward settle and return — tiredness, resignation, release
-    yoffset 96
-    ease 0.16 yoffset 105
-    ease 0.22 yoffset 96
+    yoffset 0
+    ease 0.16 yoffset 9
+    ease 0.22 yoffset 0
 
 # ── Zoe sprites (plain files; positioned via the transforms above) ─────
 # Zoe refreshed to neutral/talk/laugh/angry (PNG; old .webp moved to zoe/old_zoe/)
@@ -456,11 +496,25 @@ image natalie_laugh  = "images/characters/natalie/natalie_laugh.png"
 image natalie_angry  = "images/characters/natalie/natalie_angry.png"
 
 # ── Elle (beach / summer; portraits + full body) ───────────────────────
-image elle_normal          = "images/characters/elle/elle_normal.png"
-image elle_talk            = "images/characters/elle/elle_talk.png"
-image elle_laugh           = "images/characters/elle/elle_laugh.png"
-image elle_angry           = "images/characters/elle/elle_angry.png"
-image elle_surprised       = "images/characters/elle/elle_surprised.png"
+# Elle's four 1024x1536 sprites carry a full-height opaque strip in columns 0-6
+# (generation artifact). Cropped off at the IMAGE level, not in sprite_crop: the
+# transform only gets a scale/x/y, never the NPC id, so image-level is the one
+# place every path shares — location shows, the interaction hub and the debug
+# character viewer all resolve these same names. CGs (cg_elle_*), the portrait
+# and the sundress sprite (261px wide, no strip) are separate images, untouched.
+define SPRITE_CROP_LEFT = {"elle": 10}
+
+init python:
+    for _en in ["normal", "talk", "laugh", "angry"]:
+        _ep = "images/characters/elle/elle_%s.png" % _en
+        _ew, _eh = renpy.image_size(_ep)
+        _ecl = SPRITE_CROP_LEFT["elle"]
+        renpy.image("elle_%s" % _en, Transform(_ep, crop=(_ecl, 0, _ew - _ecl, _eh)))
+
+# elle_surprised removed: the file doesn't exist and nothing shows it, but the
+# define made renpy.has_image("elle_surprised") true — npc_expr_sprite's "angry"
+# fallback chain ends in "surprised", so it was one missing sibling away from a
+# crash. Re-add together with the art.
 image elle_sundress_normal = "images/characters/elle/elle_sundress_normal.png"
 
 # ── Marcus sprites (transparent PNGs; outfit_expression) - reworked look ──

@@ -206,8 +206,11 @@ label location_home_invite_menu:
         jump location_home_actions
     # ponytail: time/energy/rel spent inside home_visit screen via complete_home_visit
     call screen home_visit_scr(_available_guests)
-    if _return is not None:
-        $ _hv_res_npc, _hv_res_act = _return
+    # home_visit_scr contract: (npc_id, activity_id) | None. Guard the unpack —
+    # a bool from the screen layer would otherwise raise TypeError here.
+    $ _hv_pick = _return
+    if isinstance(_hv_pick, tuple) and len(_hv_pick) >= 2:
+        $ _hv_res_npc, _hv_res_act = _hv_pick
         if _hv_res_act == "cook_together":
             call cook_together_flow(_hv_res_npc)
         else:
@@ -229,32 +232,12 @@ label use_computer:
     # Show project result if one is pending from freelance submit
     if store._pending_project_result is not None:
         call show_project_result
-    $ _prog_eff = current_practice_efficiency("prog")
-    $ _prog_lbl = ("Programming Practice (3h)  [%s eff]" % _prog_eff) if _prog_eff != "100%" else "Programming Practice (3h)"
-    menu (screen="activity"):
-        "Open Desktop":
-            call computer_desktop_session
-            jump use_computer
-        "[_prog_lbl]":
-            $ spend_time(3)
-            $ _prog_xp_base = 7 if own_programming_kit else 5
-            $ _prog_xp_base = int(round(_prog_xp_base * (1.0 + float(equipment_modifier("computer", "prog_xp")))))
-            $ gain_skill_practice("prog", _prog_xp_base, 3)
-            $ _prog_e = max(1, int(15 * apply_skill_prog_energy_modifier() * (1.0 - home_upgrade_effect("desk_efficiency")) * (1.0 - float(equipment_modifier("computer", "project_energy")))))
-            if active_player_state_effect("prog_energy_up") > 0:
-                $ _prog_e = int(_prog_e * (1.0 + active_player_state_effect("prog_energy_up")))
-            $ need_energy = max(0, need_energy - _prog_e)
-            "You work through a few exercises. Good for keeping the fundamentals sharp."
-            jump use_computer
-        "Trade stocks":
-            $ store._stock_session_charged = False
-            call screen stock_market
-            jump use_computer
-        "Home Upgrades":
-            call screen home_upgrades_scr
-            jump use_computer
-        "Turn off computer":
-            jump location_home_actions
+    # The old intermediate activity menu is gone: sitting down at the computer
+    # now IS the desktop. Programming Practice and Home Upgrades live in the
+    # desktop app registry (COMPUTER_APPS "programming" / "upgrades"); Stocks is
+    # reachable from the phone's Stocks app.
+    call computer_desktop_session
+    jump location_home_actions
 
 # ── CAFE ──────────────────────────────────────────────────────────────
 label location_cafe:
@@ -321,7 +304,7 @@ label location_cafe:
 label cafe_first_visit:
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "The place smells of espresso and warm milk. Behind the counter, a woman in an apron looks up from a stack of cups, dark hair coming loose from its bun."
     n "Hey - welcome to Grounds. First time, right? You've got the lost look. Everybody does their first week in this city."
     menu:
@@ -337,7 +320,7 @@ label cafe_first_visit:
     "You introduce yourself."
     n "Good to meet you, [mc_name]. First cup's on me - new-neighbor rate. After that Henry starts counting, so enjoy it."
     $ nora_met = True
-    hide nora_cafe_normal
+    hide focus_nora
     jump cafe_actions
 
 label cafe_actions:
@@ -446,7 +429,7 @@ label cafe_work_shift:
     $ fs_mark("outside_activity")
     "Four hours of steaming milk and small talk. You pocket $[_cafe_pay]."
     if npc_here("nora"):
-        show nora_cafe_normal at sprite_r
+        show nora_cafe_normal as focus_nora at sprite_r
         if not cafe_shift_done:
             $ cafe_shift_done = True
             n "Not bad for a first shift. Henry says you're a natural - high praise, he called me 'adequate' for a year."
@@ -458,7 +441,7 @@ label cafe_work_shift:
             $ queue_phone_message("nora", "Closing crew tomorrow is just me and Henry. Come do the last hour? I'll make it worth it, coffee-wise.", day + 1, "nora_closing_invite", responses=_NORA_CLOSING_RESP)
         if commitment_available("nora_closing_1"):
             call phone_nora_closing_scene
-        hide nora_cafe_normal
+        hide focus_nora
     if _work_event_roll("cafe"):
         call work_event_cafe
     $ active_work_shift = None
@@ -930,9 +913,13 @@ label location_bar:
             jump location_bar
         "Bar Games (pool, darts, arm wrestling)":
             call screen bar_games_scr
-            if _return:
-                $ _bg_type, _bg_opp_id = _return
-                call bar_game_play(_bg_type, _bg_opp_id)
+            # bar_games_scr contract: (game_type, opponent_id) | None. A bare
+            # truthiness test used to unpack a bool here and crash.
+            $ _pick = _return
+            if not isinstance(_pick, tuple) or len(_pick) < 2:
+                jump location_bar
+            $ _bg_type, _bg_opp_id = _pick
+            call bar_game_play(_bg_type, _bg_opp_id)
             jump location_bar
         "Socialize (1h)":
             if stat_chr >= 25:
@@ -1014,20 +1001,23 @@ label location_office:
                         pass
                     "Go back":
                         jump location_office
-            hide npcsprite
-            hide npcsprite2
-            hide npcsprite3
-            hide npcsprite4
+            $ clear_npc_sprites()
             hide screen people_here_dock
-            menu:
-                "Handle regular responsibilities.":
-                    call corp_regular_work
-                "Focus on Project Atlas." if atlas_started and not atlas_completed:
-                    call corp_project_work
-                "Work alongside Martha." if martha_collab_available():
-                    call corp_work_martha
-                "Spend some time getting to know the floor.":
-                    call corp_network
+            # corp_work_choice_scr contract: "regular" | "project" | "martha" |
+            # "network" | None. Anything else (a bool from the screen layer) is
+            # treated as "not today" rather than silently starting a shift.
+            call screen corp_work_choice_scr
+            $ _corp_pick = _return
+            if _corp_pick == "regular":
+                call corp_regular_work
+            elif _corp_pick == "project":
+                call corp_project_work
+            elif _corp_pick == "martha":
+                call corp_work_martha
+            elif _corp_pick == "network":
+                call corp_network
+            else:
+                jump location_office
             if need_energy > 40 and hour + 2 <= DAY_END:
                 menu:
                     "Head out.":
@@ -1042,9 +1032,9 @@ label location_office:
                         and corp_shifts >= corp_integrity_followup_shift + corp_integrity_review_extra_shifts):
                     call corporate_review_intern
                 else:
-                    show caroline_normal at sprite_r
+                    show caroline_normal as focus_caroline at sprite_r
                     caro "There's an open matter from the reporting review. Come back once it's resolved."
-                    hide caroline_normal
+                    hide focus_caroline
             else:
                 $ _trial = cur_rank("corporate").get("trial")
                 if _trial and not store.promotion_trials.get(("corporate", career_rank("corporate")), False):
@@ -1221,10 +1211,31 @@ label location_shop_gifts:
                 "A fresh bouquet. Classic for a reason."
             jump location_shop_gifts
 
+# ── INDUSTRIAL DISTRICT (hub for Warehouse + Car Dealership) ──────────
+# Lightweight: no scene/ambient/venue logic of its own, it just routes. The two
+# venues keep their own ids (location_warehouse / location_cardealer) so
+# schedules, ambient tables and unlock data are untouched.
+label location_industrial:
+    $ set_hud("full")
+    hide screen people_here_dock
+    # ponytail: reuses the warehouse plate rather than commissioning a district
+    # establishing shot — without a scene the previous location's background
+    # would linger behind the menu. Upgrade path: a dedicated industrial bg.
+    scene warehouse
+    show screen hud
+    "Industrial District"
+    menu:
+        "Warehouse":
+            jump location_warehouse
+        "Car Dealership":
+            jump location_cardealer
+        "Leave":
+            jump map
+
 # ── CAR DEALER (status via car_tier) ──────────────────────────────────
 label location_cardealer:
-    $ activity_exit_jump = "location_warehouse"
-    $ activity_exit_name = "Warehouse"
+    $ activity_exit_jump = "location_industrial"
+    $ activity_exit_name = "Industrial District"
     scene cardealer_day
     show screen hud
     $ _wed_amb = wed_poll_ambient("location_cardealer")
@@ -1859,8 +1870,8 @@ label location_centrum:
 label location_warehouse:
     $ current_loc = "location_warehouse"
     $ fs_record_district("warehouse")
-    $ activity_exit_jump = "map"
-    $ activity_exit_name = "City Map"
+    $ activity_exit_jump = "location_industrial"
+    $ activity_exit_name = "Industrial District"
     hide screen people_here_dock
     if commitment_available("natalie_shift_1"):
         call phone_natalie_extra_scene
@@ -1929,12 +1940,10 @@ label location_warehouse:
                 call work_event_warehouse
             jump location_warehouse
         "Apply for work" if stat_str < 25:
-            show natalie_normal at sprite_r
+            show natalie_normal as focus_natalie at sprite_r
             nat "Come back when you can actually lift. STR 25, minimum. Next."
-            hide natalie_normal
+            hide focus_natalie
             jump location_warehouse
-        "Visit the Car Dealership":   # relocated here from Downtown
-            jump location_cardealer
 
 # ── HOSPITAL ──────────────────────────────────────────────────────────
 label location_hospital:
@@ -2071,14 +2080,14 @@ label location_hospital:
             jump location_hospital
 
         "Drop off your CV" if "hospital" not in active_careers:
-            show drlena_normal at sprite_r
+            show drlena_normal as focus_lena at sprite_r
             if can_apply("hospital"):
                 "A doctor at the desk skims your file. \"Med Student it is. Try not to faint.\" You're in."
-                hide drlena_normal
+                hide focus_lena
                 $ apply_job("hospital")
             else:
                 "A tired doctor hands your CV back. \"Not there yet - Medicine 2, INT 30, CHR 15 minimum. The college teaches it.\""
-                hide drlena_normal
+                hide focus_lena
                 $ _fs_career_rejection()
             jump location_hospital
 
@@ -2822,7 +2831,7 @@ label martha_rooftop_scene:
     scene martha_rooftop_1 with dissolve
     show screen hud
     "She's already there. Different from the office — not looser exactly. Less constructed."
-    show martha_dress_normal at sprite_r, react_nod
+    show martha_dress_normal as focus_martha at sprite_r, react_nod
     ma "You found it."
     "She says it like she wasn't entirely sure you would."
     menu:
@@ -2834,9 +2843,9 @@ label martha_rooftop_scene:
             $ _apply_aff("martha", 2)
     scene martha_rooftop_2 with dissolve
     show screen hud
-    hide martha_dress_normal
+    hide focus_martha
     "Drinks. The city from above. She's looking at something middle-distance."
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal as focus_martha at sprite_r
     ma "I wanted to say something I can't say in the office."
     ma "You've been handled badly there. By a few people. Before you were established."
     ma "I noticed. I didn't always act on it. I wanted you to know I noticed."
@@ -2848,14 +2857,14 @@ label martha_rooftop_scene:
             $ _apply_trust("martha", 2)
         "\"Thank you.\"":
             "She looks briefly uncomfortable with the gratitude."
-            show martha_dress_normal at sprite_r, react_step_back
+            show martha_dress_normal as focus_martha at sprite_r, react_step_back
             ma "Don't. Just — don't let it happen to the next person."
             $ _apply_aff("martha", 3)
     scene martha_rooftop_3 with dissolve
     show screen hud
-    hide martha_dress_normal
+    hide focus_martha
     "Halfway through the second drink, the city gets louder and she gets quieter."
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal as focus_martha at sprite_r
     ma "I had a plan when I joined Nexus. Very specific. Five years."
     ma "That was nine years ago."
     menu:
@@ -2865,7 +2874,7 @@ label martha_rooftop_scene:
             $ _apply_aff("martha", 2)
             $ _apply_trust("martha", 2)
         "\"Is that a bad thing?\"":
-            show martha_dress_laugh at sprite_r, react_nod
+            show martha_dress_laugh as focus_martha at sprite_r, react_nod
             ma "Ask me in another nine years."
             "Something almost like a smile."
             $ _apply_aff("martha", 3)
@@ -2876,9 +2885,9 @@ label martha_rooftop_scene:
             $ _apply_trust("martha", 3)
     scene martha_rooftop_4 with dissolve
     show screen hud
-    hide martha_dress_normal
+    hide focus_martha
     "She pours the last of the bottle into your glass before her own. You notice."
-    show martha_dress_normal at sprite_r, react_lean_in
+    show martha_dress_normal as focus_martha at sprite_r, react_lean_in
     ma "What do you actually want from this? Not the title. Not the review scores."
     "The question is specific enough that you believe she wants an actual answer."
     menu:
@@ -2898,18 +2907,18 @@ label martha_rooftop_scene:
             $ _apply_trust("martha", 2)
     scene martha_rooftop_5 with dissolve
     show screen hud
-    hide martha_dress_normal
+    hide focus_martha
     "The bar fills up around you. You stop noticing."
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal as focus_martha at sprite_r
     "At some point she refills your glass and says:"
     ma "You're going to be good at this. Whatever you choose."
     "She doesn't wait for a response. Just finishes her drink."
     $ _apply_aff("martha", 3)
     scene martha_rooftop_6 with dissolve
     show screen hud
-    hide martha_dress_normal
+    hide focus_martha
     "Outside. The city is warm and continuous below."
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal as focus_martha at sprite_r
     ma "Same time next quarter."
     "She doesn't frame it as a question."
     if get_romance_state("martha") in ("unopened", "friends") and martha_affection >= 55:
@@ -2919,7 +2928,7 @@ label martha_rooftop_scene:
                 $ add_romance_momentum("martha", 15)
                 $ add_relationship_memory("martha", "martha_rooftop_direction_romance", "Said something intentional on the rooftop")
                 "She's quiet for a moment."
-                show martha_dress_normal at sprite_r, react_step_back
+                show martha_dress_normal as focus_martha at sprite_r, react_step_back
                 ma "Is that what this was."
                 "Not a question. She's filing it."
                 ma "I'll note that."
@@ -2936,7 +2945,7 @@ label martha_rooftop_scene:
                 $ add_relationship_memory("martha", "martha_rooftop_direction_withdrawal", "Let the question stay open")
                 "She follows your gaze for a moment."
                 "The silence doesn't need filling. She knows that."
-    hide martha_dress_normal
+    hide focus_martha
     $ add_relationship_memory("martha", "martha_rooftop", "The rooftop conversation")
     jump map
 
@@ -3133,7 +3142,7 @@ label it_trial_team_lead:
 label hospital_trial_resident:
     scene expression ("hospital_night" if (hour >= 20 or hour < 6) else "hospital1")
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "Complicated presentation. No one agrees on the diagnosis. I need a second pair of eyes."
     lena "What does the blood panel tell you — first instinct?"
     menu:
@@ -3155,7 +3164,7 @@ label hospital_trial_resident:
             lena "That's honest. But in a crisis I need decisiveness. Go home. Rest."
             $ set_career_perf("hospital", 80)
             "You leave before sunrise."
-    hide drlena_normal
+    hide focus_lena
     return
 
 
@@ -3295,7 +3304,7 @@ label location_diner:
             call rena_diner_talk
             jump location_diner
         "Leave":
-            hide rena_casual_normal
+            hide focus_rena
             jump location_nadbrzeze
 
 
@@ -3324,7 +3333,7 @@ label scene_rena_diner_first:
     $ add_relationship_memory("rena", "diner_first", "Saw Rena off duty")
     "A booth near the back. Rena, in a dark sweater, a paperback open on the table."
     "She looks up when you come in. Recognition crosses her face without surprise."
-    show rena_casual_normal at sprite_r
+    show rena_casual_normal as focus_rena at sprite_r
     rena "Commis."
     "It's not unfriendly. It's just accurate."
     menu:
@@ -3347,7 +3356,7 @@ label rena_diner_talk:
     if not talk_followup_rena_taste_again_done and "wev_cul_taste_again" in work_events_seen.get("culinary", []):
         $ talk_followup_rena_taste_again_done = True
         $ fs_record_social("rena", "talk")
-        show rena_casual_talk at sprite_r
+        show rena_casual_talk as focus_rena at sprite_r
         rena "You tasted it before I asked today."
         mc "I'm learning."
         rena "You're repeating something correctly."
@@ -3356,7 +3365,7 @@ label rena_diner_talk:
     if not talk_followup_rena_short_staffed_done and rena_short_staffed_choice is not None:
         $ talk_followup_rena_short_staffed_done = True
         $ fs_record_social("rena", "talk")
-        show rena_casual_talk at sprite_r
+        show rena_casual_talk as focus_rena at sprite_r
         if rena_short_staffed_choice == "help":
             rena "You asked where I needed you."
             mc "You sounded surprised."
@@ -3366,26 +3375,26 @@ label rena_diner_talk:
             mc "You say that like I was being tested."
             rena "You were."
         return
-    show rena_casual_talk at sprite_r
+    show rena_casual_talk as focus_rena at sprite_r
     rena "Still here."
     menu:
         "Ask about the book she's reading.":
             rena "Crime. Eastern European procedurals — the geography holds up better than the plots."
             rena "The detectives are always tired. I find that credible."
-            show rena_casual_normal at sprite_r
+            show rena_casual_normal as focus_rena at sprite_r
             $ _apply_aff("rena", 1)
         "Ask if she ever switches off completely.":
-            show rena_casual_normal at sprite_r
+            show rena_casual_normal as focus_rena at sprite_r
             rena "I'm here, aren't I?"
             "She orders from someone else's menu without looking at the specials."
             rena "That's switching off."
             $ _apply_aff("rena", 1)
         "Talk about the kitchen.":
-            show rena_casual_normal at sprite_r
+            show rena_casual_normal as focus_rena at sprite_r
             rena "Not tonight."
             "It's not harsh. It's a boundary she keeps cleanly."
         "Just check in — nothing specific.":
-            show rena_casual_normal at sprite_r
+            show rena_casual_normal as focus_rena at sprite_r
             rena "Still here."
             "She means it as an answer. You let it be one."
     return

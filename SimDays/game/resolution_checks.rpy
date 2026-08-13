@@ -485,7 +485,13 @@ label career_incident_handler:
     # Expects store._inc_incident = incident dict, store._inc_cid = career id.
     "[store._inc_incident['text']]"
     call screen career_incident_choice_scr(store._inc_incident)
+    # career_incident_choice_scr contract: an int index into ["choices"].
+    # bool is a subclass of int, so a stray True/False would silently index
+    # choice 1/0 instead of crashing — reject anything that isn't a real,
+    # in-range int and fall back to the first (always-safe) choice.
     $ _ci_idx = _return
+    if isinstance(_ci_idx, bool) or not isinstance(_ci_idx, int) or not (0 <= _ci_idx < len(store._inc_incident["choices"])):
+        $ _ci_idx = 0
     $ _ci_choice_label, _ci_opt = store._inc_incident["choices"][_ci_idx]
     if "skill" in _ci_opt:
         $ _ci_res = roll_check(

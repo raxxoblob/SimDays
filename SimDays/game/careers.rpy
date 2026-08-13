@@ -86,7 +86,8 @@ init python:
             10: [("Fitness mastery", "Complete"), ("Personal record", "Achievable")],
         },
         "mech": {
-            2:  [("Repair time", "-3%"),         ("Next unlock", "Advanced diagnostics at level 3")],
+            2:  [("Paid repair jobs", "Unlocked — clients bring you fix-it work"),
+                 ("Repair time", "-3%"),         ("Next unlock", "Advanced diagnostics at level 3")],
             3:  [("Diagnostics", "Improved"),    ("Next unlock", "Vehicle systems at level 4")],
             4:  [("Vehicle systems", "Unlocked"), ("Next unlock", "Efficiency at level 5")],
             5:  [("Repair efficiency", "+5%"),   ("Next unlock", "Advanced mechanics at level 6")],

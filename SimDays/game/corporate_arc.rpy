@@ -9,7 +9,7 @@ label corporate_recruit:
     show screen hud
     "Nexus Tower. Glass and steel and the specific kind of quiet that means people are performing productivity."
     "The receptionist checks your name against a list and points you upstairs. Third floor. Caroline Vance, HR Director."
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     caro "On time. Good start."
     caro "I'll be direct — we don't hire on credentials alone. We hire for how people handle pressure and ambiguity."
     caro "One scenario. You're three days from a client deadline. Your analyst flags a significant error. Fixing it properly takes two days. Patching it takes four hours."
@@ -27,11 +27,11 @@ label corporate_recruit:
             "She tilts her head slightly, as if recalibrating something."
             $ corporate_style = "people_first"
     caro "We'll be in touch."
-    hide caroline_normal
+    hide focus_caroline
     "She isn't immediately."
     "The email arrives three days later. Start Monday."
     "On the way out, someone holds the elevator door."
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "New intake?"
     menu:
         "Just got the call.":
@@ -40,7 +40,7 @@ label corporate_recruit:
         "Looks that way.":
             ma "They moved fast. They must have liked you."
     ma "Martha. Analytics."
-    hide martha_neutral
+    hide focus_martha
     "The elevator opens. She goes left. You go right. You don't know yet which direction matters more."
     $ apply_job("corporate")
     $ caroline_met = True
@@ -53,7 +53,7 @@ label corporate_first_day:
     show screen hud
     "The desk is clean. That's about all you can say for it."
     "HR sends three documents, a badge, and a message: 'Ask Martha if you need anything.'"
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "Survived the morning?"
     menu:
         "Mostly. The system logins took forty minutes.":
@@ -71,7 +71,7 @@ label corporate_first_day:
         "Good to know. Thanks.":
             ma "Don't thank me. Just do it."
             $ _apply_aff("martha", 1)
-    hide martha_neutral
+    hide focus_martha
     "You find the Kellner files. They take three hours. You understand about sixty percent of it."
     "That's a start."
     $ martha_met = True
@@ -85,10 +85,10 @@ label corporate_task_1:
     "Caroline doesn't knock. She stands in the doorway long enough to confirm you're paying attention."
     scene goodoffice1
     show screen hud
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     caro "I need a competitive analysis on Vantage Corp by Friday. Summary, three pages, key risks highlighted."
     "She doesn't say where the data is. Doesn't say what format. Doesn't define 'key risks.'"
-    hide caroline_normal
+    hide focus_caroline
     scene cg_corp_task_arrive
     show screen hud
     "The internal archive is quieter than the main floor. Older filing systems, better lighting."
@@ -100,10 +100,10 @@ label corporate_task_1:
     $ _corp_t1v = "independent"
     menu:
         "Ask for more detail before she leaves.":
-            show caroline_normal at sprite_r
+            show caroline_normal as focus_caroline at sprite_r
             caro "Sources: internal reports, public filings. Format: executive summary at the top, detail below."
             caro "Key risks: whatever keeps the client awake. I appreciate the question — most people just guess."
-            hide caroline_normal
+            hide focus_caroline
             $ _apply_trust("caroline", 3)
             $ _work_perf(5)
             $ corp_review_score += 1
@@ -114,21 +114,21 @@ label corporate_task_1:
             $ corp_review_score += 2
             $ _corp_t1v = "independent"
         "Ask Martha after Caroline leaves.":
-            show martha_neutral at sprite_r
+            show martha_neutral as focus_martha at sprite_r
             ma "She wants two columns: what Vantage is doing right and what they're hiding."
             ma "She never says it that way, but that's what she means."
-            hide martha_neutral
+            hide focus_martha
             $ _apply_trust("martha", 3)
             $ _work_perf(6)
             $ corp_review_score += 1
             $ _corp_t1v = "collaborative"
         "Push for a presentation slot instead of a written report." if corporate_style == "ambitious":
-            show caroline_normal at sprite_r
+            show caroline_normal as focus_caroline at sprite_r
             caro "..."
             caro "That's not what I asked for."
             "A beat."
             caro "But if you can make it land in ten minutes, Thursday, three o'clock."
-            hide caroline_normal
+            hide focus_caroline
             "High risk. You prepare for two days straight."
             $ _work_perf(12)
             $ _apply_trust("caroline", 1)
@@ -142,10 +142,10 @@ label corporate_task_1:
             $ corp_review_score += 2
             $ _corp_t1v = "reliable"
         "Run a quick read-through with a colleague before submitting." if corporate_style == "people_first":
-            show martha_neutral at sprite_r
+            show martha_neutral as focus_martha at sprite_r
             ma "You want me to proofread it?"
             ma "Fine. Page two, third paragraph — Vantage's market share figure is wrong by a year."
-            hide martha_neutral
+            hide focus_martha
             "It would have been embarrassing."
             $ _apply_trust("martha", 4)
             $ _work_perf(7)
@@ -174,7 +174,7 @@ label corporate_martha_1:
     "Martha stops by your desk at ten past six."
     scene goodoffice1
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "You turned the Vantage analysis in early."
     menu:
         "It wasn't that complicated once I had the framing.":
@@ -215,7 +215,7 @@ label corporate_martha_1:
             $ _apply_trust("martha", 3)
             $ corp_review_score += 1
             $ _corp_m1v = "quiet"
-    hide martha_neutral
+    hide focus_martha
     $ corp_martha_1_done = True
     if _corp_m1v == "direct":
         $ queue_phone_message("martha", "For the record — I wasn't testing you. But that's the right instinct to trust when you're new somewhere.", day + 1, "corp_martha1_followup")
@@ -233,7 +233,7 @@ label corporate_martha_2:
     "The break room. First time she's initiated anything that isn't work."
     scene goodoffice1
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "I'm getting coffee. You want one?"
     "The coffee machine makes a sound like it's negotiating with itself."
     ma "How long have you been here now?"
@@ -272,7 +272,7 @@ label corporate_martha_2:
             ma "Don't read too much into it."
             $ _apply_aff("martha", 2)
             $ corp_review_score += 1
-    hide martha_neutral
+    hide focus_martha
     $ corp_martha_2_done = True
     if _corp_m2v == "honest":
         $ queue_phone_message("martha", "What I said this afternoon — 'good at it' is a lower bar than it sounds. Worth knowing the distinction.", day + 2, "corp_martha2_followup")
@@ -295,7 +295,7 @@ label corporate_review_intern:
     scene goodoffice1
     show screen hud
     "The chair across from her desk is fractionally lower than hers. You notice this on the way in."
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     caro "Three months. I wanted to do this properly."
     caro "Your output is consistent. The Vantage analysis was used in the Kellner pitch — Stratford didn't credit you, but I did. Internally."
     if corporate_style == "reliable":
@@ -358,7 +358,7 @@ label corporate_review_intern:
                 $ _apply_trust("caroline", 3)
         $ promote()
         "You got what you came for. The terms weren't quite what you expected."
-    hide caroline_normal
+    hide focus_caroline
     $ corp_review_intern_done = True
     if corp_integrity_followup_done:
         python:
@@ -382,7 +382,7 @@ label corp_reporting_integrity:
     $ corp_integrity_done = True
     scene goodoffice1
     show screen hud
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     "Three days before the executive review. Caroline stops at your desk with the summary deck."
     caro "The Q3 Vantage segment. The board expects it at 4.2. Your current source gives 3.8."
     "A discrepancy of four-tenths across a reported segment — not trivial."
@@ -404,7 +404,7 @@ label corp_reporting_integrity:
             caro "That will delay the deck."
             mc "Yes."
             "She takes the deck back."
-            hide caroline_normal
+            hide focus_caroline
             $ _work_perf(6)
             $ _apply_trust("caroline", 3)
         "Submit with the discrepancy explicitly marked and attach reconciliation.":
@@ -416,7 +416,7 @@ label corp_reporting_integrity:
             mc "It also means no one acts on an incorrect figure."
             "She considers this."
             caro "Do it carefully."
-            hide caroline_normal
+            hide focus_caroline
             $ _work_perf(3)
             $ _apply_trust("caroline", 2)
         "Replace the figure with the expected target.":
@@ -425,7 +425,7 @@ label corp_reporting_integrity:
             mc "I can reconcile it after the meeting."
             "You update the deck. The figure becomes 4.2."
             "The problem will be there on Tuesday when you open the source file."
-            hide caroline_normal
+            hide focus_caroline
             $ _work_perf(-8)
             $ _apply_trust("caroline", -3)
     $ _wev_relbar_close()
@@ -438,13 +438,13 @@ label corp_reporting_integrity:
 label corp_reporting_integrity_followup:
     scene goodoffice1
     show screen hud
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     if corp_integrity_outcome == "disclosed":
         "Two shifts later: the source data was reanalysed before the meeting. The Q3 Vantage figure had been pulled from a pre-adjustment extract — the correct number aligned closer to the board's expectation than the discrepancy had suggested."
         caro "The delay was the right call."
         mc "I didn't know that at the time."
         caro "That's the point. You didn't know — and you didn't submit anyway."
-        hide caroline_normal
+        hide focus_caroline
         $ _work_perf(2)
         $ _apply_trust("caroline", 2)
     elif corp_integrity_outcome == "qualified":
@@ -452,7 +452,7 @@ label corp_reporting_integrity_followup:
         caro "The note did its job."
         mc "It flagged the gap without stopping the submission."
         caro "Which is why the data error didn't make it into the board summary. Your note, your work."
-        hide caroline_normal
+        hide focus_caroline
         $ _work_perf(1)
         $ _apply_trust("caroline", 1)
     else:
@@ -461,10 +461,10 @@ label corp_reporting_integrity_followup:
         mc "You asked me to reconcile it."
         "A pause."
         caro "I asked you to reconcile the gap. Not replace the source number."
-        hide caroline_normal
+        hide focus_caroline
         $ _wev_relbar_open("caroline")
         show screen npc_relbar("caroline")
-        show caroline_normal at sprite_r
+        show caroline_normal as focus_caroline at sprite_r
         menu:
             "Report what you changed.":
                 $ corp_integrity_owned_mistake = True
@@ -473,7 +473,7 @@ label corp_reporting_integrity_followup:
                 mc "Because you needed it reconciled before Monday and I made the wrong call about what that meant."
                 "She doesn't defend the original request."
                 caro "This goes to compliance. I'll need your written account by end of day."
-                hide caroline_normal
+                hide focus_caroline
                 $ _work_perf(1)
                 $ _apply_trust("caroline", 2)
                 $ corp_integrity_review_extra_shifts = 1
@@ -484,7 +484,7 @@ label corp_reporting_integrity_followup:
                 mc "The intent was to present the business's trajectory."
                 caro "The intent doesn't appear in the report. The number does."
                 "She closes the folder."
-                hide caroline_normal
+                hide focus_caroline
                 $ _work_perf(-2)
                 $ _apply_trust("caroline", -2)
                 $ corp_integrity_review_extra_shifts = 2

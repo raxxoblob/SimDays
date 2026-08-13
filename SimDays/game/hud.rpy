@@ -1,5 +1,5 @@
-# Always-on HUD. The visuals live in hud_v2.rpy (two floating islands, top-left
-# and top-right, empty centre). This screen keeps the name `hud` because ~414
+# Always-on HUD. The visuals live in hud_v2.rpy (day/time island top-left, needs
+# island top-centre). This screen keeps the name `hud` because ~414
 # `show screen hud` statements across the script reference it.
 #
 # What stays here: the global key bindings, the bottom-corner phone peek and
@@ -30,19 +30,29 @@ screen hud():
             $ _hud_uc = unread_message_count()
             text ("(" + ("9+" if _hud_uc > 9 else str(_hud_uc)) + ")") xpos 1875 ypos 988 font "fonts/Quicksand-SemiBold.ttf" size 20 color "#e05533" outlines [(2, "#000000", 0, 0)]
 
-    # "Me" / stats button — moved to the bottom-left corner so it no longer
-    # collides with the right HUD island.
+    # "Me" / stats button — upper-right corner, same height and shell as the HUD
+    # islands (HUD2_BG + HUD2_LINE) so the top row reads as one band.
     button:
-        xpos 28 ypos 1004
-        xysize (104, 52)
-        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+        xpos HUD2["me_x"]
+        ypos HUD2["top_y"]
+        xysize (HUD2["me_w"], HUD2["island_h"])
+        padding (0, 0, 0, 0)
+        background HUD2_BG
+        hover_background HUD2_BG_HOVER
         action ToggleScreen("profile")
-        text "Me" font "fonts/Quicksand-SemiBold.ttf" size 24 color "#cfe0f5" align (0.5, 0.5)
+        tooltip "Your stats, skills, work and assets."
+        frame:
+            background HUD2_LINE
+            xfill True
+            yfill True
+            padding (0, 0, 0, 0)
+            text "Me":
+                font HUD2["font"] size 24 color HUD2["text_cap"] align (0.5, 0.5)
 
     $ _tt = GetTooltip()
     if _tt:
         text "[_tt]":
-            xalign 0.5 ypos 132 size 17 color "#ffffff"
+            xalign 0.5 ypos 126 size 17 color "#ffffff"
             font "fonts/Quicksand-SemiBold.ttf"
             outlines [(2, "#000000cc", 0, 0)]
 
@@ -54,6 +64,6 @@ screen hud():
         $ _nc_time = "in 30min" if _nc_hrs < 0.5 else ("in %dh" % int(_nc_hrs) if _nc_hrs >= 1 else "in 30min")
         $ _nc_txt  = _nc["title"] + " — " + _nc_time
         text "[_nc_txt]":
-            xalign 0.5 ypos 158 size 14 color "#5bcafa"
+            xalign 0.5 ypos 150 size 14 color "#5bcafa"
             font "fonts/Quicksand-SemiBold.ttf"
             outlines [(2, "#000000cc", 0, 0)]

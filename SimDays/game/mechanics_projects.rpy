@@ -38,6 +38,7 @@ init python:
 
     MECH_JOBS_ROTATE = 3       # days between board refreshes
     _MECH_DIAGNOSIS_BASE = 8   # roll points from a completed diagnosis
+    MECH_JOBS_MIN_SKILL = 2    # paid client work unlocks at Mechanics Lv 2
 
     def _mech_engine_difficulty(d):
         return 28 + d * 5
@@ -50,6 +51,11 @@ init python:
         kept = [j for j in store.mech_jobs
                 if not j.get("done") and store.day <= j.get("expire_day", -1)]
         store.mech_jobs = kept
+        # Lv0-1: nobody trusts you with their stuff yet. Don't populate a board
+        # of jobs the player can only lose money on. Note: gate is checked before
+        # gen_period is stamped, so the board fills the moment they hit Lv2.
+        if skill_val("mech") < MECH_JOBS_MIN_SKILL:
+            return
         if store.mech_jobs_gen_period == period:
             return
         store.mech_jobs_gen_period = period
@@ -243,8 +249,11 @@ label repair_bench:
 label refresh_and_show_mech:
     $ refresh_mech_jobs()
     call screen mech_bench_scr
+    # mech_bench_scr contract: ("job", job_id) | ("restore", item_id) | None.
+    # Ren'Py can still hand back a bool here (Dismiss/end_interaction from an
+    # overlay), so treat anything that isn't a 2-tuple as "close".
     $ _mb = _return
-    if _mb is None:
+    if not isinstance(_mb, tuple) or len(_mb) < 2:
         return
     if _mb[0] == "job":
         $ store._mech_cur_job = next((j for j in store.mech_jobs if j["id"] == _mb[1]), None)
@@ -316,96 +325,136 @@ init python:
         return ["No improvement this time — try again."]
 
 
+# Return contract for mech_bench_scr:
+#   ("job", job_id)      -> open the fix-it job flow
+#   ("restore", item_id) -> open the restoration flow
+#   None                 -> close the bench
+# No other return shape is produced by this screen. Callers must still guard,
+# because Ren'Py itself can end a `call screen` with a bool.
 screen mech_bench_scr():
     modal True
     zorder 210
     add "#000000cc"
     frame:
         xalign 0.5 yalign 0.5
-        xsize 720
-        ysize 600
+        xsize 900
+        ysize 700
         background "#12161ef8"
-        padding (22, 18, 22, 18)
+        padding (26, 20, 26, 20)
         vbox:
             spacing 8
-            text "REPAIR BENCH" font PROFILE_FONT size 18 color "#9fb6d6" xalign 0.5
+            text "REPAIR BENCH" font PROFILE_FONT size 22 color "#cfe0f5" xalign 0.5
             hbox:
                 xalign 0.5
-                spacing 16
-                text ("Mechanics Lv %d" % skill_val("mech")) font ACT_FONT size 13 color "#9aa5b5"
+                spacing 18
+                text ("Mechanics Lv %d" % skill_val("mech")) font ACT_FONT size 15 color "#9fb6d6"
                 $ _tk = equipped_item("tools")
-                text ("Tools: %s" % (EQUIPMENT_DEFS[_tk]["name"] if _tk else "none")) font ACT_FONT size 13 color "#7a9ab8"
+                text ("Tools: %s" % (EQUIPMENT_DEFS[_tk]["name"] if _tk else "none")) font ACT_FONT size 15 color "#7a9ab8"
             null height 4
             viewport:
                 xfill True
-                ysize 470
+                ysize 555
                 mousewheel True
                 scrollbars "vertical"
                 vbox:
-                    spacing 6
+                    spacing 8
                     xfill True
-                    text "Fix-it jobs" font PROFILE_FONT size 14 color "#5bcafa"
-                    if not [j for j in mech_jobs if not j.get("done")]:
-                        text "No jobs on the board right now. Check back in a few days." font ACT_FONT size 12 color "#4a6080"
-                    for _j in mech_jobs:
-                        if not _j.get("done"):
-                            $ _jc = mech_repair_chance(_j)
-                            frame:
-                                xfill True
-                                background "#1a2230"
-                                padding (14, 10, 14, 10)
-                                hbox:
-                                    spacing 12
+                    text "PAID REPAIR JOBS" font PROFILE_FONT size 17 color "#5bcafa"
+                    if skill_val("mech") < MECH_JOBS_MIN_SKILL:
+                        frame:
+                            xfill True
+                            background "#1a2230"
+                            padding (16, 12, 16, 12)
+                            vbox:
+                                spacing 4
+                                text ("Unlocks at Mechanics Lv %d" % MECH_JOBS_MIN_SKILL) font PROFILE_FONT size 16 color "#e0b060"
+                                text "Practice Mechanics or take Auto Basics to qualify." font ACT_FONT size 14 color "#9fb6d6"
+                    elif not [j for j in mech_jobs if not j.get("done")]:
+                        text "No jobs on the board right now. Check back in a few days." font ACT_FONT size 14 color "#7a9ab8"
+                    else:
+                        for _j in mech_jobs:
+                            if not _j.get("done"):
+                                $ _jc = mech_repair_chance(_j)
+                                frame:
                                     xfill True
-                                    vbox:
-                                        spacing 3
-                                        xsize 430
-                                        text _j["name"] font PROFILE_FONT size 14 color "#cfe0f5"
-                                        hbox:
-                                            spacing 10
-                                            text ("Diff %d" % _j["difficulty"]) font ACT_FONT size 11 color "#7090b0"
-                                            text ("Pays $%d" % _j["reward"]) font ACT_FONT size 11 color "#ffd66a"
-                                            if _j["id"] in _mech_diagnosed:
-                                                text "diagnosed" font ACT_FONT size 11 color "#7fd06a"
-                                        text ("Repair success: %d%%" % _jc["success_or_better"]) font ACT_FONT size 11 color "#9fb6d6"
-                                    button:
-                                        action Return(("job", _j["id"]))
-                                        xalign 1.0
-                                        background "#1e3a5f"
-                                        padding (12, 6)
-                                        text "Open" font ACT_FONT size 13 color "#5bcafa" hover_color "#ffffff" xalign 0.5
-                    null height 6
+                                    background "#1a2230"
+                                    padding (16, 12, 16, 12)
+                                    hbox:
+                                        spacing 14
+                                        xfill True
+                                        vbox:
+                                            spacing 5
+                                            xsize 610
+                                            hbox:
+                                                spacing 10
+                                                text _j["name"] font PROFILE_FONT size 17 color "#cfe0f5"
+                                                if _j["id"] in _mech_diagnosed:
+                                                    text "diagnosed" font ACT_FONT size 13 color "#7fd06a" yalign 0.5
+                                            hbox:
+                                                spacing 18
+                                                text ("Requires Mech Lv %d" % MECH_JOBS_MIN_SKILL) font ACT_FONT size 14 color "#7a9ab8"
+                                                text ("Difficulty %d" % _j["difficulty"]) font ACT_FONT size 14 color "#7a9ab8"
+                                                text ("Time %.2gh" % (1.0 + 0.25 * _j["difficulty"])) font ACT_FONT size 14 color "#7a9ab8"
+                                            hbox:
+                                                spacing 18
+                                                text ("Materials $%d" % _j["materials"]) font ACT_FONT size 14 color "#9fb6d6"
+                                                text ("Part $%d" % _j["replace"]) font ACT_FONT size 14 color "#9fb6d6"
+                                                text ("Chance %d%%" % _jc["success_or_better"]) font ACT_FONT size 15 color "#5bcafa"
+                                                text ("Pays $%d" % _j["reward"]) font ACT_FONT size 15 color "#ffd66a"
+                                        button:
+                                            action Return(("job", _j["id"]))
+                                            yalign 0.5
+                                            xalign 1.0
+                                            background "#1e3a5f"
+                                            padding (16, 8)
+                                            text "Open" font ACT_FONT size 15 color "#5bcafa" hover_color "#ffffff" xalign 0.5
+                    null height 10
                     if restorable_equipment():
-                        text "Restore your gear" font PROFILE_FONT size 14 color "#5bcafa"
+                        text "RESTORE YOUR GEAR" font PROFILE_FONT size 17 color "#5bcafa"
                         for _it in restorable_equipment():
                             $ _rc = restore_equipment_chance(_it)
+                            $ _rcond = equipment_condition_of(_it)
+                            $ _rnext = CONDITION_ORDER[min(CONDITION_ORDER.index(_rcond) + 1, len(CONDITION_ORDER) - 1)] if _rcond in CONDITION_ORDER else _rcond
+                            $ _rmat = 8 + EQUIPMENT_DEFS[_it]["tier"] * 4
                             frame:
                                 xfill True
                                 background "#1a2230"
-                                padding (14, 10, 14, 10)
+                                padding (16, 12, 16, 12)
                                 hbox:
-                                    spacing 12
+                                    spacing 14
                                     xfill True
                                     vbox:
-                                        spacing 3
-                                        xsize 430
-                                        text EQUIPMENT_DEFS[_it]["name"] font PROFILE_FONT size 14 color "#cfe0f5"
-                                        text ("Condition: %s  ·  Improve success %d%%" % (equipment_condition_of(_it), _rc["success_or_better"])) font ACT_FONT size 11 color "#9fb6d6"
+                                        spacing 5
+                                        xsize 610
+                                        text EQUIPMENT_DEFS[_it]["name"] font PROFILE_FONT size 17 color "#cfe0f5"
+                                        hbox:
+                                            spacing 18
+                                            text ("Condition %s" % _rcond) font ACT_FONT size 14 color "#7a9ab8"
+                                            text ("Materials $%d" % _rmat) font ACT_FONT size 14 color "#9fb6d6"
+                                            text "Time 1.5h" font ACT_FONT size 14 color "#7a9ab8"
+                                        hbox:
+                                            spacing 18
+                                            text ("Chance %d%%" % _rc["success_or_better"]) font ACT_FONT size 15 color "#5bcafa"
+                                            text ("Would become %s" % _rnext) font ACT_FONT size 15 color "#7fd06a"
                                     button:
                                         action Return(("restore", _it))
+                                        yalign 0.5
                                         xalign 1.0
                                         background "#1e3a5f"
-                                        padding (12, 6)
-                                        text "Restore" font ACT_FONT size 13 color "#5bcafa" hover_color "#ffffff" xalign 0.5
+                                        padding (16, 8)
+                                        text "Restore" font ACT_FONT size 15 color "#5bcafa" hover_color "#ffffff" xalign 0.5
             null height 6
             button:
                 action Return(None)
                 xalign 0.5
                 background "#1e3a5f"
-                padding (20, 8)
-                text "Close" font PROFILE_FONT size 14 color "#5bcafa" hover_color "#ffffff"
+                padding (24, 10)
+                text "Close" font PROFILE_FONT size 16 color "#5bcafa" hover_color "#ffffff"
 
 
+# Return contract for mech_job_scr:
+#   "diagnose" | "replace" | "repair" | None (back). Caller compares with ==,
+#   so an unexpected bool falls through to the no-op return rather than crashing.
 screen mech_job_scr(job_id):
     modal True
     zorder 220
@@ -481,6 +530,7 @@ screen mech_job_scr(job_id):
                     text "Back" font ACT_FONT size 13 color "#5bcafa" hover_color "#ffffff"
 
 
+# Return contract for mech_restore_scr: "restore" | None (back).
 screen mech_restore_scr(item_id):
     modal True
     zorder 220

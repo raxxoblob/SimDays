@@ -110,14 +110,27 @@ screen item_detail_scr(item_id):
     $ _delta = equip_delta(item_id)
     frame:
         xalign 0.5 yalign 0.5
-        xsize 600
+        xsize 730
         background "#12161ef8"
-        padding (24, 20, 24, 22)
+        padding (26, 22, 26, 24)
         vbox:
-            spacing 7
-            text _d["label"] font PROFILE_FONT size 19 color "#cfe0f5" xalign 0.5
-            text _d["description"] font ACT_FONT size 12 color "#7a9ab8" xalign 0.5
-            null height 2
+            spacing 8
+            text _d["label"] font PROFILE_FONT size 22 color "#cfe0f5" xalign 0.5
+            text _d["description"] font ACT_FONT size 15 color "#9fb6d6" xalign 0.5
+            null height 4
+
+            # Price / ownership band — the two numbers people actually shop on.
+            frame:
+                xfill True
+                background "#1a2230"
+                padding (14, 8, 14, 8)
+                hbox:
+                    xfill True
+                    text (("Owned — %s" % item_condition(item_id)) if _owned else ("Price $%d" % _d["price_new"])) font PROFILE_FONT size 17 color ("#7fd06a" if _owned else "#ffd66a") yalign 0.5
+                    if savings_target == item_id:
+                        text "Savings goal" font PROFILE_FONT size 15 color "#5bcafa" yalign 0.5 xalign 1.0
+                    elif not _owned:
+                        text ("You have $%d" % money) font ACT_FONT size 15 color "#9fb6d6" yalign 0.5 xalign 1.0
 
             if _slotted:
                 $ _room, _slot = item_room_slot(item_id)
@@ -125,33 +138,31 @@ screen item_detail_scr(item_id):
                 $ _slotlbl = SLOT_LABELS.get(_slot, _slot.replace("_", " ").title())
                 hbox:
                     xfill True
-                    text ("%s — %s" % (_roomlbl, _slotlbl)) font ACT_FONT size 11 color "#5bcafa" yalign 0.5
-                    text ("Currently: %s" % current_slot_occupant_label(item_id)) font ACT_FONT size 11 color "#7a9ab8" yalign 0.5 xalign 1.0
+                    text ("%s — %s" % (_roomlbl, _slotlbl)) font ACT_FONT size 15 color "#5bcafa" yalign 0.5
+                    text ("Currently: %s" % current_slot_occupant_label(item_id)) font ACT_FONT size 15 color "#cfe0f5" yalign 0.5 xalign 1.0
             else:
-                text "Lifestyle item — no slot. You own it because you want it." font ACT_FONT size 11 color "#5bcafa"
+                text "Lifestyle item — no slot. You own it because you want it." font ACT_FONT size 15 color "#5bcafa"
 
-            null height 4
+            null height 6
             if _delta:
-                text ("Change if equipped:" if not _equipped else "Active bonuses:") font ACT_FONT size 11 color "#9fb6d6"
+                text ("Change if equipped:" if not _equipped else "Active bonuses:") font PROFILE_FONT size 16 color "#9fb6d6"
                 for _dl, _dv in _delta:
                     hbox:
                         xfill True
-                        text ("  " + _dl) font ACT_FONT size 11 color "#7a9ab8" yalign 0.5
-                        text _dv font ACT_FONT size 11 color "#ffd66a" yalign 0.5 xalign 1.0
+                        text ("  " + _dl) font ACT_FONT size 15 color "#9fb6d6" yalign 0.5
+                        text _dv font PROFILE_FONT size 15 color "#ffd66a" yalign 0.5 xalign 1.0
             elif item_modifier_lines(item_id):
-                text "Current bonuses:" font ACT_FONT size 11 color "#9fb6d6"
+                text "Current bonuses:" font PROFILE_FONT size 16 color "#9fb6d6"
                 for _dl, _dv in item_modifier_lines(item_id):
                     hbox:
                         xfill True
-                        text ("  " + _dl) font ACT_FONT size 11 color "#7a9ab8" yalign 0.5
-                        text _dv font ACT_FONT size 11 color "#ffd66a" yalign 0.5 xalign 1.0
+                        text ("  " + _dl) font ACT_FONT size 15 color "#9fb6d6" yalign 0.5
+                        text _dv font PROFILE_FONT size 15 color "#ffd66a" yalign 0.5 xalign 1.0
             else:
-                text "No mechanical bonus. It just makes the place better." font ACT_FONT size 11 color "#4a6080"
+                text "No mechanical bonus. It just makes the place better." font ACT_FONT size 15 color "#7a9ab8"
 
             if _d["unlocks"]:
-                text ("Unlocks: " + ", ".join(u.replace("_", " ") for u in _d["unlocks"])) font ACT_FONT size 10 color "#7fd06a"
-            if _owned:
-                text ("Condition: %s" % item_condition(item_id)) font ACT_FONT size 10 color "#7a9ab8"
+                text ("Unlocks: " + ", ".join(u.replace("_", " ") for u in _d["unlocks"])) font ACT_FONT size 14 color "#7fd06a"
 
             null height 8
             if not _owned:
@@ -163,7 +174,7 @@ screen item_detail_scr(item_id):
                         background "#1a2a3a"
                         hover_background "#1e3a5f"
                         padding (14, 8)
-                        text ("Buy for $%d and use it now" % _d["price_new"]) font ACT_FONT size 14 color ("#cfe0f5" if can_buy_item(item_id) else "#4a6080")
+                        text ("Buy for $%d and use it now" % _d["price_new"]) font ACT_FONT size 16 color ("#cfe0f5" if can_buy_item(item_id) else "#4a6080")
                     if _slotted:
                         button:
                             action Return(("buy", False))
@@ -172,9 +183,9 @@ screen item_detail_scr(item_id):
                             background "#1a2a3a"
                             hover_background "#1e3a5f"
                             padding (14, 8)
-                            text ("Buy for $%d, keep in storage" % _d["price_new"]) font ACT_FONT size 13 color ("#9fb6d6" if can_buy_item(item_id) else "#4a6080")
+                            text ("Buy for $%d, keep in storage" % _d["price_new"]) font ACT_FONT size 15 color ("#9fb6d6" if can_buy_item(item_id) else "#4a6080")
                     if not can_buy_item(item_id):
-                        text ("You have $%d. You need $%d more." % (money, max(0, _d["price_new"] - money))) font ACT_FONT size 11 color "#e07a6a" xalign 0.5
+                        text ("You have $%d. You need $%d more." % (money, max(0, _d["price_new"] - money))) font ACT_FONT size 15 color "#e07a6a" xalign 0.5
                     if _d["price_new"] >= 800:
                         button:
                             action Return(("save",))
@@ -182,9 +193,9 @@ screen item_detail_scr(item_id):
                             background "#1a2a3a"
                             hover_background "#1e3a5f"
                             padding (14, 7)
-                            text ("Stop saving for this" if savings_target == item_id else "Set as savings goal") font ACT_FONT size 12 color "#ffd66a"
+                            text ("Stop saving for this" if savings_target == item_id else "Set as savings goal") font PROFILE_FONT size 15 color "#ffd66a"
                 if _d["available_used"]:
-                    text ("Sometimes turns up second-hand around $%d." % _d["price_used"]) font ACT_FONT size 10 color "#7a9ab8" xalign 0.5
+                    text ("Sometimes turns up second-hand around $%d." % _d["price_used"]) font ACT_FONT size 14 color "#7a9ab8" xalign 0.5
             elif _slotted and not _equipped:
                 button:
                     action Return(("equip",))
@@ -192,33 +203,38 @@ screen item_detail_scr(item_id):
                     background "#1a2a3a"
                     hover_background "#1e3a5f"
                     padding (14, 8)
-                    text "Use this one" font ACT_FONT size 14 color "#cfe0f5"
+                    text "Use this one" font ACT_FONT size 16 color "#cfe0f5"
             elif _equipped:
-                text "In use." font ACT_FONT size 13 color "#5bcafa" xalign 0.5
+                text "In use." font PROFILE_FONT size 16 color "#5bcafa" xalign 0.5
             else:
-                text "Owned." font ACT_FONT size 13 color "#7fd06a" xalign 0.5
+                text "Owned." font PROFILE_FONT size 16 color "#7fd06a" xalign 0.5
 
             null height 6
             button action Return(None) xalign 0.5 background "#1e3a5f" padding (18, 6):
-                text "Back" font ACT_FONT size 13 color "#5bcafa" hover_color "#ffffff"
+                text "Back" font ACT_FONT size 15 color "#5bcafa" hover_color "#ffffff"
 
 
 # Runs in a new context so it can be launched from the phone or an activity menu.
 label p62_item_ctx(item_id):
     $ _p62_item = item_id
     call screen item_detail_scr(_p62_item)
+    # Contract above: ("buy", bool) / ("equip",) / ("save",) / None. Ren'Py can
+    # still end a `call screen` with a bool, so anything not a non-empty tuple
+    # is treated as "back".
     $ _p62_choice = _return
-    if _p62_choice is None:
+    if not isinstance(_p62_choice, tuple) or not _p62_choice:
         return
-    if _p62_choice[0] == "save":
+    $ _p62_action = _p62_choice[0]
+    if _p62_action == "save":
         $ _set_savings_target(_p62_item)
         return
     $ _p62_name = ITEM_CATALOG[_p62_item]["label"]
-    if _p62_choice[0] == "equip":
+    if _p62_action == "equip":
         $ equip_item(_p62_item)
         "You set up the [_p62_name]."
         return
-    # buy
+    if _p62_action != "buy" or len(_p62_choice) < 2:
+        return
     $ _p62_equip_after = _p62_choice[1]
     if buy_item(_p62_item):
         if _p62_equip_after and ITEM_CATALOG[_p62_item]["slot"]:
@@ -237,67 +253,78 @@ screen home_rooms_scr():
     add "#000000cc"
     frame:
         xalign 0.5 yalign 0.5
-        xsize 780
-        ysize 640
+        xsize 1000
+        ysize 750
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
-        padding (22, 16, 22, 16)
+        padding (24, 18, 24, 18)
         vbox:
             spacing 8
-            text "Your Place" font PROFILE_FONT size 23 color "#ffffff" xalign 0.5
-            text home_visual_text() font ACT_FONT size 13 color "#9fb6d6" xalign 0.5
+            text "Your Place" font PROFILE_FONT size 26 color "#ffffff" xalign 0.5
+            text home_visual_text() font ACT_FONT size 15 color "#9fb6d6" xalign 0.5
             hbox:
-                spacing 18
+                spacing 22
                 xalign 0.5
-                text ("Look: %d/4" % home_visual_tier()) font ACT_FONT size 11 color "#7a9ab8"
-                text ("Sociable: %d/30" % home_social_quality()) font ACT_FONT size 11 color "#7a9ab8"
-                text ("Sleep: +%d%%" % int(round(sleep_recovery_modifier() * 100))) font ACT_FONT size 11 color "#7a9ab8"
+                text ("Look: %d/4" % home_visual_tier()) font ACT_FONT size 14 color "#9fb6d6"
+                text ("Sociable: %d/30" % home_social_quality()) font ACT_FONT size 14 color "#9fb6d6"
+                text ("Sleep: +%d%%" % int(round(sleep_recovery_modifier() * 100))) font ACT_FONT size 14 color "#9fb6d6"
             null height 2
             viewport:
                 xfill True
-                ysize 470
+                ysize 570
                 mousewheel True
                 scrollbars "vertical"
                 vbox:
-                    spacing 8
+                    spacing 10
                     xfill True
                     for _room, _rlbl, _slots in HOME_ROOMS:
                         frame:
                             xfill True
                             background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                            padding (12, 8, 12, 8)
+                            padding (14, 10, 14, 10)
                             vbox:
-                                spacing 3
-                                text _rlbl font PROFILE_FONT size 14 color "#5bcafa"
+                                spacing 6
+                                text _rlbl font PROFILE_FONT size 18 color "#5bcafa"
                                 for _slot in _slots:
                                     $ _cur = equipped_in(_room, _slot)
                                     $ _alts = [i for i in ITEM_CATALOG
                                                if ITEM_CATALOG[i]["slot"] == _slot
                                                and _room_for_item(i) == _room
                                                and owns_item(i) and i != _cur]
-                                    hbox:
+                                    $ _cureff = ", ".join("%s %s" % (l, v) for l, v in item_modifier_lines(_cur)) if _cur else ""
+                                    vbox:
                                         xfill True
-                                        text SLOT_LABELS.get(_slot, _slot) font ACT_FONT size 11 color "#7a9ab8" yalign 0.5 xsize 150
-                                        if _cur:
-                                            button:
-                                                action Function(renpy.call_in_new_context, "p62_item_ctx", _cur)
-                                                background None
-                                                hover_background None
-                                                yalign 0.5
-                                                text ITEM_CATALOG[_cur]["label"] font ACT_FONT size 12 color "#cfe0f5" hover_color "#ffffff"
-                                        else:
-                                            text "—" font ACT_FONT size 12 color "#4a6080" yalign 0.5
-                                        if _alts:
+                                        spacing 2
+                                        hbox:
+                                            xfill True
+                                            text SLOT_LABELS.get(_slot, _slot) font PROFILE_FONT size 15 color "#9fb6d6" yalign 0.5 xsize 190
+                                            if _cur:
+                                                text "Equipped" font ACT_FONT size 14 color "#5bcafa" yalign 0.5 xsize 90
+                                                button:
+                                                    action Function(renpy.call_in_new_context, "p62_item_ctx", _cur)
+                                                    background None
+                                                    hover_background None
+                                                    yalign 0.5
+                                                    text ITEM_CATALOG[_cur]["label"] font ACT_FONT size 16 color "#cfe0f5" hover_color "#ffffff"
+                                            else:
+                                                text "Empty" font ACT_FONT size 14 color "#e0a060" yalign 0.5 xsize 90
+                                                text "nothing here yet" font ACT_FONT size 16 color "#7a9ab8" yalign 0.5
+                                        hbox:
+                                            xfill True
+                                            null width 190
+                                            text ("Effect: " + (_cureff if _cureff else "none")) font ACT_FONT size 14 color ("#ffd66a" if _cureff else "#7a9ab8") yalign 0.5
+                                        for _alt in _alts:
+                                            $ _altd = ", ".join("%s %s" % (l, v) for l, v in equip_delta(_alt))
                                             hbox:
-                                                xalign 1.0
-                                                spacing 6
-                                                yalign 0.5
-                                                for _alt in _alts:
-                                                    textbutton ("→ " + ITEM_CATALOG[_alt]["label"]):
-                                                        action [Function(_equip_item_wrapper, _alt), renpy.restart_interaction]
-                                                        xpadding 6 ypadding 2
-                                                        background Frame("images/ui/act_bar_idle.png", 8, 8, 8, 8)
-                                                        hover_background Frame("images/ui/act_bar_hover_clean.png", 8, 8, 8, 8)
-                                                        text_font ACT_FONT text_size 10 text_color "#7fd06a" text_hover_color "#ffffff"
+                                                xfill True
+                                                null width 190
+                                                text "Stored" font ACT_FONT size 14 color "#7fd06a" yalign 0.5 xsize 90
+                                                textbutton ("Use: " + ITEM_CATALOG[_alt]["label"]):
+                                                    action [Function(_equip_item_wrapper, _alt), renpy.restart_interaction]
+                                                    xpadding 8 ypadding 3
+                                                    background Frame("images/ui/act_bar_idle.png", 8, 8, 8, 8)
+                                                    hover_background Frame("images/ui/act_bar_hover_clean.png", 8, 8, 8, 8)
+                                                    text_font ACT_FONT text_size 14 text_color "#7fd06a" text_hover_color "#ffffff"
+                                                text ("Effect: " + (_altd if _altd else "no change")) font ACT_FONT size 14 color "#9fb6d6" yalign 0.5 xalign 1.0
                     # lifestyle shelf
                     $ _life = [i for i, d in ITEM_CATALOG.items() if d["category"] == "lifestyle" and owns_item(i)]
                     frame:
@@ -306,12 +333,12 @@ screen home_rooms_scr():
                         padding (12, 8, 12, 8)
                         vbox:
                             spacing 3
-                            text "Things You Own" font PROFILE_FONT size 14 color "#5bcafa"
+                            text "Things You Own" font PROFILE_FONT size 18 color "#5bcafa"
                             if _life:
                                 for _l in _life:
-                                    text ("· " + ITEM_CATALOG[_l]["label"]) font ACT_FONT size 12 color "#cfe0f5"
+                                    text ("· " + ITEM_CATALOG[_l]["label"]) font ACT_FONT size 16 color "#cfe0f5"
                             else:
-                                text "Nothing yet. Nothing here has to earn its keep." font ACT_FONT size 11 color "#4a6080"
+                                text "Nothing yet. Nothing here has to earn its keep." font ACT_FONT size 14 color "#4a6080"
                     # strings state
                     if own_guitar or equipped_in("music_corner", "instrument"):
                         frame:
@@ -320,8 +347,8 @@ screen home_rooms_scr():
                             padding (12, 8, 12, 8)
                             vbox:
                                 spacing 3
-                                text "Guitar Strings" font PROFILE_FONT size 14 color "#5bcafa"
-                                text strings_state_text() font ACT_FONT size 12 color "#cfe0f5"
+                                text "Guitar Strings" font PROFILE_FONT size 18 color "#5bcafa"
+                                text strings_state_text() font ACT_FONT size 16 color "#cfe0f5"
             hbox:
                 xalign 0.5
                 spacing 20

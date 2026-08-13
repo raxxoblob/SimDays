@@ -106,7 +106,7 @@ init python:
     NPC_HELP_REQUESTS = {
         "eli_computer_issue": {
             "npc": "eli", "skill": "prog", "difficulty": 45,
-            "text": "Eli's IDE is having a weird issue. He's been staring at it for twenty minutes.",
+            "text": "Eli's IDE is having a weird issue. She's been staring at it for twenty minutes.",
             "on_success_memory": ("eli_help_comp",      "You helped me fix that IDE issue."),
             "on_fail_memory":    ("eli_help_comp_fail", "You tried to help with my computer thing."),
             "on_success_rel":    ("trust", 4),

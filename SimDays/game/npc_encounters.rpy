@@ -85,7 +85,7 @@ init python:
             eligible.append(t)
         if not eligible: return None
         import random as _r
-        _rng = _r.Random(store.day * 100 + int(store.hour) + hash(location_id) % 1000)
+        _rng = _r.Random(store.day * 100 + int(store.hour) + _det_hash(location_id) % 1000)
         if _rng.random() > 0.45: return None
         return _rng.choice(eligible)
 
@@ -127,6 +127,22 @@ init python:
 #        if _cur_enc: call run_encounter(_cur_enc)
 label run_encounter(enc):
     $ record_encounter(enc["id"])
+    # Canonical focused presentation — see "FOCUSED SPRITE CONTRACT" in images.rpy.
+    # One stable focus_<npc_id> tag per participant, positioned with the same
+    # sprite_crop / SPRITE_SCALE / SPRITE_Y_OFFSET data the public location view
+    # and the interaction hub use, so nobody changes size between the two.
+    python:
+        _enc_cast = list(enc.get("npcs") or ([enc["npc"]] if enc.get("npc") else []))[:2]
+        _enc_xp = [_SPRITE_XP_R] if len(_enc_cast) < 2 else [_SPRITE_XP_L, _SPRITE_XP_R]
+        _enc_shown = []
+        for _i, _n in enumerate(_enc_cast):
+            _espr = npc_sprite(_n)
+            if renpy.has_image(_espr):
+                renpy.show(_espr,
+                           at_list=[sprite_crop(sprite_display_scale(_n), _enc_xp[_i],
+                                                sprite_display_y_offset(_n))],
+                           tag="focus_" + _n)
+                _enc_shown.append(_n)
     $ _enc_text = enc["text"]
     "[_enc_text]"
     if enc.get("type") == "interactive" and enc.get("choices"):
@@ -140,4 +156,7 @@ label run_encounter(enc):
                 $ _enc_choice = enc["choices"][1]
         if _enc_choice is not None:
             $ _apply_encounter_choice(enc, _enc_choice)
+    python:
+        for _n in _enc_shown:
+            renpy.hide("focus_" + _n)
     return

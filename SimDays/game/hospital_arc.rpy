@@ -19,7 +19,7 @@ label hosp_first_day:
     "Lena walks two steps ahead, already briefing. The ward is quieter than you expected — tired in a specific way."
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "Clinical assistant orientation. You're with me today — I'll walk you through the ward, then the first set of charts is yours."
     lena "Two rules. Document what you observe, not what you assume. And if you're unsure: ask once. Still unsure: ask me, not the patient."
     menu:
@@ -32,7 +32,7 @@ label hosp_first_day:
             lena "Good."
             "She's already walking."
     "The ward is quieter than you expected. People are tired in a specific way — not tired of being here, just tired."
-    hide drlena_normal
+    hide focus_lena
     $ _apply_trust("lena", 2)
     return
 
@@ -43,9 +43,9 @@ label hosp_task_1:
     scene hospital1
     show screen hud
     "The intake is complicated. Mr. Arends, 68 — chest pain, two pages of existing conditions. His daughter is in the room and gives a different medication history than he does."
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "I'll be observing. Document what you find. I'll come back when you've finished."
-    hide drlena_normal
+    hide focus_lena
     scene cg_hosp_task_1
     show screen hud
     "The chart is dense. Two accounts. You work through it."
@@ -54,27 +54,27 @@ label hosp_task_1:
     menu:
         "Document both accounts, flag the discrepancy clearly.":
             "You write up both versions side by side and mark the inconsistency. The chart is dense."
-            show drlena_normal at sprite_r
+            show drlena_normal as focus_lena at sprite_r
             lena "The discrepancy needs resolving before any prescriptions are written. Good catch."
             $ gain_skill("med", 5)
             $ _apply_trust("lena", 3)
-            hide drlena_normal
+            hide focus_lena
             $ _hosp_patv = "thorough"
         "Ask the patient to clarify which account is correct.":
             "He's not sure. His daughter insists. You document her version with a note about the patient's uncertainty."
-            show drlena_normal at sprite_r
+            show drlena_normal as focus_lena at sprite_r
             lena "The family member's account can be more reliable. But note the uncertainty — don't resolve it for them. Keep both versions."
             $ gain_skill("med", 3)
             $ _apply_trust("lena", 2)
-            hide drlena_normal
+            hide focus_lena
             $ _hosp_patv = "patient_centered"
         "Document conservatively — only what you can verify.":
             "You limit yourself to what he's confirmed. The chart is thin but clean."
-            show drlena_normal at sprite_r
+            show drlena_normal as focus_lena at sprite_r
             lena "In doubt, document less and flag more. You erred on the right side. Build confidence and the charts will fill out."
             $ gain_skill("med", 3)
             $ _apply_trust("lena", 2)
-            hide drlena_normal
+            hide focus_lena
             $ _hosp_patv = "conservative"
     if _hosp_patv == "thorough":
         $ queue_phone_message("lena", "The Arends intake — both accounts, discrepancy flagged. That's the correct approach. Don't let the family dynamic pressure you into resolving what isn't yours to resolve.", day + 1, "hosp_task1_followup")
@@ -92,15 +92,15 @@ label hosp_npc1_lena:
     $ _hosp_presv = "observed_method"
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "Lena invites you along for rounds."
-    hide drlena_normal
+    hide focus_lena
     scene cg_hosp_npc1
     show screen hud
     "At the first bed she shifts register — warmer, slower. She leans slightly. No clinical terms. He answers more completely than he had to."
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "After the room:"
     lena "What did you notice?"
     menu:
@@ -121,7 +121,7 @@ label hosp_npc1_lena:
             $ gain_skill("med", 3)
             $ _apply_trust("lena", 2)
             $ _hosp_presv = "asked_how"
-    hide drlena_normal
+    hide focus_lena
     if _hosp_presv == "observed_method":
         $ queue_phone_message("lena", "The rounds — you noticed what mattered. That's the foundation. The rest of it builds from there.", day + 1, "hosp_npc1_followup")
     elif _hosp_presv == "observed_shift":
@@ -141,7 +141,7 @@ label hosp_npc2_lena:
     scene hospital_break_room
     show screen hud
     "You're in the break room, not eating, not doing anything."
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "Lena comes in. She doesn't make it a teaching moment. She sits down."
     lena "You'll think about this one for a while. That's how it should work."
     menu:
@@ -162,7 +162,7 @@ label hosp_npc2_lena:
             $ gain_skill("med", 4)
             $ _apply_trust("lena", 3)
             $ _hosp_npc2v = "analytical"
-    hide drlena_normal
+    hide focus_lena
     if _hosp_npc2v == "silent":
         $ queue_phone_message("lena", "You stayed this afternoon. That was the right thing. Some of this is just about being present. Room 7 was a hard one.", day + 2, "hosp_npc2_followup")
     elif _hosp_npc2v == "asked":
@@ -176,7 +176,7 @@ label hosp_review_assistant:
     $ hosp_review_done = True
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     if hospital_hard_case_done and hospital_hard_case_followup_done:
         if hospital_hard_case_outcome == "escalated":
             lena "The escalation on that case — you chose the harder path. That's not nothing."
@@ -207,7 +207,7 @@ label hosp_review_assistant:
         "\"What should I be ready for?\"":
             lena "The patients are the same. Your relationship to what they need — that shifts. Take it one day."
             $ _apply_trust("lena", 2)
-    hide drlena_normal
+    hide focus_lena
     $ promote()
     return
 
@@ -220,7 +220,7 @@ label wev_hosp_case_presentation:
     show screen hud
     "Morning rounds. The attending asks you to present the new admission's case."
     "You've read the chart. Halfway through you stumble — the imaging contradicts the blood panel. You hadn't noticed."
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "Take your time."
     menu:
         "Acknowledge the discrepancy and keep presenting.":
@@ -231,7 +231,7 @@ label wev_hosp_case_presentation:
         "Rush through it and hope nobody notices.":
             "The attending notices. The follow-up question lands exactly where you didn't want it to."
             $ _work_perf(-2)
-    hide drlena_normal
+    hide focus_lena
     return
 
 
@@ -269,10 +269,10 @@ label hospital_hard_case_scene:
     show screen hud
     "A patient's condition changes halfway through an otherwise routine case."
     "The signs are concerning — but ambiguous. Borderline readings, no clear pattern yet."
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "Another staff member leans in."
     "Staff" "Could be nothing. We can check again after the current procedure."
-    hide drlena_normal
+    hide focus_lena
     "Lena is occupied on the other side of the ward."
     menu:
         "Stop the procedure and escalate immediately.":
@@ -311,13 +311,13 @@ label hospital_hard_case_scene:
 label hospital_hard_case_followup:
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     if hospital_hard_case_outcome == "escalated":
         "The patient from the earlier case received attention sooner because of the escalation."
         lena "The decision to stop was correct. The reading was early but the pattern was real."
         mc "I wasn't certain at the time."
         lena "You didn't need to be certain. You needed to be concerned enough to stop. You were."
-        hide drlena_normal
+        hide focus_lena
         $ _work_perf(2)
         $ _apply_trust("lena", 2)
     elif hospital_hard_case_outcome == "reassessed":
@@ -325,7 +325,7 @@ label hospital_hard_case_followup:
         lena "Your notes captured the change clearly. That's what supported the later decision."
         mc "I wasn't sure stopping was right at the time."
         lena "The documentation made the choice defensible. That's the point of it."
-        hide drlena_normal
+        hide focus_lena
         $ _work_perf(1)
         $ _apply_trust("lena", 1)
     else:
@@ -333,10 +333,10 @@ label hospital_hard_case_followup:
         lena "You saw the case update?"
         mc "Yes."
         "She waits."
-        hide drlena_normal
+        hide focus_lena
         $ _wev_relbar_open("lena")
         show screen npc_relbar("lena")
-        show drlena_normal at sprite_r
+        show drlena_normal as focus_lena at sprite_r
         menu:
             "Report the mistake before Lena asks.":
                 $ hospital_hard_case_owned_mistake = True
@@ -345,7 +345,7 @@ label hospital_hard_case_followup:
                 lena "What would you do now?"
                 mc "Stop. Document. Call for review."
                 lena "Then you've learned it. The hard way costs more, but it stays."
-                hide drlena_normal
+                hide focus_lena
                 $ _work_perf(1)
                 $ _apply_trust("lena", 2)
                 $ hospital_hard_case_review_extra_shifts = 1
@@ -355,7 +355,7 @@ label hospital_hard_case_followup:
                 lena "Sharp enough to notice. Not decisive enough to act on it."
                 mc "I—"
                 lena "We continue. But this will weigh on how I assess your readiness."
-                hide drlena_normal
+                hide focus_lena
                 $ _work_perf(-2)
                 $ _apply_trust("lena", -2)
                 $ hospital_hard_case_review_extra_shifts = 2

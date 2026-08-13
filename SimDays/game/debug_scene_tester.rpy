@@ -652,28 +652,28 @@ label dev_speaker_anim_test:
     $ story_scene_active = True
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "Speaker animation test — pick a transform to preview it."
 
 label dev_speaker_anim_menu:
     menu:
         "react_bounce":
-            show nora_cafe_laugh at sprite_r, react_bounce
+            show nora_cafe_laugh as focus_nora at sprite_r, react_bounce
             "bounce"
         "react_shake":
-            show nora_cafe_angry at sprite_r, react_shake
+            show nora_cafe_angry as focus_nora at sprite_r, react_shake
             "shake"
         "react_step_back":
-            show nora_cafe_normal at sprite_r, react_step_back
+            show nora_cafe_normal as focus_nora at sprite_r, react_step_back
             "step back"
         "react_lean_in":
-            show nora_cafe_talk at sprite_r, react_lean_in
+            show nora_cafe_talk as focus_nora at sprite_r, react_lean_in
             "lean in"
         "react_nod":
-            show nora_cafe_talk at sprite_r, react_nod
+            show nora_cafe_talk as focus_nora at sprite_r, react_nod
             "nod"
         "react_sigh":
-            show nora_cafe_sad at sprite_r, react_sigh
+            show nora_cafe_sad as focus_nora at sprite_r, react_sigh
             "sigh"
         "Done":
             $ story_scene_active = False

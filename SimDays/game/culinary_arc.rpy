@@ -156,7 +156,7 @@ label scene_cul_service_crisis:
     # ── Opening — normal kitchen bg, Rena at the pass ─────────────────────────
     scene kitchen
     show screen hud
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     "Rena tapped the edge of the pass twice."
     "Not loudly. She never needed to."
     "The first tickets had not arrived yet, but every station was already waiting for her."
@@ -170,7 +170,7 @@ label scene_cul_service_crisis:
     rena "If I have to discover one myself, it is no longer small."
     mc "Understood."
     rena "Good. Then we do not need to discuss it again."
-    hide rena_normal
+    hide focus_rena
 
     # ── CG 1 — Rush ───────────────────────────────────────────────────────────
     scene cg_cul_crisis_rush with dissolve
@@ -242,7 +242,7 @@ label scene_cul_service_crisis:
     "Then she saw that the station had stopped."
     "Only for a second."
     "That was enough."
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     rena "What exactly happened?"
     menu:
         "\"Tell her now. 'The sauce is splitting.'\"":
@@ -260,15 +260,15 @@ label scene_cul_service_crisis:
         $ cul_crisis_branch = "tell"
         $ cul_crisis_rena_informed = True
         $ cul_crisis_bad_plate = False
-        hide rena_normal
+        hide focus_rena
         scene cg_cul_crisis_admit with dissolve
         mc "The sauce is splitting."
-        show rena_talk at sprite_r
+        show rena_talk as focus_rena at sprite_r
         rena "How long have you known?"
         mc "Less than thirty seconds."
         "Rena looked at the pan."
-        hide rena_talk
-        show rena_normal at sprite_r
+        hide focus_rena
+        show rena_normal as focus_rena at sprite_r
         rena "Good."
         mc "Good?"
         rena "You told me at thirty."
@@ -278,12 +278,12 @@ label scene_cul_service_crisis:
         srv "How long?"
         rena "Five true minutes."
         "Rena turned back."
-        hide rena_normal
-        show rena_talk at sprite_r
+        hide focus_rena
+        show rena_talk as focus_rena at sprite_r
         rena "Fresh pan."
 
         scene cg_cul_crisis_guided_recovery with dissolve
-        show rena_talk at sprite_r
+        show rena_talk as focus_rena at sprite_r
         rena "Two spoonfuls from the base."
         rena "Off the heat."
         rena "Whisk from the centre. Not the edge."
@@ -291,14 +291,14 @@ label scene_cul_service_crisis:
         rena "If you have time to ask, you are not looking at it."
         "The oily line began to disappear."
         "The sauce tightened, then smoothed."
-        hide rena_talk
-        show rena_normal at sprite_r
+        hide focus_rena
+        show rena_normal as focus_rena at sprite_r
         rena "Now taste it."
         mc "It is right."
         rena "Then finish the plates."
 
         scene cg_cul_crisis_clean_send with dissolve
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         srv "Table twelve?"
         "Rena checked the final plate."
         rena "Walk twelve."
@@ -306,12 +306,12 @@ label scene_cul_service_crisis:
         "An exhale. Quiet enough that only Rena heard it."
         rena "Do that after service."
         mc "Right."
-        hide rena_normal
-        show rena_happy at sprite_r
+        hide focus_rena
+        show rena_happy as focus_rena at sprite_r
         rena "You made a mistake."
         rena "You did not make me discover it."
         rena "Back to work."
-        hide rena_happy
+        hide focus_rena
         $ cul_crisis_technical = "recovered"
         $ cul_crisis_aftermath = "good"
         $ _apply_trust("rena", 3)
@@ -326,15 +326,15 @@ label scene_cul_service_crisis:
         $ cul_crisis_branch = "solo"
         $ cul_crisis_rena_informed = False
         $ cul_crisis_bad_plate = False
-        hide rena_normal
+        hide focus_rena
         scene cg_cul_crisis_solo_attempt with dissolve
         mc "Nothing happened."
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         "Rena watched for a fraction of a second."
         rena "That was not an answer."
         mc "I have it."
         rena "Then have it quickly."
-        hide rena_normal
+        hide focus_rena
         "Rena returned to the pass."
         "The pan came away from the heat."
         "A small amount of base. A faster whisk. No announcement. No stopped plates."
@@ -347,7 +347,7 @@ label scene_cul_service_crisis:
             "The spoon left a clean line that disappeared almost immediately."
             mc "Walk twelve."
             "The plates left."
-            show rena_normal at sprite_r
+            show rena_normal as focus_rena at sprite_r
             "Rena turned toward the station after the server took them."
             rena "What happened?"
             mc "The sauce split."
@@ -361,7 +361,7 @@ label scene_cul_service_crisis:
             "A ticket arrived."
             rena "Back to service."
             rena "We discuss the rest when the rail is empty."
-            hide rena_normal
+            hide focus_rena
             $ cul_crisis_technical = "recovered"
             $ cul_crisis_aftermath = "mixed"
             $ _apply_trust("rena", -1)
@@ -372,7 +372,7 @@ label scene_cul_service_crisis:
             "The sauce loosened."
             "For one second it looked as though it might come back."
             "Then the emulsion broke completely."
-            show rena_normal at sprite_r
+            show rena_normal as focus_rena at sprite_r
             "Rena turned from the pass."
             rena "Step back."
             mc "I can still recover it."
@@ -380,8 +380,8 @@ label scene_cul_service_crisis:
             "Rena approached the station."
             rena "You already spent the time you had."
             "A step aside."
-            hide rena_normal
-            show rena_talk at sprite_r
+            hide focus_rena
+            show rena_talk as focus_rena at sprite_r
             rena "Fresh pan."
             rena "Start again."
             "Rena turned to the server."
@@ -390,11 +390,11 @@ label scene_cul_service_crisis:
             rena "Seven minutes."
             srv "They will not like that."
             rena "They would like the alternative less."
-            hide rena_talk
-            show rena_normal at sprite_r
+            hide focus_rena
+            show rena_normal as focus_rena at sprite_r
             "Rena looked back at the station."
             rena "You call the next problem before you negotiate with it."
-            hide rena_normal
+            hide focus_rena
             "Seven minutes. Clean restart."
             $ cul_crisis_technical = "failed"
             $ cul_crisis_aftermath = "bad"
@@ -408,13 +408,13 @@ label scene_cul_service_crisis:
         $ cul_crisis_branch = "stop"
         $ cul_crisis_rena_informed = True
         $ cul_crisis_bad_plate = False
-        hide rena_normal
+        hide focus_rena
         scene cg_cul_crisis_stop_pass with dissolve
         mc "Hold twelve."
         "The server reached for the plates and stopped."
         srv "They are waiting."
         mc "Then they wait."
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         "Rena turned."
         rena "Reason."
         mc "The sauce is breaking."
@@ -424,8 +424,8 @@ label scene_cul_service_crisis:
         rena "Move them."
 
         scene cg_cul_crisis_resequence with dissolve
-        hide rena_normal
-        show rena_talk at sprite_r
+        hide focus_rena
+        show rena_talk as focus_rena at sprite_r
         "Rena pulled the affected tickets aside."
         rena "Walk fourteen first."
         rena "Fire twelve again."
@@ -434,8 +434,8 @@ label scene_cul_service_crisis:
         rena "Seven true minutes."
         rena "Not three imaginary ones."
         "The server left."
-        hide rena_talk
-        show rena_normal at sprite_r
+        hide focus_rena
+        show rena_normal as focus_rena at sprite_r
         rena "New sauce."
         mc "Understood."
         rena "You protected the standard."
@@ -445,7 +445,7 @@ label scene_cul_service_crisis:
         "Table twelve moved backward without disappearing."
 
         scene cg_cul_crisis_delayed_send with dissolve
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         "Rena checked the replacement plate."
         rena "Sauce."
         mc "Stable."
@@ -458,7 +458,7 @@ label scene_cul_service_crisis:
         rena "It is a delay."
         rena "Do not confuse an imperfect result with a dishonest one."
         rena "Back to work."
-        hide rena_normal
+        hide focus_rena
         $ cul_crisis_technical = "remade"
         $ cul_crisis_aftermath = "good"
         $ _apply_trust("rena", 2)
@@ -472,7 +472,7 @@ label scene_cul_service_crisis:
         $ cul_crisis_branch = "send"
         $ cul_crisis_rena_informed = False
         $ cul_crisis_bad_plate = True
-        hide rena_normal
+        hide focus_rena
         scene cg_cul_crisis_send_anyway with dissolve
         "The sauce still looked acceptable from a distance."
         "Under the heat lamps, the shine almost passed for intentional."
@@ -492,7 +492,7 @@ label scene_cul_service_crisis:
         scene cg_cul_crisis_returned_plate with dissolve
         "The server placed the plate on the pass."
         srv "Table twelve says the sauce is oily."
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         "Rena looked at the dish."
         "She touched the sauce with the edge of a spoon."
         "Then she looked toward the station."
@@ -503,18 +503,18 @@ label scene_cul_service_crisis:
         mc "I thought it might hold."
         rena "You did not think it would hold."
         rena "You hoped nobody would notice."
-        hide rena_normal
-        show rena_talk at sprite_r
+        hide focus_rena
+        show rena_talk as focus_rena at sprite_r
         "Rena moved the plate aside."
         rena "Remake it."
         mc "Rena—"
         rena "After service."
         rena "Not now."
-        hide rena_talk
-        show rena_normal at sprite_r
+        hide focus_rena
+        show rena_normal as focus_rena at sprite_r
         "Rena turned back to the pass."
         rena "Fresh table twelve. Seven minutes."
-        hide rena_normal
+        hide focus_rena
         "The table was remade. Service continued."
         $ cul_crisis_technical = "failed"
         $ cul_crisis_aftermath = "bad"
@@ -529,11 +529,11 @@ label scene_cul_service_crisis:
         "The final ticket remained alone on the rail."
         "No new paper appeared behind it."
         "The last plate crossed the pass."
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         "Rena removed the ticket."
         "The kitchen noise began to fall away."
         rena "Clean down."
-        hide rena_normal
+        hide focus_rena
         wkr "Service clear."
         rena "Quietly."
         "Burners clicked off."
@@ -551,7 +551,7 @@ label scene_cul_service_crisis:
     # ── Good aftermath ────────────────────────────────────────────────────────
     label _cul_crisis_aftermath_good:
         scene cg_cul_crisis_after_good with dissolve
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         "Rena stood beside the cleaned pass."
         "Not opposite. Beside."
         rena "Do you know why I asked when you noticed?"
@@ -576,10 +576,10 @@ label scene_cul_service_crisis:
             rena "I dislike serving food we know is wrong more."
         rena "Next shift, I will give you one call at the pass."
         mc "One?"
-        hide rena_normal
-        show rena_happy at sprite_r
+        hide focus_rena
+        show rena_happy as focus_rena at sprite_r
         rena "Earn the second."
-        hide rena_happy
+        hide focus_rena
         if cul_crisis_branch == "tell":
             $ add_relationship_memory("rena", "crisis_tell", "Called the sauce problem early. Choices remained.")
         else:
@@ -590,7 +590,7 @@ label scene_cul_service_crisis:
     # ── Mixed aftermath ───────────────────────────────────────────────────────
     label _cul_crisis_aftermath_mixed:
         scene cg_cul_crisis_after_mixed with dissolve
-        show rena_normal at sprite_r
+        show rena_normal as focus_rena at sprite_r
         "Rena stood on the opposite side of the pass."
         rena "You recovered the sauce."
         mc "Yes."
@@ -610,7 +610,7 @@ label scene_cul_service_crisis:
         mc "Understood."
         rena "Good."
         rena "Next time, prove it before the dining room becomes part of the experiment."
-        hide rena_normal
+        hide focus_rena
         $ add_relationship_memory("rena", "crisis_solo", "Recovered the sauce alone. Concealed the risk.")
         jump _cul_crisis_close
 
@@ -618,7 +618,7 @@ label scene_cul_service_crisis:
     # ── Bad aftermath ─────────────────────────────────────────────────────────
     label _cul_crisis_aftermath_bad:
         scene cg_cul_crisis_after_bad with dissolve
-        show rena_angry at sprite_r
+        show rena_angry as focus_rena at sprite_r
         if cul_crisis_branch == "solo":
             rena "The first mistake was technical."
             mc "The sauce."
@@ -633,7 +633,7 @@ label scene_cul_service_crisis:
             rena "Understanding the rule comes next."
             rena "Tomorrow, you call every change at your station."
             rena "Even the ones you solve."
-            hide rena_angry
+            hide focus_rena
             $ add_relationship_memory("rena", "crisis_solo_fail", "Technical mistake, delayed escalation.")
         else:
             rena "The sauce was a mistake."
@@ -656,7 +656,7 @@ label scene_cul_service_crisis:
             mc "Your trust."
             rena "Yes."
             rena "That."
-            hide rena_angry
+            hide focus_rena
             $ add_relationship_memory("rena", "crisis_send", "Sent compromised food knowing the risk.")
         jump _cul_crisis_close
 
@@ -665,20 +665,20 @@ label scene_cul_service_crisis:
     label _cul_crisis_close:
         scene kitchen with dissolve
         if cul_crisis_aftermath == "good":
-            show rena_happy at sprite_r
+            show rena_happy as focus_rena at sprite_r
         elif cul_crisis_aftermath == "mixed":
-            show rena_normal at sprite_r
+            show rena_normal as focus_rena at sprite_r
         else:
-            show rena_angry at sprite_r
+            show rena_angry as focus_rena at sprite_r
         "The kitchen looked ordinary again."
         "Clean steel. Empty rail. Cooling lights."
         "But the next shift would not begin from the same place."
         if cul_crisis_aftermath == "good":
-            hide rena_happy
+            hide focus_rena
         elif cul_crisis_aftermath == "mixed":
-            hide rena_normal
+            hide focus_rena
         else:
-            hide rena_angry
+            hide focus_rena
         $ scene_cul_service_crisis_done = True
         $ cul_crisis_aftermath_pending = True
         return
@@ -688,7 +688,7 @@ label cul_crisis_aftermath_callback:
     $ cul_crisis_aftermath_pending = False
     scene kitchen
     show screen hud
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     if cul_crisis_aftermath == "good":
         rena "The crisis service."
         "A pause. She doesn't look up from the pass."
@@ -710,7 +710,7 @@ label cul_crisis_aftermath_callback:
         rena "You have thought about it."
         "It is not a question."
         rena "Good. Do not stop."
-    hide rena_normal
+    hide focus_rena
     return
 
 
@@ -718,7 +718,7 @@ label cul_review_commis:
     $ cul_review_done = True
     scene kitchen
     show screen hud
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     if cul_crisis_aftermath == "good":
         rena "During the crisis service — you told me when you knew."
         "She says it like she's noting a fact, not offering a compliment."
@@ -741,7 +741,7 @@ label cul_review_commis:
         "\"I'm ready.\"":
             rena "I know. Otherwise you wouldn't be moving."
             $ _apply_trust("rena", 1)
-    hide rena_normal
+    hide focus_rena
     $ promote()
     return
 
@@ -815,7 +815,7 @@ label wev_cul_short_staffed:
     $ wev_cul_short_staffed_count += 1
     scene kitchen
     show screen hud
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     rena "We're one person short."
     mc "How bad?"
     rena "That depends on whether you ask me again in an hour."
@@ -826,7 +826,7 @@ label wev_cul_short_staffed:
             mc "Where do you need me?"
             rena "Cold station first."
             rena "Then ask again before you decide you're finished."
-            hide rena_normal
+            hide focus_rena
             $ _work_perf(6)
             $ _apply_trust("rena", 1)
         "I'll hold my station.":
@@ -834,7 +834,7 @@ label wev_cul_short_staffed:
                 $ rena_short_staffed_choice = "station"
             mc "I'll hold my station."
             rena "Then hold it properly."
-            hide rena_normal
+            hide focus_rena
             $ _work_perf(3)
     return
 
@@ -843,7 +843,7 @@ label wev_cul_taste_again:
     $ _mark_wev("culinary", "wev_cul_taste_again")
     scene kitchen
     show screen hud
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     "Rena tastes the sauce and places the spoon beside the pan."
     rena "Again."
     mc "What's wrong with it?"
@@ -854,13 +854,13 @@ label wev_cul_taste_again:
             mc "It needs acid."
             rena "Good."
             rena "The second taste was the useful one."
-            hide rena_normal
+            hide focus_rena
             $ _apply_trust("rena", 1)
             $ gain_skill("cook", 2)
         "Defend it.":
             mc "I thought it was balanced."
             rena "Thinking is why you taste."
-            hide rena_normal
+            hide focus_rena
             $ _apply_trust("rena", -1)
     return
 
@@ -869,7 +869,7 @@ label wev_cul_station_ready:
     $ _mark_wev("culinary", "wev_cul_station_ready")
     scene kitchen
     show screen hud
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     rena "Your station is clean."
     mc "Thank you."
     rena "That was not praise."
@@ -877,7 +877,7 @@ label wev_cul_station_ready:
     rena "What happens when the first three tickets arrive together?"
     mc "I adjust."
     rena "Prepare so you don't have to."
-    hide rena_normal
+    hide focus_rena
     $ _work_perf(3)
     return
 
@@ -888,13 +888,13 @@ label wev_cul_tired_compensation:
     $ _mark_wev("culinary", "wev_cul_tired_compensation")
     scene kitchen
     show screen hud
-    show rena_normal at sprite_r
+    show rena_normal as focus_rena at sprite_r
     rena "You're compensating."
     mc "For what?"
     rena "Being tired."
     mc "Is it obvious?"
     rena "Only because you're trying so hard not to look tired."
-    hide rena_normal
+    hide focus_rena
     return
 
 label wev_cul_shift_texture:

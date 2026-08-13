@@ -9,7 +9,7 @@ label home_eli_side_project_scene:
     $ complete_commitment("eli_side_project_1")
     scene expression home_bg()
     show screen hud
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     "Eli arrives at seven with a laptop bag and no preamble."
     eli "Here's the scope: a small data pipeline. Processing is slow. I want a second read."
     $ _cg = get_home_scene_cg("eli_side_project")
@@ -36,7 +36,7 @@ label home_eli_side_project_scene:
             $ _apply_aff("eli", 5)
             $ _apply_trust("eli", 2)
             eli "We can finish this another time. This was better."
-    hide eli_normal
+    hide focus_eli
     return
 
 
@@ -46,7 +46,7 @@ label home_nora_coffee_scene:
     $ complete_commitment("nora_coffee_1")
     scene expression home_bg()
     show screen hud
-    show nora_casual_normal at sprite_r   # off-duty, at your place — not the barista apron
+    show nora_casual_normal as focus_nora at sprite_r   # off-duty, at your place — not the barista apron
     "Nora arrives exactly at ten. She walks straight to the machine."
     n "How long have you owned this and not adjusted the grind size?"
     "She doesn't wait for an answer."
@@ -79,7 +79,7 @@ label home_nora_coffee_scene:
     $ add_relationship_memory("nora", "nora_home_coffee", "Coffee calibration visit")
     $ nora_home_coffee_done = True
     $ nora_home_coffee_day = day
-    hide nora_casual_normal
+    hide focus_nora
     return
 
 
@@ -89,7 +89,7 @@ label home_zoe_guitar_scene:
     $ complete_commitment("zoe_guitar_1")
     scene expression home_bg()
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "Zoe arrives with a sketchbook under one arm. She sits in the corner without being asked."
     z "Go on then. Prove it isn't furniture."
     $ _cg = get_home_scene_cg("zoe_guitar")
@@ -135,7 +135,7 @@ label home_zoe_guitar_scene:
     $ add_relationship_memory("zoe", "zoe_home_guitar", "Guitar session at home")
     $ zoe_home_guitar_done = True
     $ zoe_home_guitar_day = day
-    hide zoe_street_neutral
+    hide focus_zoe
     return
 
 
@@ -180,7 +180,7 @@ label home_dinner_invite_menu:
 label home_dinner_scene_martha:
     scene expression home_bg()
     show screen hud
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal as focus_martha at sprite_r
     "Martha arrives on time. She glances at the kitchen before she says hello."
     ma "You're more organised than I expected."
     menu:
@@ -194,14 +194,14 @@ label home_dinner_scene_martha:
     ma "This was a good idea. Don't tell Caroline I said that."
     $ _apply_aff("martha", 3)
     $ _apply_trust("martha", 2)
-    hide martha_dress_normal
+    hide focus_martha
     return
 
 
 label home_dinner_scene_nora:
     scene expression home_bg()
     show screen hud
-    show nora_casual_normal at sprite_r   # dinner guest at your place, off-duty
+    show nora_casual_normal as focus_nora at sprite_r   # dinner guest at your place, off-duty
     "Nora was a guest for exactly six minutes before she was in the kitchen."
     n "You were going to deglaze with water. I saw you reach for the tap."
     "You were."
@@ -216,14 +216,14 @@ label home_dinner_scene_nora:
             $ _apply_trust("nora", 3)
     "You eat at the counter because neither of you notices the table until it's too late."
     $ _apply_aff("nora", 3)
-    hide nora_casual_normal
+    hide focus_nora
     return
 
 
 label home_dinner_scene_zoe:
     scene expression home_bg()
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "Zoe shows up with a bottle of something obscure and a slightly suspicious expression."
     z "This is either really good or from a petrol station. I genuinely don't know."
     "It turns out to be really good."
@@ -237,14 +237,14 @@ label home_dinner_scene_zoe:
             z "I'm going to give them functional beige and then paint something completely different at home."
             $ _apply_trust("zoe", 3)
     $ _apply_aff("zoe", 3)
-    hide zoe_street_neutral
+    hide focus_zoe
     return
 
 
 label home_dinner_scene_marcus:
     scene expression home_bg()
     show screen hud
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     "Marcus looks around when he comes in."
     m "The place finally looks like someone lives here."
     "He means it as a compliment."
@@ -257,14 +257,14 @@ label home_dinner_scene_marcus:
             $ _apply_aff("marcus", 3)
     "He eats two portions and tells you about a construction job that went badly — somehow funny."
     $ _apply_aff("marcus", 4)
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 
 label home_dinner_scene_lena:
     scene expression home_bg()
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "Lena arrives directly from a shift. She looks tired in a way she doesn't mention."
     lena "I should have changed. Sorry."
     menu:
@@ -281,14 +281,14 @@ label home_dinner_scene_lena:
     # Extended kitchen scene if she stays for a drink
     if not kitchen_lena_extended_done and lena_trust >= 30 and own_kitchen_set:
         call scene_kitchen_lena_extended
-    hide drlena_normal
+    hide focus_lena
     return
 
 
 label home_dinner_scene_kai:
     scene expression home_bg()
     show screen hud
-    show kai_normal at sprite_r   # home dinner — casual, not gym kit
+    show kai_normal as focus_kai at sprite_r   # home dinner — casual, not gym kit
     "Kai checks the portion size before she sits down."
     kai "Okay, this is a real amount of food. I was worried."
     menu:
@@ -303,7 +303,7 @@ label home_dinner_scene_kai:
     "She eats quickly and with focus. It's somehow a compliment to the food."
     kai "Same time next week?"
     $ _apply_aff("kai", 3)
-    hide kai_normal
+    hide focus_kai
     return
 
 
@@ -312,7 +312,7 @@ label home_dinner_scene_kai:
 label home_dinner_scene_eli:
     scene expression home_bg()
     show screen hud
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     "Eli arrives at exactly the time you agreed. She has brought a packet of jasmine rice."
     "She looks at the table, looks at the rice, looks at you."
     eli "I didn't think that through."
@@ -358,7 +358,7 @@ label home_dinner_scene_eli:
     $ eli_dinner_done = True
     $ eli_home_dinner_done = True
     $ eli_home_dinner_day = day
-    hide eli_normal
+    hide focus_eli
     return
 
 
@@ -374,15 +374,15 @@ label scene_nora_cheap_home_cooking:
         # lesson was specific to that kitchen; moving ends the opportunity permanently.
         scene expression home_bg()
         show screen hud
-        show nora_casual_normal at sprite_r
+        show nora_casual_normal as focus_nora at sprite_r
         n "I had this all planned out. The hob, the timing — built around that kitchen."
         n "Not this one. That was a cheap-hob lesson. It doesn't translate."
-        hide nora_casual_normal
+        hide focus_nora
         $ nora_cooking_state = "done"
         return
     scene expression home_bg()
     show screen hud
-    show nora_casual_normal at sprite_r
+    show nora_casual_normal as focus_nora at sprite_r
     "Nora arrives at six, looks at your kitchen once, and starts rearranging the worktop without asking."
     n "The hob's uneven. You've been compensating for the left burner without noticing."
     "She's right. You have been."
@@ -405,7 +405,7 @@ label scene_nora_cheap_home_cooking:
     n "It's a bad kitchen. But it's workable if you stop fighting it."
     $ _apply_aff("nora", 2)
     $ nora_cooking_state = "done"
-    hide nora_casual_normal
+    hide focus_nora
     return
 
 

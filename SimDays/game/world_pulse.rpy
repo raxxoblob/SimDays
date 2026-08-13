@@ -245,7 +245,7 @@ init 1 python:
 
     def _stable_sample(candidates, max_count, day, event_id):
         """Deterministic weighted sample of (item, weight) pairs."""
-        rng = _pulse_rng(day, salt=abs(hash(event_id)) % 9973)
+        rng = _pulse_rng(day, salt=_det_hash(event_id) % 9973)
         pool = list(candidates)
         out = []
         while pool and len(out) < max_count:

@@ -10,6 +10,7 @@ default gigs_board   = {}     # {gig_id: expiry_day}  — posted gigs and when t
 default _pending_gig = None   # gig the player just accepted (read by do_gig)
 
 define GIG_POST_CHANCE = 0.40   # daily chance a new gig appears
+define GIG_MAX_ACTIVE  = 3      # most gigs on the board at once
 
 init python:
     # id, title, blurb, requirement (stat_/skill_/degree like CAREERS),
@@ -46,11 +47,15 @@ init python:
     GIG_BY_ID = {g["id"]: g for g in GIG_POOL}
 
     def roll_gigs():
-        """Drop expired gigs, then (40%) post one new gig that isn't already up."""
+        """Drop expired gigs, then (40%) post one new gig the player qualifies for.
+        Board is capped at GIG_MAX_ACTIVE."""
         store.gigs_board = {gid: exp for gid, exp in store.gigs_board.items()
                             if exp >= store.day and gid in GIG_BY_ID}
-        if renpy.random.random() < GIG_POST_CHANCE:
-            candidates = [g["id"] for g in GIG_POOL if g["id"] not in store.gigs_board]
+        if len(store.gigs_board) < GIG_MAX_ACTIVE and renpy.random.random() < GIG_POST_CHANCE:
+            # ponytail: requirements are checked only at post time, so a gig stays up
+            # if the player's stats later drop below it. The UI still greys it out.
+            candidates = [g["id"] for g in GIG_POOL
+                          if g["id"] not in store.gigs_board and meets_req(g["req"])]
             if candidates:
                 gid = renpy.random.choice(candidates)
                 # stays visible today through today+days-1
@@ -94,7 +99,7 @@ screen phone_jobs_scr():
             null height 8
             text "Gig Work" font PROFILE_FONT size 24 color "#ffffff" xalign 0.5
             null height 2
-            $ _gigs = [GIG_BY_ID[g] for g in gigs_board if g in GIG_BY_ID]
+            $ _gigs = [GIG_BY_ID[g] for g in gigs_board if g in GIG_BY_ID][:GIG_MAX_ACTIVE]
             viewport:
                 xfill True
                 ysize 560
@@ -105,7 +110,7 @@ screen phone_jobs_scr():
                     xfill True
                     if not _gigs:
                         null height 8
-                        text "Nothing posted right now. New gigs turn up now and then — check back." font ACT_FONT size 13 color "#7a8aa0"
+                        text "Nothing suitable posted right now." font ACT_FONT size 13 color "#7a8aa0"
                     for _g in _gigs:
                         $ _ok   = meets_req(_g["req"])
                         $ _open = gig_open(_g)

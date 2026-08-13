@@ -10,11 +10,14 @@
 image _test_preview_bg = Solid("#1c1c2e")
 
 # ── Subtle variants (roughly half the displacement of the normal transforms)
+# Same contract as the react_* transforms in images.rpy: pure delta, start and
+# end at 0. The base yoffset belongs to sprite_r/l/c only — repeating it here
+# would add a second 96px and sink the sprite.
 
 transform _preview_bounce_subtle:
-    yoffset 96
-    ease 0.09 yoffset 90
-    ease 0.14 yoffset 96
+    yoffset 0
+    ease 0.09 yoffset -6
+    ease 0.14 yoffset 0
 
 transform _preview_shake_subtle:
     xoffset 0
@@ -24,24 +27,24 @@ transform _preview_shake_subtle:
     linear 0.07 xoffset 0
 
 transform _preview_step_back_subtle:
-    yoffset 96
-    ease 0.10 yoffset 101
-    ease 0.16 yoffset 96
+    yoffset 0
+    ease 0.10 yoffset 5
+    ease 0.16 yoffset 0
 
 transform _preview_lean_in_subtle:
-    yoffset 96
-    ease 0.12 yoffset 92
-    ease 0.16 yoffset 96
+    yoffset 0
+    ease 0.12 yoffset -4
+    ease 0.16 yoffset 0
 
 transform _preview_nod_subtle:
-    yoffset 96
-    ease 0.08 yoffset 100
-    ease 0.10 yoffset 96
+    yoffset 0
+    ease 0.08 yoffset 4
+    ease 0.10 yoffset 0
 
 transform _preview_sigh_subtle:
-    yoffset 96
-    ease 0.16 yoffset 101
-    ease 0.22 yoffset 96
+    yoffset 0
+    ease 0.16 yoffset 5
+    ease 0.22 yoffset 0
 
 # ── Styles ──────────────────────────────────────────────────────────────────
 
@@ -149,16 +152,22 @@ screen sprite_reaction_preview(intensity):
 label test_sprite_reactions:
     # DEV ONLY — jump test_sprite_reactions from console to enter
     scene _test_preview_bg
-    show nora_cafe_normal at sprite_c
+    show nora_cafe_normal as focus_nora at sprite_c
 
     $ _tr_intensity = "normal"
 
     label .loop:
         call screen sprite_reaction_preview(_tr_intensity)
+        # sprite_reaction_preview contract: ("intensity"|"anim"|"exit", value).
+        # Ren'Py can still end a `call screen` with a bool (Dismiss / rollback),
+        # so treat anything that isn't a 2-tuple as "exit" rather than indexing it.
         $ _tr_result = _return
+        if not isinstance(_tr_result, tuple) or len(_tr_result) < 2:
+            hide focus_nora
+            return
 
         if _tr_result[0] == "exit":
-            hide nora_cafe_normal
+            hide focus_nora
             return
 
         if _tr_result[0] == "intensity":
@@ -169,44 +178,44 @@ label test_sprite_reactions:
             $ _tr_anim = _tr_result[1]
 
             if _tr_anim == "reset":
-                show nora_cafe_normal at sprite_c
+                show nora_cafe_normal as focus_nora at sprite_c
                 jump test_sprite_reactions.loop
 
             if _tr_anim == "bounce":
                 if _tr_intensity == "subtle":
-                    show nora_cafe_normal at sprite_c, _preview_bounce_subtle
+                    show nora_cafe_normal as focus_nora at sprite_c, _preview_bounce_subtle
                 else:
-                    show nora_cafe_normal at sprite_c, react_bounce
+                    show nora_cafe_normal as focus_nora at sprite_c, react_bounce
 
             elif _tr_anim == "shake":
                 if _tr_intensity == "subtle":
-                    show nora_cafe_normal at sprite_c, _preview_shake_subtle
+                    show nora_cafe_normal as focus_nora at sprite_c, _preview_shake_subtle
                 else:
-                    show nora_cafe_normal at sprite_c, react_shake
+                    show nora_cafe_normal as focus_nora at sprite_c, react_shake
 
             elif _tr_anim == "step_back":
                 if _tr_intensity == "subtle":
-                    show nora_cafe_normal at sprite_c, _preview_step_back_subtle
+                    show nora_cafe_normal as focus_nora at sprite_c, _preview_step_back_subtle
                 else:
-                    show nora_cafe_normal at sprite_c, react_step_back
+                    show nora_cafe_normal as focus_nora at sprite_c, react_step_back
 
             elif _tr_anim == "lean_in":
                 if _tr_intensity == "subtle":
-                    show nora_cafe_normal at sprite_c, _preview_lean_in_subtle
+                    show nora_cafe_normal as focus_nora at sprite_c, _preview_lean_in_subtle
                 else:
-                    show nora_cafe_normal at sprite_c, react_lean_in
+                    show nora_cafe_normal as focus_nora at sprite_c, react_lean_in
 
             elif _tr_anim == "nod":
                 if _tr_intensity == "subtle":
-                    show nora_cafe_normal at sprite_c, _preview_nod_subtle
+                    show nora_cafe_normal as focus_nora at sprite_c, _preview_nod_subtle
                 else:
-                    show nora_cafe_normal at sprite_c, react_nod
+                    show nora_cafe_normal as focus_nora at sprite_c, react_nod
 
             elif _tr_anim == "sigh":
                 if _tr_intensity == "subtle":
-                    show nora_cafe_normal at sprite_c, _preview_sigh_subtle
+                    show nora_cafe_normal as focus_nora at sprite_c, _preview_sigh_subtle
                 else:
-                    show nora_cafe_normal at sprite_c, react_sigh
+                    show nora_cafe_normal as focus_nora at sprite_c, react_sigh
 
             # Wait for the animation to complete before reopening the panel.
             # 0.7s covers the longest transform (react_sigh at 0.38s) with margin.

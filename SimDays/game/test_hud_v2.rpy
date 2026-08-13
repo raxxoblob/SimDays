@@ -25,9 +25,14 @@ init python:
             check("hygiene icon loadable", renpy.loadable(HUD2_ICONS["hygiene"]))
 
             # ── geometry stays on screen ──────────────────────────────────────
-            check("right island fits", HUD2["right_x"] + HUD2["right_w"] <= 1920)
+            check("centre island fits", HUD2["right_x"] + HUD2["right_w"] <= 1920)
             check("islands do not overlap",
                   HUD2["left_x"] + HUD2["left_w"] < HUD2["right_x"])
+            check("Me button clears the centre island",
+                  HUD2["right_x"] + HUD2["right_w"] <= HUD2["me_x"]
+                  and HUD2["me_x"] + HUD2["me_w"] <= 1920)
+            check("panels open below the tooltip band",
+                  HUD2["panel_y"] >= HUD2["top_y"] + HUD2["island_h"])
             # hbox holds 9 children (5 segments + 4 dividers) => 8 spacing gaps
             check("segments fit inside the right island",
                   5 * HUD2["seg_w"] + 4 * 1 + 8 * HUD2["seg_gap"]

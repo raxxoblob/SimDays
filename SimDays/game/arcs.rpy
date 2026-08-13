@@ -297,7 +297,7 @@ label zoe_exhibition_opening:
     $ _gal_bg = "gallery_evening" if renpy.has_image("gallery_evening") else "librarynight"
     scene expression _gal_bg with dissolve
     show screen hud
-    show zoe_street_neutral at sprite_l
+    show zoe_street_neutral as focus_zoe at sprite_l
     "The opening has been running for an hour."
     "The gallery is small — three rooms, white walls, track lighting."
     "People cluster near the entrance with drinks they're holding but not drinking."
@@ -358,11 +358,11 @@ label zoe_exhibition_opening:
     hide screen npc_relbar
     scene expression _gal_bg
     show screen hud
-    show zoe_street_neutral at sprite_l
+    show zoe_street_neutral as focus_zoe at sprite_l
     "The opening runs another hour."
     "She doesn't say much more. Neither do you."
     "That's fine."
-    hide zoe_street_neutral
+    hide focus_zoe
     $ spend_time(2.0)
     $ fs_record_social("zoe", "story_event")
     $ record_social_attention("zoe", "story_event")

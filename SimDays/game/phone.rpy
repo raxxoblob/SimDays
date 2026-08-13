@@ -137,7 +137,7 @@ init python:
                       "portfolio_scr", "journal_scr",
                       "phone_calendar_scr", "phone_social_scr",
                       "phone_marketplace_scr", "equipment_scr", "market_negotiate_scr",
-                      "phone_possessions_scr")
+                      "phone_possessions_scr", "phone_jobs_scr")
     def phone_open():
         return any(renpy.get_screen(s) for s in _PHONE_SCREENS)
 

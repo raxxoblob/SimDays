@@ -53,7 +53,7 @@ init python:
         ]
         if not candidates: return None
         import random as _r
-        rng = _r.Random(store.day * 200 + h + hash(location_id) % 500)
+        rng = _r.Random(store.day * 200 + h + _det_hash(location_id) % 500)
         if rng.random() > 0.4: return None
         return rng.choice(candidates)
 
@@ -284,7 +284,7 @@ init python:
             available.append(t)
         if not available: return None
         import random as _r
-        return _r.Random(store.day * 43 + hash(npc_id) % 100).choice(available)
+        return _r.Random(store.day * 43 + _det_hash(npc_id) % 100).choice(available)
 
     def record_reactive_topic_used(npc_id, topic_id):
         store.npc_encounter_history = list(store.npc_encounter_history) + [{
@@ -424,9 +424,15 @@ init python:
             if ambient:
                 return ("ambient", ambient)
         # 7. Ambient local hanging around (lowest priority — pure texture).
+        # Rare by design: presence is still shown passively in flavour text, only
+        # the interrupting beat is gated. Strangers barely ever start something;
+        # familiar faces a little more often. Plus a global multi-day gap.
         locals_here = ambient_npcs_here(location_id)
-        if locals_here and renpy.random.random() < 0.5:
-            return ("ambient_local", locals_here[0])
+        if locals_here and store.day - store.last_ambient_modal_day >= 3:
+            aid = locals_here[0]
+            if renpy.random.random() < (0.025 if ambient_tier(aid) == "stranger" else 0.065):
+                store.last_ambient_modal_day = store.day
+                return ("ambient_local", aid)
         return None
 
 

@@ -176,7 +176,7 @@ label marcus_talk:
     scene expression ("marcus_home_night" if (hour >= 20 or hour < 6) else "marcus_home_day")
     show screen hud
     if not move_in_complete:
-        show marcus_casual_normal at sprite_c
+        show marcus_casual_normal as focus_marcus at sprite_c
         m "Good — before you head back. Two minutes. Won't cost you anything."
         m "Activities use time. Walking between places doesn't. That's the first thing people miss."
         m "Watch the three bars up top. Hunger, energy, hygiene. Let any of them crash and your day falls apart fast."
@@ -204,7 +204,7 @@ label marcus_talk:
                 m "Map's in the phone. Rest is up to you."
         $ _fs_set_track_baseline()
         $ move_in_complete = True
-        hide marcus_casual_normal
+        hide focus_marcus
     if marcus_home_state != "locked" and marcus_is_home():
         jump location_marcus_home
     call npc_interact("marcus")

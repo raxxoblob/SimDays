@@ -8,7 +8,7 @@ label wh_damaged_shipment:
     show screen hud
     "Midway through the afternoon: a pallet from the late delivery sits at the edge of the bay. One corner is raised — unstable load."
     "The route to the dock is partially blocked by maintenance equipment. Operations is already running ninety minutes behind schedule."
-    show natalie_normal at sprite_r
+    show natalie_normal as focus_natalie at sprite_r
     nat "Urgent dispatch on bay four. We're moving it now or it misses the transport window."
     mc "The pallet's not secure. One corner is raised."
     nat "How bad?"
@@ -25,7 +25,7 @@ label wh_damaged_shipment:
             "Operations flags the shipment as delayed. The transport window closes."
             nat "That's going to be a conversation with the depot manager."
             mc "Send them to me."
-            hide natalie_normal
+            hide focus_natalie
             $ _work_perf(6)
             $ _apply_trust("natalie", 3)
         "Reroute the shipment, document the hazard, isolate the pallet.":
@@ -35,7 +35,7 @@ label wh_damaged_shipment:
             "The route adds forty minutes. The dispatch log gets the hazard note."
             nat "Late, but intact."
             mc "And documented."
-            hide natalie_normal
+            hide focus_natalie
             $ _work_perf(3)
             $ _apply_trust("natalie", 2)
         "Continue carefully to protect the deadline.":
@@ -44,7 +44,7 @@ label wh_damaged_shipment:
             mc "We move it carefully. Keep people clear of the pallet and watch the corner."
             "The movement starts. The raised corner draws eyes but no intervention."
             "The pallet clears the bay. The shipment makes the window."
-            hide natalie_normal
+            hide focus_natalie
             $ _work_perf(-8)
             $ _apply_trust("natalie", -3)
     $ _wev_relbar_close()
@@ -57,7 +57,7 @@ label wh_damaged_shipment:
 label wh_damaged_shipment_followup:
     scene pov_warehouse
     show screen hud
-    show natalie_normal at sprite_r
+    show natalie_normal as focus_natalie at sprite_r
     if wh_safety_outcome == "stopped":
         "Two shifts later: the pallet that was isolated failed during static storage — the load shifted while stationary, bracing gave way."
         nat "It went while it was sitting there."
@@ -65,7 +65,7 @@ label wh_damaged_shipment_followup:
         nat "Yeah."
         "A pause."
         nat "The depot manager came by. I told them you made the right call."
-        hide natalie_normal
+        hide focus_natalie
         $ _work_perf(2)
         $ _apply_trust("natalie", 2)
     elif wh_safety_outcome == "rerouted":
@@ -73,7 +73,7 @@ label wh_damaged_shipment_followup:
         nat "The documentation did more than log the delay."
         mc "The gap was already there."
         nat "Someone needed to write it down. You did."
-        hide natalie_normal
+        hide focus_natalie
         $ _work_perf(1)
         $ _apply_trust("natalie", 1)
     else:
@@ -82,10 +82,10 @@ label wh_damaged_shipment_followup:
         mc "I moved it."
         "She looks at you."
         nat "Why?"
-        hide natalie_normal
+        hide focus_natalie
         $ _wev_relbar_open("natalie")
         show screen npc_relbar("natalie")
-        show natalie_normal at sprite_r
+        show natalie_normal as focus_natalie at sprite_r
         menu:
             "Accept responsibility immediately.":
                 $ wh_safety_owned_mistake = True
@@ -94,7 +94,7 @@ label wh_damaged_shipment_followup:
                 mc "I'll write it tonight."
                 nat "Okay."
                 "No absolution. Just the next thing to do."
-                hide natalie_normal
+                hide focus_natalie
                 $ _work_perf(1)
                 $ _apply_trust("natalie", 2)
                 $ wh_safety_review_extra_shifts = 1
@@ -105,7 +105,7 @@ label wh_damaged_shipment_followup:
                 mc "I assessed it as manageable."
                 nat "You had what you needed to stop it."
                 "She writes up the report herself."
-                hide natalie_normal
+                hide focus_natalie
                 $ _work_perf(-2)
                 $ _apply_trust("natalie", -2)
                 $ wh_safety_review_extra_shifts = 2

@@ -84,6 +84,21 @@ init python:
         name = _split_caption(caption)[0]
         return ACTIVITY_EFFECTS.get((store.current_loc, name))
 
+    def activity_fx_inline(caption):
+        """(time_text, [(text, category), ...]) for the button face itself.
+
+        The time entry is pulled out so it can be left-anchored; the next two
+        effects in table order are the headline ones. ponytail: "most important"
+        is just source order in ACTIVITY_EFFECTS — the tables are already written
+        headline-first. Upgrade path is a per-entry priority key if that stops
+        holding. Falls back to the caption's own "(...)" when untabled."""
+        fx = activity_fx(caption)
+        if not fx:
+            return (_split_caption(caption)[1], [])
+        t = next((x for x, c in fx if c == "time"), "")
+        rest = [(x, c) for x, c in fx if c != "time"]
+        return (t, rest[:2])
+
 default activity_exit_jump = "map"
 default activity_exit_name = "City"
 
@@ -100,7 +115,7 @@ screen activity(items):
     viewport:
         xpos 44
         ypos 360          # sits below the top-left gain toasts so they don't overlap
-        xsize 372
+        xsize 442
         ymaximum 660
         mousewheel True
         scrollbars ("vertical" if len(items) > 7 else None)
@@ -109,34 +124,47 @@ screen activity(items):
             for i in items:
                 if i.action is not None:
                     $ _nm, _cs = _split_caption(i.caption)
+                    $ _t, _fx2 = activity_fx_inline(i.caption)
+                    $ _tw = 78 if _fx2 else 386   # untabled: _t is the raw "(...)" caption tail
                     button:
                         action i.action
                         # Debt no longer disables the whole bar — try_spend gates per
                         # category (essentials like food/study/gym stay affordable;
                         # luxuries block themselves). See gains.rpy _DEBT_OK_CATEGORIES.
                         sensitive getattr(i, 'sensitive', True)
-                        xysize (360, 76)
+                        xysize (420, 84)
                         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         hover_background Frame("images/ui/act_bar_hover_clean.png", 30, 30, 30, 30)
                         insensitive_background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
                         tooltip i.caption
                         at act_item
-                        fixed:
+                        vbox:
                             yalign 0.5
-                            xsize 340
-                            xpos 10
+                            xpos 22
+                            xsize 386
+                            spacing 3
                             text _nm:
-                                font ACT_FONT size 19 color "#cfe0f5" hover_color "#ffffff" insensitive_color "#4e606e" xpos 14 xsize 195 yalign 0.5 line_leading 0
-                            if _cs:
-                                text _cs:
-                                    font ACT_FONT size 12 color "#527090" hover_color "#8ab0d0" insensitive_color "#3a4a56" xpos 212 xsize 128 yalign 0.5 line_leading 0
+                                font ACT_FONT size 20 color "#cfe0f5" hover_color "#ffffff" insensitive_color "#4e606e" xsize 386 yalign 0.5 line_leading 0
+                            # Headline effects on the face of the bar — no hover needed.
+                            hbox:
+                                spacing 16
+                                if _t:
+                                    text _t:
+                                        font ACT_FONT size 15 color ACT_FX_COLOR["time"] insensitive_color "#3a4a56" xsize _tw yalign 0.5 line_leading 0
+                                for _fx_txt, _fx_cat in _fx2:
+                                    text _fx_txt:
+                                        font ACT_FONT size 15 bold True yalign 0.5 line_leading 0
+                                        color ACT_FX_COLOR.get(_fx_cat, "#cfe0f5")
+                                        insensitive_color "#3a4a56"
 
     # Effects card — floats next to the hovered activity bar (nearrect), listing
     # what the activity gives with colour-coded deltas.
     $ _tt = GetTooltip()
     if _tt:
         $ _fx = activity_fx(_tt)
-        if _fx:
+        # Two headline effects are already on the bar; the card is only worth
+        # showing when there is more than that to say.
+        if _fx and len(_fx) > 3:
             nearrect:
                 focus "tooltip"
                 prefer_top False   # show BELOW the bar so the top items clear the people dock

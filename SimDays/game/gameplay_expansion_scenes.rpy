@@ -14,7 +14,7 @@
 label scene_nora_feels_ignored:
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     if nora_ignored_response == "honest":
         n "You actually showed up."
         "She's not warm, but she's not cold either."
@@ -68,7 +68,7 @@ label scene_nora_feels_ignored:
             "[[Say nothing. Just sit down.]]":
                 $ _apply_trust("nora", 1)
                 "She watches you for a moment. Then goes back to work."
-    hide nora_cafe_normal
+    hide focus_nora
     scene expression cafe_bg()
     show screen hud
     $ nora_ignored_done = True
@@ -90,14 +90,14 @@ label scene_marcus_missed_commitment:
     $ _missed_title = marcus_missed_pending.get("title", "our plans") if marcus_missed_pending else "our plans"
     scene expression _mc_bg
     show screen hud
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     if _mc_days <= 3:
         m "I was at [_missed_loc]. [_missed_title]. You didn't show."
-        show marcus_casual_worried at sprite_r, react_nod
+        show marcus_casual_worried as focus_marcus at sprite_r, react_nod
         "He says it flat. No performance."
     else:
         m "We still haven't talked about [_mc_title]."
-        show marcus_casual_worried at sprite_r, react_nod
+        show marcus_casual_worried as focus_marcus at sprite_r, react_nod
         "He doesn't look angry. Just direct."
     # cg_marcus_missed: close-up CG, neutral background — used for both park and bar staging.
     scene cg_marcus_missed with dissolve
@@ -106,23 +106,23 @@ label scene_marcus_missed_commitment:
         "\"You're right. I should have called.\"":
             $ _apply_trust("marcus", 2)
             m "Yeah. You should have."
-            show marcus_casual_normal at sprite_r, react_nod
+            show marcus_casual_normal as focus_marcus at sprite_r, react_nod
             m "But you're here now, so."
         "\"Something came up I couldn't move.\"":
             $ _apply_trust("marcus", -1)
-            show marcus_casual_worried at sprite_r, react_shake
+            show marcus_casual_worried as focus_marcus at sprite_r, react_shake
             m "There's always something. That's not the point."
             "He leaves it there."
         "[[Leave without saying anything.]]":
             $ _apply_trust("marcus", -2)
             $ _apply_aff("marcus", -1)
             "He watches you go. Doesn't call after you."
-            hide marcus_casual_normal
+            hide focus_marcus
             $ marcus_missed_done = True
             $ marcus_missed_pending = None
             return
     $ spend_time(0.5)
-    hide marcus_casual_normal
+    hide focus_marcus
     scene expression _mc_bg
     show screen hud
     $ marcus_missed_done = True
@@ -137,7 +137,7 @@ label scene_marcus_missed_commitment:
 label scene_wardrobe_martha:
     scene goodoffice1
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "Martha passes your desk and slows, just slightly."
     ma "New wardrobe."
     "It's not a question."
@@ -160,7 +160,7 @@ label scene_wardrobe_martha:
             ma "..."
             "A half-nod. She keeps walking."
     $ spend_time(0.25)
-    hide martha_neutral
+    hide focus_martha
     scene goodoffice1
     show screen hud
     $ martha_wardrobe_done = True
@@ -173,7 +173,7 @@ label scene_wardrobe_martha:
 label scene_guitar_zoe_busking:
     scene parkday
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "You pull out the guitar. Zoe looks up from her sketchbook."
     z "I didn't know you actually played."
     "You start. She doesn't go back to the sketchbook."
@@ -200,7 +200,7 @@ label scene_guitar_zoe_busking:
             $ _apply_trust("zoe", 3)
             $ gain_skill("music", 4)
     $ spend_time(2)
-    hide zoe_street_neutral
+    hide focus_zoe
     scene parkday
     show screen hud
     $ zoe_park_guitar_done = True
@@ -214,7 +214,7 @@ label scene_guitar_zoe_busking:
 label scene_lena_hospital_break_room:
     scene expression ("hospital_break_room_day" if hour < 20 else "hospital_break_room")
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "You find her in the break room. Coffee going cold. She doesn't look up immediately."
     lena "Sit down."
     "She moves her coat off the other chair."
@@ -230,7 +230,7 @@ label scene_lena_hospital_break_room:
             $ _apply_trust("lena", 2)
             $ _apply_aff("lena", 2)
     $ spend_time(0.5)
-    hide drlena_normal
+    hide focus_lena
     scene expression ("hospital_break_room_day" if hour < 20 else "hospital_break_room")
     show screen hud
     $ lena_break_room_done = True
@@ -244,7 +244,7 @@ label scene_lena_hospital_break_room:
 label scene_martha_office_coffee:
     scene nexus_coffee_machine
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "Martha is already at the machine when you come in. She doesn't look surprised."
     ma "You're early."
     "She pours a second cup without being asked."
@@ -257,7 +257,7 @@ label scene_martha_office_coffee:
             $ _apply_aff("martha", 2)
             ma "I'm always in this early. You're just noticing now."
     $ spend_time(0.25)
-    hide martha_neutral
+    hide focus_martha
     scene nexus_coffee_machine
     show screen hud
     $ martha_coffee_machine_done = True
@@ -280,7 +280,7 @@ label scene_nora_bad_day:
     show screen hud
     # Off-duty Nora: casual sprite if available, no sprite otherwise (not café outfit)
     if renpy.loadable("images/characters/nora/nora_casual_neutral.png"):
-        show nora_casual_normal at sprite_r
+        show nora_casual_normal as focus_nora at sprite_r
     n "I said bread. I meant it."
     "She puts it on the counter. Doesn't ask how you are."
     if own_coffee_machine and home_coffee_calibrated:
@@ -306,7 +306,7 @@ label scene_nora_bad_day:
     $ nora_touched_arm = True
     $ spend_time(1.5)
     if renpy.loadable("images/characters/nora/nora_casual_neutral.png"):
-        hide nora_casual_normal
+        hide focus_nora
     scene expression home_bg()
     show screen hud
     $ nora_bad_day_done = True
@@ -328,7 +328,7 @@ label scene_kitchen_lena_extended:
     else:
         scene expression home_bg() with dissolve
         show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "She's still in scrubs — came straight from the hospital. She doesn't comment on it."
     "She doesn't move toward the door."
     lena "If you have something to drink, I'm not in any hurry."
@@ -346,7 +346,7 @@ label scene_kitchen_lena_extended:
             $ _apply_trust("lena", 3)
             $ _apply_aff("lena", 2)
     $ spend_time(1.0)
-    hide drlena_normal
+    hide focus_lena
     scene expression home_bg()
     show screen hud
     $ kitchen_lena_extended_done = True
@@ -363,7 +363,7 @@ label scene_martha_corridor_gesture:
     $ _corridor_src = martha_corridor_context.get("source", "relationship_threshold") if martha_corridor_context else "relationship_threshold"
     scene hallway
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "The corridor is empty. She's walking past when she stops."
     "Her hand rests on your shoulder — brief, deliberate, like a full stop."
     scene cg_martha_gesture with dissolve
@@ -380,7 +380,7 @@ label scene_martha_corridor_gesture:
             ma "Don't."
             "She says it almost warmly."
     $ spend_time(0.25)
-    hide martha_neutral
+    hide focus_martha
     scene hallway
     show screen hud
     $ martha_corridor_done = True
@@ -397,7 +397,7 @@ label scene_nora_hug_school:
     $ major_scene_last_day = day
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "Nora looks different today. Not the tired-good kind. The actual kind."
     n "I said yes."
     "She says it like it cost her something."
@@ -412,7 +412,7 @@ label scene_nora_hug_school:
             n "Don't make it weird."
             "She's smiling too much for that to land."
     "She steps around the counter. The hug happens before either of you has thought about it."
-    hide nora_cafe_normal
+    hide focus_nora
     scene cg_nora_hug_school    # CG: Nora hug at café
     show screen hud
     $ record_forced_hug("nora")
@@ -434,7 +434,7 @@ label scene_eli_deploy_hug:
     $ major_scene_last_day = day
     scene hub_pov
     show screen hud
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     "Eli is standing over the dashboard. Something just went green."
     eli "It's live."
     "She says it like she can't believe it yet."
@@ -447,7 +447,7 @@ label scene_eli_deploy_hug:
     # could return a rejection line and contradict the narration above).
     $ record_forced_hug("eli")
     $ spend_time(0.5)
-    hide eli_normal
+    hide focus_eli
     scene hub_pov
     show screen hud
     $ eli_deploy_hug_done = True
@@ -463,7 +463,7 @@ label scene_lena_shoulder_gesture:
     $ major_scene_last_day = day
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r, react_lean_in
+    show drlena_normal as focus_lena at sprite_r, react_lean_in
     "She finds you in the corridor. Doesn't say why."
     "She puts a hand on your shoulder. Steady, deliberate."
     scene cg_lena_shoulder with dissolve
@@ -473,7 +473,7 @@ label scene_lena_shoulder_gesture:
     $ _apply_trust("lena", 5)
     $ _apply_aff("lena", 2)
     $ spend_time(0.25)
-    hide drlena_normal
+    hide focus_lena
     scene hospital1
     show screen hud
     $ lena_shoulder_done = True
@@ -488,8 +488,8 @@ label scene_lena_shoulder_gesture:
 label scene_nora_kai_crossover:
     scene expression cafe_bg()
     show screen hud
-    show kai_normal at sprite_l
-    show nora_cafe_normal at sprite_r
+    show kai_normal as focus_kai at sprite_l
+    show nora_cafe_normal as focus_nora at sprite_r
     "Kai is at the counter when you arrive. Nora has her arms crossed."
     kai "All I'm saying is a flat white is just a latte with delusions."
     n "A flat white is a fundamentally different microfoam structure and you know that."
@@ -515,8 +515,8 @@ label scene_nora_kai_crossover:
             kai "That's annoyingly diplomatic."
             n "It's also correct."
     $ spend_time(1.0)
-    hide kai_normal
-    hide nora_cafe_normal
+    hide focus_kai
+    hide focus_nora
     scene expression cafe_bg()
     show screen hud
     $ nora_kai_crossover_done = True
@@ -531,8 +531,8 @@ label scene_nora_kai_crossover:
 label scene_eli_meets_zoe:
     scene hub_pov
     show screen hud
-    show eli_normal at sprite_r
-    show zoe_street_neutral at sprite_l
+    show eli_normal as focus_eli at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_l
     "You'd wondered what would happen if they were in the same room."
     "Within three minutes they're arguing about generative art like they've met before."
     scene cg_eli_zoe_collab with dissolve
@@ -552,8 +552,8 @@ label scene_eli_meets_zoe:
             z "...maybe."
             eli "Possibly."
     $ spend_time(2.0)
-    hide eli_normal
-    hide zoe_street_neutral
+    hide focus_eli
+    hide focus_zoe
     scene hub_pov
     show screen hud
     $ eli_meets_zoe_done = True
@@ -621,7 +621,7 @@ label scene_martha_gift_accusation:
     $ _gift_count = martha_gift_scene_pending.get("gift_count", 2) if martha_gift_scene_pending else 2
     scene goodoffice1
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "She closes the door behind her."
     if _gift_days <= 3:
         ma "I want to ask you something directly."
@@ -647,7 +647,7 @@ label scene_martha_gift_accusation:
             "A long pause."
             ma "Don't let flattery become a tool, [mc_name]. It's a short-run strategy."
     $ spend_time(0.25)
-    hide martha_neutral
+    hide focus_martha
     scene goodoffice1
     show screen hud
     $ martha_gift_accusation_done = True
@@ -661,7 +661,7 @@ label scene_martha_gift_accusation:
 label scene_programming_kit_eli:
     scene hub_pov
     show screen hud
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     "Eli pulls out a breadboard. Half a circuit, some ambition."
     eli "I need a second pair of eyes. This is the prototype."
     scene cg_eli_hardware with dissolve
@@ -686,7 +686,7 @@ label scene_programming_kit_eli:
         $ _apply_aff("eli", 2)
         $ gain_skill("prog", 3)
     $ spend_time(2.0)
-    hide eli_normal
+    hide focus_eli
     scene hub_pov
     show screen hud
     $ programming_kit_eli_done = True
@@ -700,7 +700,7 @@ label scene_programming_kit_eli:
 label scene_zoe_rain_shelter:
     scene parkday_rain    # bg: rain variant of the park
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "The sky changes faster than it should. You make it to the park shelter just ahead of it."
     "Zoe is already there. Her sketchbook is still in her bag, untouched. She has charcoal in one hand."
     z "Every park has exactly one good rain shelter. I've been here eight months and this is the first time I've actually used this one."
@@ -744,7 +744,7 @@ label scene_zoe_rain_shelter:
             z "You know where the shelter is now."
             "She goes. Brief smile."
     $ spend_time(1.0)
-    hide zoe_street_neutral
+    hide focus_zoe
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
     $ zoe_rain_done = True
@@ -760,7 +760,7 @@ label scene_zoe_spontaneous:
     $ major_scene_last_day = day
     scene nightclub    # bg: nightclub
     show screen hud
-    show zoe_street_neutral at sprite_r, react_lean_in
+    show zoe_street_neutral as focus_zoe at sprite_r, react_lean_in
     "They've been in the corner for the last hour. Zoe has been good company — the kind where you don't notice time."
     "She says something. Not loud enough to be a statement, but specific."
     if zoe_rain_done:
@@ -771,7 +771,7 @@ label scene_zoe_spontaneous:
     "Then something resets."
     "She looks at her drink. \"Anyway.\" She gestures at the room. \"I should—\""
     "She doesn't finish the sentence."
-    hide zoe_street_neutral
+    hide focus_zoe
     scene nightclub
     show screen hud
     menu:
@@ -781,16 +781,16 @@ label scene_zoe_spontaneous:
             show screen hud
             scene nightclub
             show screen hud
-            show zoe_street_neutral at sprite_r
+            show zoe_street_neutral as focus_zoe at sprite_r
             z "Do what?"
             "\"The thing where you walk it back.\""
             "Long pause. She's working out whether to be annoyed or impressed."
-            show zoe_street_talk at sprite_r
+            show zoe_street_talk as focus_zoe at sprite_r
             z "I wasn't walking anything back."
-            show zoe_street_smile at sprite_r, react_bounce
+            show zoe_street_smile as focus_zoe at sprite_r, react_bounce
             "\"I know.\""
             "She looks at you for a long moment. The nightclub keeps going around both of you."
-            show zoe_street_neutral at sprite_r, react_nod
+            show zoe_street_neutral as focus_zoe at sprite_r, react_nod
             z "Okay."
             "Just that. But she doesn't change the subject."
             if get_romance_state("zoe") in ("unopened", "friends"):
@@ -803,7 +803,7 @@ label scene_zoe_spontaneous:
             # Platonic close-friend direction — mirror her, then close the moment on your terms
             scene nightclub
             show screen hud
-            show zoe_street_smile at sprite_r, react_bounce
+            show zoe_street_smile as focus_zoe at sprite_r, react_bounce
             "She actually smiles. Not the careful one."
             "You change the subject. She lets you. Properly lets you — like it was agreed."
             if get_romance_state("zoe") in ("unopened", "friends"):
@@ -816,12 +816,12 @@ label scene_zoe_spontaneous:
             # Withdrawal — give her the exit she was already reaching for
             scene nightclub
             show screen hud
-            show zoe_street_neutral at sprite_r, react_sigh
+            show zoe_street_neutral as focus_zoe at sprite_r, react_sigh
             "She visibly relaxes. The cover works."
             "She glances at you once — brief — before the conversation shifts."
             $ add_romance_momentum("zoe", 2)
             $ _apply_trust("zoe", 2)
-    hide zoe_street_neutral
+    hide focus_zoe
     scene nightclub
     show screen hud
     "Later, separating:"
@@ -842,7 +842,7 @@ label scene_nora_romance_reopen:
     $ _nora_prior_state = get_romance_state("nora")
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "It's quieter than usual. Last customer left ten minutes ago."
     "She's wiping down the counter. Not rushing."
     n "You said next week. I wasn't sure what you meant by that."
@@ -853,7 +853,7 @@ label scene_nora_romance_reopen:
     "You consider your answer."
     menu:
         "\"I meant something different. I think you know that.\"" if nora_affection >= 50 and nora_trust >= 45:
-            show nora_cafe_laugh at sprite_r
+            show nora_cafe_laugh as focus_nora at sprite_r
             n "Yeah. I know."
             "A beat. Then she sets the cloth down."
             n "Same time. Somewhere different. Deal?"
@@ -874,8 +874,8 @@ label scene_nora_romance_reopen:
             "But she watches you leave."
             $ add_romance_momentum("nora", 5)
             $ _apply_trust("nora", 1)
-    hide nora_cafe_normal
-    hide nora_cafe_laugh
+    hide focus_nora
+    hide focus_nora
     $ nora_reopen_done = True
     $ spend_time(0.5)
     return
@@ -889,7 +889,7 @@ label scene_zoe_romance_reopen:
     $ _zoe_prior_state = get_romance_state("zoe")
     scene nightclub
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "She finds you at the bar. Leans against it instead of sitting."
     z "So are we still pretending that moment didn't happen?"
     if _zoe_prior_state == "friends":
@@ -918,7 +918,7 @@ label scene_zoe_romance_reopen:
             "She orders the same."
             $ add_romance_momentum("zoe", 5)
             $ _apply_trust("zoe", 1)
-    hide zoe_street_neutral
+    hide focus_zoe
     $ zoe_reopen_done = True
     $ spend_time(1.0)
     return
@@ -932,7 +932,7 @@ label scene_martha_romance_reopen:
     $ _martha_prior_state = get_romance_state("martha")
     scene bar
     show screen hud
-    show martha_dress_normal at sprite_r
+    show martha_dress_normal as focus_martha at sprite_r
     "She's already at the table when you arrive. Two glasses, not one."
     ma "Your behaviour since that conversation has been inconsistent with your answer."
     "No preamble. That's Martha."
@@ -965,7 +965,7 @@ label scene_martha_romance_reopen:
             "But she poured two glasses."
             $ add_romance_momentum("martha", 6)
             $ _apply_trust("martha", 2)
-    hide martha_dress_normal
+    hide focus_martha
     $ martha_reopen_done = True
     $ spend_time(1.0)
     return
@@ -983,7 +983,7 @@ label scene_caroline_romance_open:
     $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
     scene bar
     show screen hud
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     "She's at the same corner table. She doesn't look surprised to see you — she rarely does."
     caro "You keep turning up where I am. I've stopped calling it coincidence."
     "She turns the glass a quarter-turn on the table. Precise, like everything she does."
@@ -1012,7 +1012,7 @@ label scene_caroline_romance_open:
             caro "That's an answer too. Just a slower one."
             $ add_romance_momentum("caroline", 4)
             $ _apply_trust("caroline", 1)
-    hide caroline_normal
+    hide focus_caroline
     $ caroline_romance_open_done = True
     $ spend_time(1.0)
     return
@@ -1022,7 +1022,7 @@ label scene_lena_romance_open:
     $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
     scene bar
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "She's off shift — you can tell because she's not scanning the room for the next emergency."
     lena "Can I ask you something without it turning weird?"
     "She doesn't wait long for permission. She's decided to say it either way."
@@ -1049,7 +1049,7 @@ label scene_lena_romance_open:
             lena "That's fair. I asked a big question at a small table."
             $ add_romance_momentum("lena", 4)
             $ _apply_trust("lena", 2)
-    hide drlena_normal
+    hide focus_lena
     $ lena_romance_open_done = True
     $ spend_time(1.0)
     return
@@ -1059,14 +1059,14 @@ label scene_elle_romance_open:
     $ major_scene_last_day = day   # one major scene per day — no same-visit chaining
     scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
-    show elle_sundress_normal at sprite_r
+    show elle_sundress_normal as focus_elle at sprite_r
     "She's got her feet in the sand and her eyes on the water, the way she is when she's decided to stop performing for a bit."
     el "Can I say a thing? And you don't have to match it, I just want it out loud."
     "She glances over, half a laugh already in her voice, covering for the fact that she means it."
     el "I like when it's you. More than the beach-friends version. I've been sitting on that for a while."
     menu:
         "\"Then let's not do the beach-friends version.\"" if elle_affection >= 40 and elle_trust >= 35:
-            show elle_sundress_normal at sprite_r
+            show elle_sundress_normal as focus_elle at sprite_r
             "She grins, properly this time, and looks back at the water like she needs a second."
             el "Okay. Okay, good. I was ninety percent sure and ten percent about to feel very silly."
             $ set_romance_state("elle", "interested", source="scene_elle_romance_open")
@@ -1085,7 +1085,7 @@ label scene_elle_romance_open:
             "You don't answer with words. She lets it go, but she noticed you didn't say no."
             $ add_romance_momentum("elle", 4)
             $ _apply_trust("elle", 1)
-    hide elle_sundress_normal
+    hide focus_elle
     $ elle_romance_open_done = True
     $ spend_time(1.0)
     return
@@ -1104,7 +1104,7 @@ label scene_caroline_thursday_bar:
     $ major_scene_last_day = day   # counts as the day's major scene (blocks same-visit chaining into romance-open)
     scene bar
     show screen hud
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     "The bar is mid-evening loud. You spot Caroline at a corner table — a glass of something pale in front of her, phone face-down."
     "She's still in work clothes. The formal blazer looks slightly incongruous here, out of its element. So does she, except that she doesn't seem to mind."
     "She sees you immediately. She doesn't pretend she didn't."
@@ -1138,7 +1138,7 @@ label scene_caroline_thursday_bar:
     $ caroline_bar_done = True
     $ caroline_bar_pending = False
     $ caroline_bar_pending_day = -1
-    hide caroline_normal
+    hide focus_caroline
     return
 
 
@@ -1151,7 +1151,7 @@ label scene_natalie_bar_offduty:
     $ major_scene_last_day = day   # counts as the day's major scene (blocks same-visit chaining into romance-reopen)
     scene bar
     show screen hud
-    show natalie_normal at sprite_r
+    show natalie_normal as focus_natalie at sprite_r
     "Natalie is at the bar not doing anything. Drink in front of her, not talking to anyone, watching the room with the same flat attention she uses on the warehouse floor."
     "You sit down. She makes room without ceremony, without greeting."
     "The silence that follows doesn't bother her. She finishes a thought, drinks, starts another."
@@ -1184,7 +1184,7 @@ label scene_natalie_bar_offduty:
     $ natalie_bar_scene_pending = False
     $ natalie_bar_scene_pending_day = -1
     $ add_relationship_memory("natalie", "natalie_muaythai_revealed", "Off the clock — Muay Thai coach")
-    hide natalie_normal
+    hide focus_natalie
     return
 
 
@@ -1196,9 +1196,9 @@ label scene_natalie_bar_offduty:
 label scene_kai_cafe_quiet:
     scene expression cafe_bg()
     show screen hud
-    show kai_normal at sprite_r
+    show kai_normal as focus_kai at sprite_r
     if npc_here("nora"):
-        show nora_cafe_normal at sprite_l
+        show nora_cafe_normal as focus_nora at sprite_l
     "Kai is at the counter, coffee in hand, not in gym clothes. She's looking at her phone but not really reading it."
     "Nora serves her without asking what she wants — regulars tab."
     "When you sit down, Kai puts the phone away instead of looking up. Like she was waiting for the distraction."
@@ -1231,9 +1231,9 @@ label scene_kai_cafe_quiet:
     $ kai_cafe_quiet_pending = False
     $ kai_cafe_quiet_pending_day = -1
     $ add_relationship_memory("kai", "kai_cafe_quiet", "Between sets — the quiet version")
-    hide kai_normal
+    hide focus_kai
     if npc_here("nora"):
-        hide nora_cafe_normal
+        hide focus_nora
     return
 
 
@@ -1247,7 +1247,7 @@ label scene_elle_portugal_payoff:
     $ major_scene_last_day = day   # counts as the day's major scene (blocks same-visit chaining into romance-open)
     scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
-    show elle_sundress_normal at sprite_r
+    show elle_sundress_normal as focus_elle at sprite_r
     "Elle is at the waterline, shoes off. The same posture as always — like the sea owes her something and she's waiting patiently to collect."
     "When you approach, she turns without surprise."
     el "I was starting to think you weren't going to come."
@@ -1271,7 +1271,7 @@ label scene_elle_portugal_payoff:
         el "I know. It's very me."
     scene expression ("beachnight" if hour >= 19 else "beachday")
     show screen hud
-    show elle_sundress_normal at sprite_r
+    show elle_sundress_normal as focus_elle at sprite_r
     menu:
         "\"That's the right call.\"" if elle_trust >= 35:
             $ _apply_trust("elle", 3)
@@ -1302,7 +1302,7 @@ label scene_elle_portugal_payoff:
     $ add_relationship_memory("elle", "elle_portugal_moment", "She told me what she decided")
     $ elle_decision_day = day
     $ elle_life_state = "departure_pending" if elle_travel_2_response == "take_it" else ("staying" if elle_travel_2_response == "what_miss" else "deferred")
-    hide elle_sundress_normal
+    hide focus_elle
     return
 
 
@@ -1315,8 +1315,8 @@ label scene_elle_portugal_payoff:
 label scene_sam_marcus_park:
     scene basketball_court_day
     show screen hud
-    show marcus_park_neutral at sprite_crop(sprite_display_scale("marcus"), _SPRITE_XP_L, sprite_display_y_offset("marcus"))
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show marcus_park_neutral as focus_marcus at sprite_crop(sprite_display_scale("marcus"), _SPRITE_XP_L, sprite_display_y_offset("marcus"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "You arrive at the park early. Sam and Marcus are already at the court — mid-argument, low-stakes, the kind they've clearly had before."
     m "You count every rep. That's why you plateau."
     sam "You stop counting and you get sloppy."
@@ -1362,8 +1362,8 @@ label scene_sam_marcus_park:
                 sam "They're right."
     scene basketball_court_day
     show screen hud
-    show marcus_park_neutral at sprite_crop(sprite_display_scale("marcus"), _SPRITE_XP_L, sprite_display_y_offset("marcus"))
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show marcus_park_neutral as focus_marcus at sprite_crop(sprite_display_scale("marcus"), _SPRITE_XP_L, sprite_display_y_offset("marcus"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "You play. It's nothing serious — three-person casual shooting, the kind where score doesn't matter."
     "By the end both of them are more interested in the next coffee than the argument."
     sam "Same time tomorrow?"
@@ -1377,6 +1377,6 @@ label scene_sam_marcus_park:
     $ sam_marcus_scene_pending_day = -1
     $ add_relationship_memory("sam", "sam_marcus_court", "Early court — the three of us")
     $ add_relationship_memory("marcus", "marcus_sam_court", "Early morning court")
-    hide marcus_park_neutral
-    hide sam_normal
+    hide focus_marcus
+    hide focus_sam
     return

@@ -217,7 +217,7 @@ init python:
             ensure_client_profile(client_id, t.get("client", ""), "programming")
         # Randomise work_required ±15% rounded to 0.5h
         import random as _r2
-        _rng2 = _r2.Random(store.day * 31 + hash(template_id))
+        _rng2 = _r2.Random(store.day * 31 + _det_hash(template_id))
         _wh = t["hours"]
         _work_req = round(_rng2.uniform(_wh * 0.85, _wh * 1.25) * 2) / 2
         store.freelance_active_project = {

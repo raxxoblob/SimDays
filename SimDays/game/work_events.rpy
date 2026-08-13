@@ -147,7 +147,7 @@ label work_event_warehouse:
 
 label wev_cafe_tray:
     "Near the end of the shift Nora's moving too fast and drops a full tray of cups."
-    show nora_cafe_sad at sprite_r
+    show nora_cafe_sad as focus_nora at sprite_r
     n "Don't say anything. I know."
     menu:
         "Help her clean up.":
@@ -155,13 +155,13 @@ label wev_cafe_tray:
             $ _apply_trust("nora", 3)
         "You've got the counter. She can handle it.":
             "She does. Quietly."
-    hide nora_cafe_sad
+    hide focus_nora
     $ _mark_wev("cafe", "wev_cafe_tray")
     return
 
 label wev_cafe_rush:
     "Fifteen minutes before close, a group of eight walks in."
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     n "You take drinks. I'll do food. Don't let them see you panic."
     menu:
         "Stay focused. Work through it.":
@@ -171,7 +171,7 @@ label wev_cafe_rush:
             n "I've got it. Just cover the till."
             $ _apply_aff("nora", 1)
             $ _work_perf(4)
-    hide nora_cafe_normal
+    hide focus_nora
     $ _mark_wev("cafe", "wev_cafe_rush")
     return
 
@@ -307,7 +307,7 @@ label wev_it_deploy_crisis:
 # ── IT — Phase 5 Eli sprite events ────────────────────────────────────────
 
 label wev_it_eli_bug_report:
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     eli "You closed the bug."
     mc "It stopped reproducing."
     eli "That isn't the same sentence."
@@ -319,20 +319,20 @@ label wev_it_eli_bug_report:
             $ _apply_trust("eli", 1)
             eli "Good."
             eli "A solved problem should be able to explain itself."
-            hide eli_normal
+            hide focus_eli
             $ _work_perf(4)
         "Wait and see if it returns.":
             mc "I'll wait and see if it returns."
             eli "It will."
             mc "Confident."
             eli "Experienced."
-            hide eli_normal
+            hide focus_eli
     $ _mark_wev("it", "wev_it_eli_bug_report")
     return
 
 
 label wev_it_eli_code_comment:
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     eli "What does this function do?"
     mc "It validates the request."
     eli "I know what it does."
@@ -340,14 +340,14 @@ label wev_it_eli_code_comment:
     eli "Because the comment says 'temporary fix.'"
     mc "It was temporary."
     eli "Three months ago."
-    hide eli_normal
+    hide focus_eli
     $ gain_skill("prog", 2)
     $ _mark_wev("it", "wev_it_eli_code_comment")
     return
 
 
 label wev_it_eli_deploy_window:
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     eli "Deployment window opens in ten."
     mc "Everything passed."
     eli "Everything automated passed."
@@ -355,7 +355,7 @@ label wev_it_eli_deploy_window:
     eli "Tests confirm what we remembered to ask."
     "A notification appears on Eli's screen."
     eli "And there is the question we forgot."
-    hide eli_normal
+    hide focus_eli
     $ _mark_wev("it", "wev_it_eli_deploy_window")
     return
 
@@ -363,7 +363,7 @@ label wev_it_eli_deploy_window:
 # ══ CORPORATE ═════════════════════════════════════════════════════════════
 
 label wev_corp_colleague:
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "Hendricks is swamped. His report is due at five. He won't make it."
     menu:
         "Cover for him — finish it yourself.":
@@ -373,12 +373,12 @@ label wev_corp_colleague:
             "You lose an hour but Hendricks owes you one."
         "Not your problem. You have your own deadline.":
             "You do. You hit it. Hendricks misses his."
-    hide martha_neutral
+    hide focus_martha
     $ _mark_wev("corporate", "wev_corp_colleague")
     return
 
 label wev_corp_meeting:
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     caro "Boardroom. Five minutes. Stratford wants an update on the Kellner account."
     "You haven't looked at the Kellner account this week."
     menu:
@@ -395,12 +395,12 @@ label wev_corp_meeting:
             $ _work_perf(-4)
             $ _apply_trust("martha", 2)
             "You survive."
-    hide caroline_normal
+    hide focus_caroline
     $ _mark_wev("corporate", "wev_corp_meeting")
     return
 
 label wev_corp_complaint:
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     caro "Harmon's client is escalating. They're asking for whoever handled their account."
     "That's you."
     menu:
@@ -411,12 +411,12 @@ label wev_corp_complaint:
             caro "Careful with that."
             $ _work_perf(5)
             $ _apply_trust("caroline", -3)
-    hide caroline_normal
+    hide focus_caroline
     $ _mark_wev("corporate", "wev_corp_complaint")
     return
 
 label wev_corp_credit:
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "In the morning briefing, Reeves presents the restructuring idea you floated last week."
     "Word for word. Your idea. His mouth."
     menu:
@@ -431,12 +431,12 @@ label wev_corp_credit:
         "Talk to Martha about it after.":
             ma "He does this. I'll make sure Stratford hears your name next time."
             $ _apply_trust("martha", 4)
-    hide martha_neutral
+    hide focus_martha
     $ _mark_wev("corporate", "wev_corp_credit")
     return
 
 label wev_corp_budget:
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     caro "Fifteen percent cut, effective next month. Something from your project has to go."
     "She's looking at you."
     menu:
@@ -451,7 +451,7 @@ label wev_corp_budget:
             caro "That's someone else's problem. Do better."
             $ _apply_trust("caroline", -4)
             $ _work_perf(4)
-    hide caroline_normal
+    hide focus_caroline
     $ _mark_wev("corporate", "wev_corp_budget")
     return
 
@@ -459,7 +459,7 @@ label wev_corp_budget:
 # ══ HOSPITAL ══════════════════════════════════════════════════════════════
 
 label wev_hosp_case:
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "Room 4 is unusual. Presentation doesn't match the chart."
     menu:
         "Consult Lena.":
@@ -474,12 +474,12 @@ label wev_hosp_case:
             else:
                 "Your call is off. Lena corrects it quietly, which is the professional version of a problem."
                 $ _work_perf(-8)
-    hide drlena_normal
+    hide focus_lena
     $ _mark_wev("hospital", "wev_hosp_case")
     return
 
 label wev_hosp_overtime:
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "We're short tonight. Four more hours if you can do it."
     menu:
         "Stay.":
@@ -489,12 +489,12 @@ label wev_hosp_overtime:
             "Four more hours. You leave when the city is dark and quiet."
         "Can't tonight.":
             lena "Understood."
-    hide drlena_normal
+    hide focus_lena
     $ _mark_wev("hospital", "wev_hosp_overtime")
     return
 
 label wev_hosp_difficult_patient:
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "Room 9 is refusing the procedure. They're your patient. Talk to them."
     "The patient is scared, not irrational. They just need someone to actually explain it."
     menu:
@@ -516,7 +516,7 @@ label wev_hosp_difficult_patient:
             lena "I'll handle it."
             $ _apply_trust("lena", 1)
             $ _work_perf(-3)
-    hide drlena_normal
+    hide focus_lena
     $ _mark_wev("hospital", "wev_hosp_difficult_patient")
     return
 
@@ -552,12 +552,12 @@ label wev_hosp_near_miss:
             $ gain_skill("med", 2)
             "You won't make that error again."
         "Tell Lena directly.":
-            show drlena_normal at sprite_r
+            show drlena_normal as focus_lena at sprite_r
             lena "Thank you for telling me. That's the right call."
             $ _apply_trust("lena", 4)
             $ _work_perf(-3)
             $ gain_skill("med", 3)
-            hide drlena_normal
+            hide focus_lena
     $ _mark_wev("hospital", "wev_hosp_near_miss")
     return
 
@@ -565,7 +565,7 @@ label wev_hosp_near_miss:
 # ══ CORPORATE — Phase 1 additions ═════════════════════════════════════════
 
 label wev_corp_final_revision:
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "You saw the revised numbers?"
     mc "I saw an email titled 'Final Revision Three.'"
     ma "Then you understand how final it is."
@@ -574,7 +574,7 @@ label wev_corp_final_revision:
             $ martha_revision_choice = "update"
             mc "I'll update the draft."
             ma "Before the meeting, preferably."
-            hide martha_neutral
+            hide focus_martha
             $ _work_perf(5)
             $ _apply_trust("martha", 1)
         "Which version are we using?":
@@ -583,13 +583,13 @@ label wev_corp_final_revision:
             ma "The one attached to the most recent email."
             mc "There are two attachments."
             ma "Of course there are."
-            hide martha_neutral
+            hide focus_martha
     $ _mark_wev("corporate", "wev_corp_final_revision")
     return
 
 
 label wev_corp_meeting_moved:
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "The meeting moved forward."
     mc "By how much?"
     ma "Enough that your current pace is now theoretical."
@@ -598,7 +598,7 @@ label wev_corp_meeting_moved:
     mc "And you're this calm?"
     ma "No."
     ma "I'm efficient."
-    hide martha_neutral
+    hide focus_martha
     $ gain_skill("biz", 2)
     $ _mark_wev("corporate", "wev_corp_meeting_moved")
     return
@@ -607,7 +607,7 @@ label wev_corp_meeting_moved:
 label wev_corp_credit_line:
     if "wev_corp_credit" not in work_events_seen.get("corporate", []):
         return
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     ma "The director liked the summary."
     mc "The one I wrote?"
     ma "Unless someone else used your name."
@@ -615,7 +615,7 @@ label wev_corp_credit_line:
     ma "I could."
     "A short pause."
     ma "It was good."
-    hide martha_neutral
+    hide focus_martha
     $ _apply_trust("martha", 1)
     $ add_relationship_memory("martha", "martha_acknowledged_work", "Martha acknowledged my work")
     $ _mark_wev("corporate", "wev_corp_credit_line")
@@ -627,7 +627,7 @@ label wev_corp_credit_line:
 label wev_cafe_machine_hot:
     $ _wev_relbar_open("nora")
     show screen npc_relbar("nora")
-    show nora_cafe_talk at sprite_r
+    show nora_cafe_talk as focus_nora at sprite_r
     n "The machine's running hot again."
     mc "Is that bad?"
     n "Only if customers prefer coffee to steam."
@@ -638,13 +638,13 @@ label wev_cafe_machine_hot:
             mc "I know how to look confident while checking."
             $ _apply_trust("nora", 1)
             n "Good enough. Start with the pressure."
-            hide nora_cafe_talk
+            hide focus_nora
             $ _work_perf(6)
         "Should I stop using it?":
             mc "Should I stop using it?"
             n "Not unless you want the queue to become a protest."
             n "Use the other group head until I fix it."
-            hide nora_cafe_talk
+            hide focus_nora
             $ _work_perf(3)
     $ _wev_relbar_close()
     hide screen npc_relbar
@@ -653,7 +653,7 @@ label wev_cafe_machine_hot:
 
 label wev_cafe_regular_order:
     "A customer reaches the counter before Nora looks up."
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     n "Large oat latte. Extra hot. No foam."
     mc "They haven't ordered yet."
     n "They order the same thing every Tuesday."
@@ -661,17 +661,17 @@ label wev_cafe_regular_order:
     mc "Large oat latte?"
     "The customer pauses, then nods."
     n "Now don't look proud. It encourages them."
-    hide nora_cafe_normal
+    hide focus_nora
     $ _work_perf(4)
     $ _mark_wev("cafe", "wev_cafe_regular_order")
     return
 
 label wev_cafe_closing_check:
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     n "Before the next rush, check the back counter."
     mc "I already cleaned it."
     n "That wasn't the instruction."
-    hide nora_cafe_normal
+    hide focus_nora
     "You check beneath the grinder."
     mc "Coffee grounds."
     n "Coffee grounds."
@@ -685,7 +685,7 @@ label wev_cafe_closing_check:
 # ══ HOSPITAL — Phase 3 additions ══════════════════════════════════════════
 
 label wev_hosp_read_chart_again:
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     lena "Before you answer, read the chart again."
     mc "I did."
     lena "Then read the part you skipped."
@@ -693,7 +693,7 @@ label wev_hosp_read_chart_again:
     mc "The dosage changed this morning."
     lena "There it is."
     lena "Being quick is useful after being correct."
-    hide drlena_normal
+    hide focus_lena
     $ gain_skill("med", 2)
     $ _mark_wev("hospital", "wev_hosp_read_chart_again")
     return
@@ -702,7 +702,7 @@ label wev_hosp_difficult_relative:
     $ _wev_relbar_open("lena")
     show screen npc_relbar("lena")
     "A raised voice carries from the corridor."
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     mc "Should someone go out there?"
     lena "Someone already did."
     mc "Who?"
@@ -713,13 +713,13 @@ label wev_hosp_difficult_relative:
             lena "What we know."
             $ _apply_trust("lena", 1)
             lena "Not what they want to hear. Not what you're afraid to say."
-            hide drlena_normal
+            hide focus_lena
             $ _work_perf(6)
         "I'm not ready for that.":
             mc "I'm not ready for that."
             lena "Then stand beside me and listen."
             lena "You'll be ready next time."
-            hide drlena_normal
+            hide focus_lena
             $ _work_perf(3)
     $ _wev_relbar_close()
     hide screen npc_relbar
@@ -728,14 +728,14 @@ label wev_hosp_difficult_relative:
 
 label wev_hosp_quiet_minute:
     "The corridor is briefly quiet."
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     mc "Is it always like this?"
     lena "No."
     mc "I meant the noise."
     lena "So did I."
     "A call light activates farther down the hall."
     lena "There it is."
-    hide drlena_normal
+    hide focus_lena
     $ _mark_wev("hospital", "wev_hosp_quiet_minute")
     return
 
@@ -745,7 +745,7 @@ label wev_hosp_quiet_minute:
 label wev_warehouse_wrong_bay:
     $ _wev_relbar_open("natalie")
     show screen npc_relbar("natalie")
-    show natalie_normal at sprite_r
+    show natalie_normal as focus_natalie at sprite_r
     nat "That pallet belongs in bay six."
     mc "The label says eight."
     nat "The label is wrong."
@@ -757,13 +757,13 @@ label wev_warehouse_wrong_bay:
             nat "Check the manifest first."
             $ _apply_trust("natalie", 1)
             nat "Fast mistakes are still mistakes."
-            hide natalie_normal
+            hide focus_natalie
             $ _work_perf(6)
         "Then the label needs fixing.":
             mc "Then the label needs fixing."
             nat "Correct."
             nat "After the pallet stops being in the wrong place."
-            hide natalie_normal
+            hide focus_natalie
             $ _work_perf(3)
     $ _wev_relbar_close()
     hide screen npc_relbar
@@ -771,7 +771,7 @@ label wev_warehouse_wrong_bay:
     return
 
 label wev_warehouse_safety_vest:
-    show natalie_normal at sprite_r
+    show natalie_normal as focus_natalie at sprite_r
     nat "Zip the vest."
     mc "It's thirty degrees in here."
     nat "The forklift doesn't care."
@@ -779,7 +779,7 @@ label wev_warehouse_safety_vest:
     nat "The vest is for the driver."
     "You zip the vest."
     nat "Now both of you have a chance."
-    hide natalie_normal
+    hide focus_natalie
     $ _work_perf(2)
     $ _mark_wev("warehouse", "wev_warehouse_safety_vest")
     return
@@ -787,7 +787,7 @@ label wev_warehouse_safety_vest:
 label wev_warehouse_early_arrival:
     $ _wev_relbar_open("natalie")
     show screen npc_relbar("natalie")
-    show natalie_normal at sprite_r
+    show natalie_normal as focus_natalie at sprite_r
     nat "You're early."
     mc "Five minutes."
     nat "That counts."
@@ -796,7 +796,7 @@ label wev_warehouse_early_arrival:
     mc "Fair."
     $ _apply_trust("natalie", 1)
     nat "Consistency usually is."
-    hide natalie_normal
+    hide focus_natalie
     $ _wev_relbar_close()
     hide screen npc_relbar
     $ _mark_wev("warehouse", "wev_warehouse_early_arrival")
@@ -849,12 +849,12 @@ label wev_cafe_tex_empty_pitcher:
     return
 
 label wev_cafe_tex_grinder_jam:
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "The grinder stops mid-grind. A smell like burnt rubber."
     n "Don't press it again."
     mc "I wasn't going to."
     n "You were."
-    hide nora_cafe_normal
+    hide focus_nora
     return
 
 label wev_cafe_tex_last_clean_mug:
@@ -906,13 +906,13 @@ label wev_it_tex_build_queue:
     return
 
 label wev_it_tex_alert_storm:
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     "A monitoring alert. Then another. Then five more."
     mc "Real or noisy?"
     eli "Unclear."
     mc "Helpful."
     eli "Monitoring is not a diagnosis. It is a symptom."
-    hide eli_normal
+    hide focus_eli
     return
 
 label wev_corp_shift_texture:

@@ -13,6 +13,10 @@ default _ambient_met          = []   # ambient ids the player has actually spoke
 default _ambient_last_talk    = {}   # {ambient_id: day}
 default _encounter_last_day   = {}   # {encounter_id: day}
 default _incident_resolved    = []   # incident instance ids already played
+# ponytail: one global counter, not per-location/per-ambient — generic locals are
+# texture, so a single shared gap is enough. Upgrade to {location_id: day} if a
+# per-place rhythm is ever wanted.
+default last_ambient_modal_day = -99  # day a generic ambient-local modal last fired
 
 
 init 1 python:
@@ -121,7 +125,7 @@ init 1 python:
         if not pool:
             return []
         import random as _r
-        rng = _r.Random(d * 7717 + band * 131 + abs(hash(loc)) % 9973
+        rng = _r.Random(d * 7717 + band * 131 + _det_hash(loc) % 9973
                         + _ensure_campaign_seed())
         rng.shuffle(pool)
         # Familiar faces are more likely to be around than never-seen ones —
@@ -158,7 +162,7 @@ init 1 python:
             "npc": "eli", "location": "location_hub", "event_context": None,
             "weight": 15, "cooldown_days": 10, "familiarity_min": 15,
             "hours": (10, 18),
-            "intro": "Eli is squinting at an absurdly old laptop someone has handed him.",
+            "intro": "Eli is squinting at an absurdly old laptop someone has handed her.",
             "label": "eli_encounter_hub",
         },
         "marcus_bar_pool": {
@@ -362,6 +366,11 @@ init 1 python:
 # ── 67.10 Core NPC encounter scenes ───────────────────────────────────────────
 
 label run_contextual_encounter(enc):
+    # Canonical focused presentation — see "FOCUSED SPRITE CONTRACT" in images.rpy.
+    # Clear the public location slots first: these encounters used to show a raw
+    # `at center` sprite (no SPRITE_SCALE, no y-offset) on a `npcs` tag that sat
+    # alongside whoever the location had already rendered.
+    $ clear_npc_sprites()
     $ _enc_npc = enc["npc"]
     $ _enc_intro = enc["intro"]
     "[_enc_intro]"
@@ -369,7 +378,7 @@ label run_contextual_encounter(enc):
     return
 
 label eli_encounter_hub:
-    show expression npc_sprite("eli") as npcs at center
+    show expression npc_sprite("eli") as focus_eli at sprite_crop(sprite_display_scale("eli"), _SPRITE_XP_R, sprite_display_y_offset("eli"))
     eli "Someone donated this to the club. It boots. That is the whole of its good news."
     menu:
         "Offer to help":
@@ -377,15 +386,15 @@ label eli_encounter_hub:
                                         trust=2, respect=2, familiarity=2)
             eli "Hold the case open. Don't let it close on my hand again."
             "Twenty minutes later it has a working fan and a slightly different problem."
-        "Ask why he bothers":
+        "Ask why she bothers":
             $ apply_relationship_change("eli", "encounter_hub_ask", "meaningful_talk",
                                         affection=1, familiarity=2, meaningful=True)
             eli "Because someone will use it. That's usually enough of a reason."
-    hide npcs
+    hide focus_eli
     return
 
 label marcus_encounter_bar_pool:
-    show expression npc_sprite("marcus", "evening") as npcs at center
+    show expression npc_sprite("marcus", "evening") as focus_marcus at sprite_crop(sprite_display_scale("marcus"), _SPRITE_XP_R, sprite_display_y_offset("marcus"))
     m "You're just in time to lose at something."
     menu:
         "Play a frame":
@@ -394,11 +403,11 @@ label marcus_encounter_bar_pool:
         "Just watch":
             $ rel_casual_talk("marcus", "encounter_bar_pool_watch", affection=1, familiarity=2)
             m "Fine. But you're calling the shots then."
-    hide npcs
+    hide focus_marcus
     return
 
 label zoe_encounter_art_market:
-    show expression npc_sprite("zoe") as npcs at center
+    show expression npc_sprite("zoe") as focus_zoe at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
     z "He's selling primed board as canvas. At canvas prices."
     menu:
         "Back her up":
@@ -409,11 +418,11 @@ label zoe_encounter_art_market:
             $ apply_relationship_change("zoe", "encounter_art_market_calm", "casual_talk",
                                         affection=1, familiarity=2)
             z "I will. In a minute. After he admits it."
-    hide npcs
+    hide focus_zoe
     return
 
 label nora_encounter_busy:
-    show expression npc_sprite("nora", "work") as npcs at center
+    show expression npc_sprite("nora", "work") as focus_nora at sprite_crop(sprite_display_scale("nora"), _SPRITE_XP_R, sprite_display_y_offset("nora"))
     n "Two minutes. Or forty. I genuinely can't tell yet."
     menu:
         "Wait it out":
@@ -423,11 +432,11 @@ label nora_encounter_busy:
         "Come back later":
             $ rel_casual_talk("nora", "encounter_busy_leave", affection=0, familiarity=1)
             n "Smart. Go on."
-    hide npcs
+    hide focus_nora
     return
 
 label sam_encounter_challenge:
-    show expression npc_sprite("sam") as npcs at center
+    show expression npc_sprite("sam") as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     sam "Half of these are going to hurt themselves for a number on a whiteboard."
     menu:
         "Ask what she'd do differently":
@@ -438,7 +447,7 @@ label sam_encounter_challenge:
             $ apply_relationship_change("sam", "encounter_challenge_tease", "casual_talk",
                                         affection=2, familiarity=2)
             sam "...Someone has to spot them."
-    hide npcs
+    hide focus_sam
     return
 
 

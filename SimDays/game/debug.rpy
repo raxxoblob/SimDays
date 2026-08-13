@@ -270,6 +270,14 @@ label debug_talk:
 # ── Character-size viewer ─────────────────────────────────────────────────
 # All sprites side by side at their real relative display scale (women 0.87,
 # men 1.0). Eyeball them, then tell me e.g. "make Nora 10% smaller".
+# Shares the tuning data with in-game presentation: same sprite_display_scale /
+# sprite_display_y_offset, and the same image names (so image-level crops like
+# SPRITE_CROP_LEFT come along). It cannot reuse the sprite_crop transform itself —
+# that one places sprites at absolute screen coords (xpos 1176, 660x900 box), which
+# would land outside these 230x820 thumbnail cells.
+# ponytail: yfix is applied here in thumbnail pixels, not game pixels (the cell is
+# ~1/4 scale), so a y-offset looks ~4x stronger here than in game. Fine for judging
+# relative sizes, don't tune offsets by eye from this screen.
 screen debug_char_viewer():
     modal True
     zorder 250

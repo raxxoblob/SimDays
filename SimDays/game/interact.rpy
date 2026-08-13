@@ -37,8 +37,8 @@ init python:
     FEMALE_SCALE = 0.87   # women 13% smaller than men (default)
     # Per-character overrides win over the gender default. Tune these freely.
     SPRITE_SCALE = {
-        "marcus": 1.10,   # +10%
-        "sam":    0.70,   # thigh-crop art reads large — ~20% down from the women's default
+        "marcus": 1.00,   # = the male default (kept explicit: this is the tuning table)
+        "sam":    0.87,   # = the women's default; her thigh-crop art still reads large
         "kai":    1.00,   # ~15% up from the women's default
     }
 
@@ -47,12 +47,35 @@ init python:
             return SPRITE_SCALE[npc_id]
         return 1.0 if npc_id in SPRITE_MEN else FEMALE_SCALE
 
+    # Applied as sprite_crop's yfix: it shifts ypos, so negative = up. The anchor is
+    # the sprite's BOTTOM EDGE and transform_anchor pins it, so zoom never moves this
+    # line — an offset tuned at one scale stays correct at another.
     SPRITE_Y_OFFSET = {
-        "sam": -80,   # thigh-crop: lift 80px so feet aren't buried off-screen
+        "sam": -80,   # thigh-crop art: keep the flat cut just below the screen edge
+                      # (1176 - 80 = 1096 > 1080). Scale-independent, see above.
+        # ponytail: no nora entry — her two sprites frame like the rest of the
+        # 1024x1536 cast (hair top y=49/50 vs Marcus 47, Kai 55; all cut mid-shin),
+        # so any nonzero value would be a guess. Add one here if she reads off.
     }
 
     def sprite_display_y_offset(npc_id):
         return SPRITE_Y_OFFSET.get(npc_id, 0)
+
+    # ── Sprite tag bookkeeping ───────────────────────────────────────────
+    # Two families, documented in images.rpy "FOCUSED SPRITE CONTRACT":
+    #   PUBLIC_SPRITE_TAGS — the location "who's here" slots (up to 4).
+    #   focus_<npc_id>     — the one stable tag a focused scene shows an NPC on.
+    # Any transition between the two must clear the other, or both render at once
+    # and the player sees the same character twice.
+    PUBLIC_SPRITE_TAGS = ["npcsprite", "npcsprite2", "npcsprite3", "npcsprite4"]
+
+    def clear_npc_sprites():
+        """Hide every public slot and every focused per-NPC sprite tag.
+        Hiding a tag that isn't showing is a no-op, so this is safe anywhere."""
+        for _t in PUBLIC_SPRITE_TAGS:
+            renpy.hide(_t)
+        for _n in NPC_DATA:
+            renpy.hide("focus_" + _n)
 
     # say  = the Character variable to speak as (defined in characters.rpy)
     # world/met/min_status = availability (see npc_known)
@@ -773,7 +796,7 @@ init python:
         if renpy.get_screen("npc_relbar") is None:
             return
         spr = npc_expr_sprite(npc_id, expr)
-        renpy.show(spr, at_list=[sprite_crop(sprite_display_scale(npc_id))], tag="npcsprite")
+        renpy.show(spr, at_list=[sprite_crop(sprite_display_scale(npc_id), yfix=sprite_display_y_offset(npc_id))], tag="npcsprite")
 
     def do_talk(npc_id, topic):
         d = NPC_DATA[npc_id]
@@ -1972,8 +1995,10 @@ screen npc_topics(npc_id):
 label npc_interact(npc_id):
     $ renpy.hide_screen("npc_relbar")
     $ renpy.hide_screen("people_here_dock")
-    $ renpy.hide("npcsprite")
-    $ renpy.hide("npcsprite2")
+    # Clear ALL four public location slots plus any focused sprite left over from
+    # a beat/encounter — only npcsprite/npcsprite2 used to be cleared, so a third
+    # or fourth person in the room stayed on screen next to the interaction sprite.
+    $ clear_npc_sprites()
     $ _rb_prev_aff = -1   # -1 = don't flash on the opening render
     $ _rb_prev_tr = -1
     $ _rel_feedback_aff = 0
@@ -1985,7 +2010,7 @@ label npc_interact(npc_id):
     # update last-seen day for this NPC (feeds ignore-decay in new_day)
     $ store.npc_last_seen[npc_id] = day
     $ _spr = NPC_DATA[npc_id]["sprite"]
-    show expression _spr as npcsprite at sprite_crop(sprite_display_scale(npc_id))
+    show expression _spr as npcsprite at sprite_crop(sprite_display_scale(npc_id), yfix=sprite_display_y_offset(npc_id))
     show screen npc_relbar(npc_id)
     $ _npc_panel_npc_id = npc_id
     $ _nm = NPC_DATA[npc_id]["name"]
@@ -1995,8 +2020,7 @@ label npc_interact(npc_id):
         "[_rb]"
         $ _npc_panel_npc_id = None
         hide screen npc_relbar
-        hide npcsprite
-        hide npcsprite2
+        $ clear_npc_sprites()
         return
     # Approach succeeded or NPC already known — record encounter now.
     $ mark_npc_encountered(npc_id)
@@ -2060,8 +2084,7 @@ label npc_interact(npc_id):
             $ _act = "leave"   # a date is the whole evening
     $ _npc_panel_npc_id = None
     hide screen npc_relbar
-    hide npcsprite
-    hide npcsprite2
+    $ clear_npc_sprites()
     return
 
 
@@ -2091,7 +2114,7 @@ label npc_date(npc_id):
         "Actually, never mind":
             return
     show screen hud
-    show expression _spr as npcsprite at sprite_crop(sprite_display_scale(npc_id))
+    show expression _spr as npcsprite at sprite_crop(sprite_display_scale(npc_id), yfix=sprite_display_y_offset(npc_id))
     $ _date_owarn = _overlap_warning_text(3)
     if _date_owarn:
         menu:
@@ -2119,8 +2142,7 @@ label npc_date(npc_id):
         $ renpy.say(_c, "That felt like a little more than two friends killing an evening. I liked it.")
     else:
         $ renpy.say(_c, "That was fun. We should do it again sometime.")
-    hide npcsprite
-    hide npcsprite2
+    $ clear_npc_sprites()
     $ store._last_date_completed = True
     return
 
@@ -2920,14 +2942,13 @@ define _SPRITE_SLOTS = [730, 1574, 1152]   # left (0.38), right (0.82), centre (
 
 label show_public_sprites:
     $ _nc = len(_vis)
-    hide npcsprite
-    hide npcsprite2
-    hide npcsprite3
-    hide npcsprite4
+    # Clear the four public slots AND any focus_<npc> sprite a beat/encounter left
+    # behind — otherwise the returning location render draws the same NPC twice.
+    $ clear_npc_sprites()
     if _nc >= 1:
-        show expression _vis[0][1] as npcsprite  at sprite_crop(sprite_display_scale(_vis[0][0]), _SPRITE_SLOTS[0])
+        show expression _vis[0][1] as npcsprite  at sprite_crop(sprite_display_scale(_vis[0][0]), _SPRITE_SLOTS[0], sprite_display_y_offset(_vis[0][0]))
     if _nc >= 2:
-        show expression _vis[1][1] as npcsprite2 at sprite_crop(sprite_display_scale(_vis[1][0]), _SPRITE_SLOTS[1])
+        show expression _vis[1][1] as npcsprite2 at sprite_crop(sprite_display_scale(_vis[1][0]), _SPRITE_SLOTS[1], sprite_display_y_offset(_vis[1][0]))
     if _nc >= 3:
-        show expression _vis[2][1] as npcsprite3 at sprite_crop(sprite_display_scale(_vis[2][0]), _SPRITE_SLOTS[2])
+        show expression _vis[2][1] as npcsprite3 at sprite_crop(sprite_display_scale(_vis[2][0]), _SPRITE_SLOTS[2], sprite_display_y_offset(_vis[2][0]))
     return

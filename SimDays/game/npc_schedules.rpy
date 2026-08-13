@@ -131,15 +131,22 @@ init python:
             # Fri bar
             ({4},     (18, 22), "location_bar",    "socializing",   True,  True),
         ],
+        # Rena is head chef at Eleven (careers.rpy "Kitchen - Eleven" ->
+        # location_kitchen). She has no reason to be at The Hub or Nexus Tower —
+        # those were placeholder shifts and are gone. Kitchen hours follow the
+        # venue: VENUE_HOURS["restaurant_eleven"] = (16, 27), evening service.
+        # Order matters (first match wins), so the late-night diner entry is
+        # listed FIRST to win over the Mon/Wed service block after 21:00.
         "rena": [
-            # Mon-Fri alternate hub/office
-            ({0, 2, 4}, (9, 17), "location_hub",    "working_shift", True,  True),
-            ({1, 3},    (9, 17), "location_office", "working_shift", True,  True),
-            # Sat park then café
-            ({5},       (9, 13), "location_park",   "socializing",   True,  True),
-            ({5},       (13,17), "location_cafe",   "browsing",      True,  True),
             # Mon/Wed late-night diner (21-02); suppressed by rena_diner_absent_until_day
-            ({0, 2},    (21,26), "location_diner",  "lingering",     True,  True),
+            ({0, 2},    (21, 26), "location_diner",   "lingering",     True,  True),
+            # Mon-Fri evening service, matching the venue's own opening hours
+            (MON_FRI,   (16, 26), "location_kitchen", "working_shift", True,  True),
+            # Sat park then café — off-duty daytime (kept from the old schedule)
+            ({5},       (9,  13), "location_park",    "socializing",   True,  True),
+            ({5},       (13, 17), "location_cafe",    "browsing",      True,  True),
+            # Sat evening service (Sunday is her day off -> home fallback)
+            ({5},       (17, 26), "location_kitchen", "working_shift", True,  True),
         ],
         # Elle — creative/travel type, no regular job
         "elle": [

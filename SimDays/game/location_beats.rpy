@@ -51,31 +51,31 @@ label nora_cover_shift_scene:
     hide screen people_here_dock
     $ _nora_fam = npc_rel("nora", "familiarity")
 
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "Nora is wiping down the same stretch of counter she was wiping when you walked in."
-    show nora_cafe_talk at sprite_r, react_lean_in
+    show nora_cafe_talk as focus_nora at sprite_r, react_lean_in
     n "Oh — hey."
     mc "Hey. Everything okay?"
     n "Yeah. Mostly."
-    show nora_cafe_talk at sprite_r, react_nod
+    show nora_cafe_talk as focus_nora at sprite_r, react_nod
     n "I was actually hoping I'd run into you."
 
     if _nora_fam >= 40:
         mc "Uh-oh."
-        show nora_cafe_laugh at sprite_r, react_bounce
+        show nora_cafe_laugh as focus_nora at sprite_r, react_bounce
         n "Don't make that face. I haven't even asked yet."
     else:
         mc "That sounds suspicious."
-        show nora_cafe_talk at sprite_r, react_nod
+        show nora_cafe_talk as focus_nora at sprite_r, react_nod
         n "It's not that bad."
 
     # ── The request ───────────────────────────────────────────────────────────
-    show nora_cafe_talk at sprite_r, react_lean_in
+    show nora_cafe_talk as focus_nora at sprite_r, react_lean_in
     n "Any chance you could cover the rest of my shift?"
     mc "How late?"
     n "Close. Henry locks up at seven."
     mc "That's not the rest of your shift. That's most of an evening."
-    show nora_cafe_sad at sprite_r, react_sigh
+    show nora_cafe_sad as focus_nora at sprite_r, react_sigh
     n "I know."
 
     # Her reason — pulled from her actual story state rather than invented.
@@ -83,7 +83,7 @@ label nora_cover_shift_scene:
         n "The nursing thing. There's a session I said I'd go to and I've already skipped one."
         n "If I skip this one too I think I stop being someone who's going."
     else:
-        show nora_cafe_sad at sprite_r, react_sigh
+        show nora_cafe_sad as focus_nora at sprite_r, react_sigh
         n "Something personal came up. I'll explain it properly sometime."
     n "I wouldn't ask if I had a better option."
 
@@ -93,10 +93,10 @@ label nora_cover_shift_scene:
 
         "\"What's in it for me?\"" if _nora_fam >= 35:
             mc "What's in it for me?"
-            show nora_cafe_laugh at sprite_r, react_bounce
+            show nora_cafe_laugh as focus_nora at sprite_r, react_bounce
             n "My eternal gratitude."
             mc "That's not legal tender."
-            show nora_cafe_talk at sprite_r, react_shake
+            show nora_cafe_talk as focus_nora at sprite_r, react_shake
             n "Then you're out of luck."
             menu:
                 "\"Alright. I'll stay.\"":
@@ -110,17 +110,17 @@ label nora_cover_shift_scene:
 
 label nora_cover_accept:
     mc "Alright. I'll stay."
-    show nora_cafe_normal at sprite_r, react_step_back
+    show nora_cafe_normal as focus_nora at sprite_r, react_step_back
     n "Seriously?"
     mc "Yeah."
-    show nora_cafe_laugh at sprite_r, react_lean_in
+    show nora_cafe_laugh as focus_nora at sprite_r, react_lean_in
     n "Thank you."
     n "I owe you one."
     "She has the apron off and her bag over her shoulder faster than you've ever seen her move."
-    # ponytail: nora_cafe_* are separate one-word image tags, so a new expression
-    # stacks on top of the old rather than replacing it (project-wide convention —
-    # see scene_zoe_spontaneous). Both branches therefore exit through a `scene`
-    # statement, which clears the layer, instead of hiding tags one by one.
+    # Canonical focused-sprite pattern (see images.rpy "Focused sprite contract"):
+    # every show for a participant uses the same `as focus_<npc>` tag, so a new
+    # expression REPLACES the previous one instead of stacking a second sprite.
+    # Both branches still exit through a `scene` statement, which clears the layer.
 
     $ covered_nora_shift = True
     # Runs to café close (19:00) — see check_nora_cover_scene() for why not midnight.
@@ -159,7 +159,7 @@ label nora_cover_accept:
 
 label nora_cover_decline:
     mc "Sorry. I can't tonight."
-    show nora_cafe_normal at sprite_r, react_nod
+    show nora_cafe_normal as focus_nora at sprite_r, react_nod
     n "That's okay."
     n "I figured it was worth asking."
     # No penalty — nothing was promised, so nothing was broken.

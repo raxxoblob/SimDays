@@ -404,25 +404,25 @@ label zoe_outdoor_scene:
     show screen hud
     hide screen people_here_dock
 
-    show zoe_beach_neutral at sprite_r
+    show zoe_beach_neutral as focus_zoe at sprite_r
     "You'd got about twenty paces down the sand before you registered that the person sitting on the breakwater was someone you knew."
-    show zoe_beach_talk at sprite_r, react_step_back
+    show zoe_beach_talk as focus_zoe at sprite_r, react_step_back
     z "Okay, that's uncanny. I was about to text you about something else entirely."
     mc "Should I be worried?"
-    show zoe_beach_talk at sprite_r
+    show zoe_beach_talk as focus_zoe at sprite_r
     z "Probably. It's about a colour."
 
     if _zf >= 30:
-        show zoe_beach_laugh at sprite_r, react_bounce
+        show zoe_beach_laugh as focus_zoe at sprite_r, react_bounce
         z "There's a specific grey the water does about an hour before it turns. I've been failing at it for three days."
         mc "And the beach is helping?"
         z "The beach is gloating."
     else:
-        show zoe_beach_talk at sprite_r
+        show zoe_beach_talk as focus_zoe at sprite_r
         z "I'm out here trying to look at water without immediately deciding what's wrong with it. It's going badly."
 
     if _beat_festival_attended():
-        show zoe_beach_talk at sprite_r, react_lean_in
+        show zoe_beach_talk as focus_zoe at sprite_r, react_lean_in
         z "This is the most quiet I've had since the festival, and I'm wasting it on a grey."
 
     menu:
@@ -434,7 +434,7 @@ label zoe_outdoor_scene:
 
 label zoe_outdoor_stay:
     mc "I'll sit for a bit."
-    show zoe_beach_neutral at sprite_r, react_nod
+    show zoe_beach_neutral as focus_zoe at sprite_r, react_nod
     z "Suit yourself. Fair warning: I'm not going to be good company. I'm going to be squinting."
     "She squints. You sit. For half an hour the conversation is mostly about how much the wind is a problem for anybody with paper."
     $ spend_time(0.5)
@@ -447,7 +447,7 @@ label zoe_outdoor_stay:
             source_category="casual_talk",
             familiarity=2,
         )
-        show zoe_beach_laugh at sprite_r
+        show zoe_beach_laugh as focus_zoe at sprite_r
         z "Same time next weekend, probably. I'll still be losing."
     else:
         "By the time you stand up she's stopped narrating and started actually working. You take that as the exit cue."
@@ -456,16 +456,16 @@ label zoe_outdoor_stay:
 
 label zoe_outdoor_go:
     mc "I'll leave you to it."
-    show zoe_beach_neutral at sprite_r, react_nod
+    show zoe_beach_neutral as focus_zoe at sprite_r, react_nod
     z "Good instinct."
     # No penalty. Nothing was asked for.
     jump zoe_outdoor_exit
 
 
 label zoe_outdoor_exit:
-    hide zoe_beach_neutral
-    hide zoe_beach_talk
-    hide zoe_beach_laugh
+    hide focus_zoe
+    hide focus_zoe
+    hide focus_zoe
     $ story_scene_active = False
     $ set_hud("full")
     jump location_sandbeach
@@ -481,16 +481,16 @@ label zoe_walk_scene:
     show screen hud
     hide screen people_here_dock
 
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "Zoe is already standing, bag over one shoulder, like she'd decided to leave several minutes ago and hasn't got round to it."
-    show zoe_street_talk at sprite_r, react_lean_in
+    show zoe_street_talk as focus_zoe at sprite_r, react_lean_in
     z "Perfect. I need to walk and I need to not be alone with my own opinions. Come round the long way?"
     mc "How long is the long way?"
-    show zoe_street_laugh at sprite_r
+    show zoe_street_laugh as focus_zoe at sprite_r
     z "Half an hour. Forty if I'm being annoying about a tree."
 
     if store.skill_art >= 2:
-        show zoe_street_talk at sprite_r, react_nod
+        show zoe_street_talk as focus_zoe at sprite_r, react_nod
         z "And you'll actually get why I'm being annoying about the tree, which is worse for both of us."
 
     menu:
@@ -502,7 +502,7 @@ label zoe_walk_scene:
 
 label zoe_walk_yes:
     mc "Alright. Long way."
-    show zoe_street_laugh at sprite_r, react_bounce
+    show zoe_street_laugh as focus_zoe at sprite_r, react_bounce
     z "Excellent. You've made a mistake and I respect it."
     "The long way turns out to be a loop she's clearly done a hundred times, narrated like a tour of things that have personally disappointed her."
     "Somewhere near the end she stops narrating, which is somehow the friendlier half."
@@ -519,16 +519,16 @@ label zoe_walk_yes:
 
 label zoe_walk_no:
     mc "Another time — I've got things."
-    show zoe_street_neutral at sprite_r, react_nod
+    show zoe_street_neutral as focus_zoe at sprite_r, react_nod
     z "Fine. I'll be annoying about the tree on my own."
     # No penalty — she was offering, not asking.
     jump zoe_walk_exit
 
 
 label zoe_walk_exit:
-    hide zoe_street_neutral
-    hide zoe_street_talk
-    hide zoe_street_laugh
+    hide focus_zoe
+    hide focus_zoe
+    hide focus_zoe
     $ story_scene_active = False
     $ set_hud("full")
     jump location_park
@@ -543,20 +543,20 @@ label eli_favor_scene:
     show screen hud
     hide screen people_here_dock
 
-    show eli_neutral at sprite_r
+    show eli_neutral as focus_eli at sprite_r
     "Eli is standing at the end of the stacks with one headphone off, which for her is roughly the body language of a flare gun."
-    show eli_talk at sprite_r, react_lean_in
+    show eli_talk as focus_eli at sprite_r, react_lean_in
     eli "Hey. Can I borrow a brain for ninety seconds? Mine's been in the same argument since eleven."
     mc "Go ahead."
 
     if store.skill_prog >= 3:
-        show eli_talk at sprite_r
+        show eli_talk as focus_eli at sprite_r
         eli "Two ways to do the same thing. One's shorter and I can't explain it to anyone. One's longer and boring and everybody understands it instantly."
         eli "I keep picking the short one and then defending it for an hour, which is not, mathematically, shorter."
         menu:
             "\"Boring one. You already know.\"":
                 mc "Boring one. You already know."
-                show eli_laugh at sprite_r, react_bounce
+                show eli_laugh as focus_eli at sprite_r, react_bounce
                 eli "I did know. I wanted someone else to say it so I could be annoyed at them instead of me."
                 $ apply_relationship_change(
                     "eli",
@@ -567,7 +567,7 @@ label eli_favor_scene:
                 )
             "\"Keep the clever one and write down why.\"":
                 mc "Keep the clever one. Just write down why, next to it."
-                show eli_talk at sprite_r, react_nod
+                show eli_talk as focus_eli at sprite_r, react_nod
                 eli "...That's irritatingly reasonable. The explaining was the whole cost and I never thought about paying it once."
                 $ apply_relationship_change(
                     "eli",
@@ -577,15 +577,15 @@ label eli_favor_scene:
                     familiarity=1,
                 )
     else:
-        show eli_talk at sprite_r
+        show eli_talk as focus_eli at sprite_r
         eli "If you've read something twice and it still doesn't land — is that the writing, or is that you?"
         mc "Depends how good you were feeling before you started."
-        show eli_talk at sprite_r, react_nod
+        show eli_talk as focus_eli at sprite_r, react_nod
         eli "Hm."
         menu:
             "\"It's the writing. Move on.\"":
                 mc "It's the writing. Move on."
-                show eli_laugh at sprite_r
+                show eli_laugh as focus_eli at sprite_r
                 eli "Permission granted by an outside party. That's all I needed, honestly."
                 $ apply_relationship_change(
                     "eli",
@@ -596,7 +596,7 @@ label eli_favor_scene:
                 )
             "\"Read it out loud once.\"":
                 mc "Read it out loud once. If it survives your own voice it's fine."
-                show eli_talk at sprite_r, react_nod
+                show eli_talk as focus_eli at sprite_r, react_nod
                 eli "That's a horrible test and I'm going to use it forever."
                 $ apply_relationship_change(
                     "eli",
@@ -607,12 +607,12 @@ label eli_favor_scene:
                     familiarity=1,
                 )
 
-    show eli_neutral at sprite_r
+    show eli_neutral as focus_eli at sprite_r
     eli "Okay. Headphone's going back on. Thank you."
     $ spend_time(0.5)
-    hide eli_neutral
-    hide eli_talk
-    hide eli_laugh
+    hide focus_eli
+    hide focus_eli
+    hide focus_eli
     $ story_scene_active = False
     $ set_hud("full")
     jump location_library
@@ -627,18 +627,18 @@ label eli_after_shift_scene:
     show screen hud
     hide screen people_here_dock
 
-    show eli_neutral at sprite_r
+    show eli_neutral as focus_eli at sprite_r
     "She's at the wrong end of the floor for her own work, holding a coffee she clearly bought as a reason to be standing there."
-    show eli_talk at sprite_r, react_lean_in
+    show eli_talk as focus_eli at sprite_r, react_lean_in
     eli "You're here all day, right? The whole eight?"
     mc "That's the arrangement."
-    show eli_talk at sprite_r
+    show eli_talk as focus_eli at sprite_r
     eli "Right. So — after. Are you a person who does anything after, or does the day just end?"
 
     menu:
         "\"I could do something after.\"":
             mc "I could do something after."
-            show eli_laugh at sprite_r, react_bounce
+            show eli_laugh as focus_eli at sprite_r, react_bounce
             eli "Noted. Not a plan. I'm bad at plans, they make me want to cancel them."
             eli "But noted."
             # Deliberately no commitment: add_commitment() would create a hard
@@ -651,15 +651,15 @@ label eli_after_shift_scene:
             )
         "\"Today the day just ends.\"":
             mc "Today? The day just ends."
-            show eli_talk at sprite_r, react_nod
+            show eli_talk as focus_eli at sprite_r, react_nod
             eli "Honest. Fine. I'll ask on a better day."
             # No penalty — nothing was promised.
 
-    show eli_neutral at sprite_r
+    show eli_neutral as focus_eli at sprite_r
     "She takes the coffee back to her own end of the floor at a speed that suggests she's finished the part she'd rehearsed."
-    hide eli_neutral
-    hide eli_talk
-    hide eli_laugh
+    hide focus_eli
+    hide focus_eli
+    hide focus_eli
     $ story_scene_active = False
     $ set_hud("full")
     jump location_hub
@@ -674,16 +674,16 @@ label marcus_park_favor_scene:
     show screen hud
     hide screen people_here_dock
 
-    show marcus_park_neutral at sprite_r
+    show marcus_park_neutral as focus_marcus at sprite_r
     "Marcus is walking it off at the top of the path, hands on his head, breathing like a man who has made a decision he regrets."
-    show marcus_park_talk at sprite_r, react_lean_in
+    show marcus_park_talk as focus_marcus at sprite_r, react_lean_in
     m "Hey. Do me a favour. Run the last loop with me."
     mc "Why?"
-    show marcus_park_talk at sprite_r
+    show marcus_park_talk as focus_marcus at sprite_r
     m "Because on my own I'm going to call it here and pretend I did four."
 
     if store.skill_fit >= 3:
-        show marcus_park_laugh at sprite_r, react_bounce
+        show marcus_park_laugh as focus_marcus at sprite_r, react_bounce
         m "And you'll make it easy, which is insulting, but I'll take it."
 
     menu:
@@ -695,10 +695,10 @@ label marcus_park_favor_scene:
 
 label marcus_park_favor_yes:
     mc "One loop."
-    show marcus_park_neutral at sprite_r, react_nod
+    show marcus_park_neutral as focus_marcus at sprite_r, react_nod
     m "One loop."
     "It is not a conversation. It's twenty minutes of two people not being the first to slow down, which is apparently its own kind of talking."
-    show marcus_park_laugh at sprite_r
+    show marcus_park_laugh as focus_marcus at sprite_r
     m "Four. Officially four."
     $ spend_time(20 / 60.0)
     $ store.need_energy = max(0, store.need_energy - 4)
@@ -714,16 +714,16 @@ label marcus_park_favor_yes:
 
 label marcus_park_favor_no:
     mc "I've got my own thing to do."
-    show marcus_park_neutral at sprite_r, react_nod
+    show marcus_park_neutral as focus_marcus at sprite_r, react_nod
     m "Fair. I'll lie to myself about it later."
     # No penalty.
     jump marcus_park_favor_exit
 
 
 label marcus_park_favor_exit:
-    hide marcus_park_neutral
-    hide marcus_park_talk
-    hide marcus_park_laugh
+    hide focus_marcus
+    hide focus_marcus
+    hide focus_marcus
     $ story_scene_active = False
     $ set_hud("full")
     jump location_park
@@ -739,28 +739,28 @@ label marcus_one_game_scene:
     show screen hud
     hide screen people_here_dock
 
-    show marcus_bar_normal at sprite_r
+    show marcus_bar_normal as focus_marcus at sprite_r
     "Marcus racks the balls with the specific efficiency of a man who is technically still working."
-    show marcus_bar_talk at sprite_r, react_lean_in
+    show marcus_bar_talk as focus_marcus at sprite_r, react_lean_in
 
     if _beaten_marcus:
         m "There he is. You know I've thought about that game more than is healthy."
         mc "You brought it up, not me."
-        show marcus_bar_talk at sprite_r, react_nod
+        show marcus_bar_talk as focus_marcus at sprite_r, react_nod
         m "One game. I've got twenty minutes and a grudge."
     else:
         m "One game. Table's free and I'm bored of my own bar."
         mc "Just one?"
-        show marcus_bar_talk at sprite_r, react_nod
+        show marcus_bar_talk as focus_marcus at sprite_r, react_nod
         m "That's what everyone says."
 
     menu:
         "\"Rack them.\"":
             mc "Rack them."
-            show marcus_bar_normal at sprite_r
+            show marcus_bar_normal as focus_marcus at sprite_r
             m "Money on the table first. House rule. My house."
-            hide marcus_bar_normal
-            hide marcus_bar_talk
+            hide focus_marcus
+            hide focus_marcus
             $ story_scene_active = False
             $ set_hud("full")
             # Resolved by the real bar-games system, not a bespoke roll.
@@ -768,11 +768,11 @@ label marcus_one_game_scene:
             jump location_bar
         "\"Not tonight.\"":
             mc "Not tonight."
-            show marcus_bar_normal at sprite_r, react_nod
+            show marcus_bar_normal as focus_marcus at sprite_r, react_nod
             m "Table'll be here."
             # No penalty.
-            hide marcus_bar_normal
-            hide marcus_bar_talk
+            hide focus_marcus
+            hide focus_marcus
             $ story_scene_active = False
             $ set_hud("full")
             jump location_bar
@@ -787,12 +787,12 @@ label nora_exhausted_scene:
     show screen hud
     hide screen people_here_dock
 
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "You get about as far as ordering before she puts the cup down and just looks at you."
-    show nora_cafe_talk at sprite_r, react_lean_in
+    show nora_cafe_talk as focus_nora at sprite_r, react_lean_in
     n "Okay. What's happening to you."
     mc "Nothing's happening to me."
-    show nora_cafe_sad at sprite_r, react_sigh
+    show nora_cafe_sad as focus_nora at sprite_r, react_sigh
     n "You've got the face people have in here at six in the morning. It's not six in the morning."
     # She is a barista, not a mechanic: no energy restoration here by design.
     n "I'd offer you a triple, but honestly at this point that's just being cruel with extra steps."
@@ -800,7 +800,7 @@ label nora_exhausted_scene:
     menu:
         "\"It's been a long stretch.\"":
             mc "It's been a long stretch. It'll ease off."
-            show nora_cafe_talk at sprite_r, react_nod
+            show nora_cafe_talk as focus_nora at sprite_r, react_nod
             n "That's what I said for about two years."
             n "For what it's worth: it does ease off. It just doesn't ease off because you decided it should."
             $ apply_relationship_change(
@@ -812,7 +812,7 @@ label nora_exhausted_scene:
             )
         "\"I'm fine.\"":
             mc "I'm fine."
-            show nora_cafe_normal at sprite_r, react_shake
+            show nora_cafe_normal as focus_nora at sprite_r, react_shake
             n "Sure."
             n "Well. The chairs are free and nobody's counting how long you sit in one."
             $ apply_relationship_change(
@@ -823,9 +823,9 @@ label nora_exhausted_scene:
             )
         "\"Say the thing you're clearly about to say.\"":
             mc "Say the thing you're clearly about to say."
-            show nora_cafe_laugh at sprite_r, react_bounce
+            show nora_cafe_laugh as focus_nora at sprite_r, react_bounce
             n "Go home. Eat something that isn't from here. That's the whole speech."
-            show nora_cafe_talk at sprite_r
+            show nora_cafe_talk as focus_nora at sprite_r
             n "I've given it to about forty people. You're the first one who asked for it."
             $ apply_relationship_change(
                 "nora",
@@ -851,18 +851,18 @@ label nora_walk_out_scene:
     show screen hud
     hide screen people_here_dock
 
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "She's already got her coat over the back of a chair and the apron half untied — the last ten minutes of a shift, where nobody does any work."
-    show nora_cafe_talk at sprite_r, react_nod
+    show nora_cafe_talk as focus_nora at sprite_r, react_nod
     n "You've got about eight minutes of me and then I turn into a person who does not work here."
     mc "What happens then?"
-    show nora_cafe_laugh at sprite_r
+    show nora_cafe_laugh as focus_nora at sprite_r
     n "I walk to the crossing and complain about the bus. It's a whole thing."
 
     menu:
         "\"I'm going that way anyway.\"":
             mc "I'm going that way anyway."
-            show nora_cafe_talk at sprite_r, react_nod
+            show nora_cafe_talk as focus_nora at sprite_r, react_nod
             n "Then you're getting the bus complaint. That's the deal, I don't make the rules."
             "You end up at the crossing together at eighteen minutes past, which is late enough that the complaint has real feeling in it."
             "She goes left. You don't. That's the whole thing."
@@ -876,7 +876,7 @@ label nora_walk_out_scene:
             )
         "\"I'll let you get out of here.\"":
             mc "I'll let you get out of here."
-            show nora_cafe_normal at sprite_r, react_nod
+            show nora_cafe_normal as focus_nora at sprite_r, react_nod
             n "Appreciated. Genuinely — the eight minutes are the worst part."
             # No penalty.
 
@@ -896,19 +896,19 @@ label marcus_zoe_bar_scene:
     show screen hud
     hide screen people_here_dock
 
-    show marcus_bar_talk at sprite_r
-    show zoe_street_talk at sprite_l
+    show marcus_bar_talk as focus_marcus at sprite_r
+    show zoe_street_talk as focus_zoe at sprite_l
     # They finish the sentence before they notice MC — the point of the beat.
     m "— no, because the second you charge for it, it's a job. That's not a bad thing. That's just what it is."
-    show zoe_street_angry at sprite_l, react_shake
+    show zoe_street_angry as focus_zoe at sprite_l, react_shake
     z "It's a bad thing when you say it like that. You say it like it's a diagnosis."
-    show marcus_bar_talk at sprite_r
+    show marcus_bar_talk as focus_marcus at sprite_r
     m "I'm a bartender. Everything I say sounds like a diagnosis."
-    show zoe_street_talk at sprite_l
+    show zoe_street_talk as focus_zoe at sprite_l
     z "You could stop."
-    show marcus_bar_normal at sprite_r, react_step_back
+    show marcus_bar_normal as focus_marcus at sprite_r, react_step_back
     m "...Oh. Hey."
-    show zoe_street_neutral at sprite_l, react_nod
+    show zoe_street_neutral as focus_zoe at sprite_l, react_nod
     z "You're a witness now. Sorry. It's mostly his fault."
 
     menu:
@@ -920,9 +920,9 @@ label marcus_zoe_bar_scene:
 
 label marcus_zoe_bar_join:
     mc "Go on then. Both of you."
-    show marcus_bar_talk at sprite_r, react_lean_in
+    show marcus_bar_talk as focus_marcus at sprite_r, react_lean_in
     m "Right. She sells one painting and now money's a moral problem."
-    show zoe_street_laugh at sprite_l, react_bounce
+    show zoe_street_laugh as focus_zoe at sprite_l, react_bounce
     z "One painting is data."
     m "One painting is one painting."
     "It goes on for half an hour and doesn't resolve, which appears to be the format. Neither of them looks like they want it to."
@@ -944,21 +944,21 @@ label marcus_zoe_bar_join:
 
 label marcus_zoe_bar_pass:
     mc "I'll leave you two to it."
-    show zoe_street_talk at sprite_l, react_nod
+    show zoe_street_talk as focus_zoe at sprite_l, react_nod
     z "Coward."
-    show marcus_bar_talk at sprite_r
+    show marcus_bar_talk as focus_marcus at sprite_r
     m "Smart man."
     # No penalty either way.
     jump marcus_zoe_bar_exit
 
 
 label marcus_zoe_bar_exit:
-    hide marcus_bar_normal
-    hide marcus_bar_talk
-    hide zoe_street_neutral
-    hide zoe_street_talk
-    hide zoe_street_laugh
-    hide zoe_street_angry
+    hide focus_marcus
+    hide focus_marcus
+    hide focus_zoe
+    hide focus_zoe
+    hide focus_zoe
+    hide focus_zoe
     $ story_scene_active = False
     $ set_hud("full")
     jump location_bar
@@ -973,23 +973,23 @@ label cross_zoe_nora_scene:
     show screen hud
     hide screen people_here_dock
 
-    show nora_cafe_talk at sprite_r
-    show zoe_street_talk at sprite_l
+    show nora_cafe_talk as focus_nora at sprite_r
+    show zoe_street_talk as focus_zoe at sprite_l
     # Mid-conversation. Two regulars of the same café — no invented history.
     n "— all I'm saying is you've been ordering the same thing for four months and telling me you're experimenting."
-    show zoe_street_laugh at sprite_l, react_bounce
+    show zoe_street_laugh as focus_zoe at sprite_l, react_bounce
     z "I'm experimenting with commitment."
-    show nora_cafe_laugh at sprite_r
+    show nora_cafe_laugh as focus_nora at sprite_r
     n "That's the most artist thing anyone's said to me at this counter."
-    show zoe_street_neutral at sprite_l, react_step_back
+    show zoe_street_neutral as focus_zoe at sprite_l, react_step_back
     z "Oh — hey. She's bullying me."
-    show nora_cafe_talk at sprite_r, react_nod
+    show nora_cafe_talk as focus_nora at sprite_r, react_nod
     n "I'm doing customer service."
 
     menu:
         "\"Pull up a stool.\"":
             mc "Room for one more?"
-            show nora_cafe_talk at sprite_r, react_nod
+            show nora_cafe_talk as focus_nora at sprite_r, react_nod
             n "There's always room, that's the tragedy of a Wednesday."
             "Twenty-five minutes of nothing in particular: the same order, the bus, a man outside who has been on the phone since before you arrived."
             "Nora keeps working the whole time and somehow stays in the conversation. Zoe doesn't order anything different."
@@ -1008,7 +1008,7 @@ label cross_zoe_nora_scene:
             )
         "\"Don't let me interrupt.\"":
             mc "Don't let me interrupt."
-            show zoe_street_talk at sprite_l, react_nod
+            show zoe_street_talk as focus_zoe at sprite_l, react_nod
             z "Too late, but appreciated."
             # No penalty.
 

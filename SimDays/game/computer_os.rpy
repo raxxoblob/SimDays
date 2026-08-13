@@ -12,6 +12,20 @@ init python:
     # "pinned"  : True = show as quick-launch button in taskbar
     # "stub"    : if set, app shows placeholder text instead of a full screen
     _PC = "images/ui/pc_ui/"
+
+    # ── Shared desktop typography ────────────────────────────────────────────
+    # One place for every app's text size/colour. Ren'Py text properties can't
+    # be inherited through `use`/transclude, so apps reference these constants
+    # instead of each defining its own sizes.
+    # ponytail: constants, not a style family — screens here use inline `text`
+    # statements everywhere; converting them all to styled text is a bigger
+    # refactor than this pass needs. Upgrade path: define `style pc_body_text`
+    # et al. and drop the explicit font/size/color properties.
+    PC_TITLE_SIZE = 21   # window + section titles
+    PC_TEXT_SIZE  = 17   # normal content
+    PC_SMALL_SIZE = 15   # secondary content
+    PC_FG         = "#e8eef4"   # primary (near-white)
+    PC_FG_DIM     = "#8ea4bc"   # secondary floor — do not go darker
     COMPUTER_APPS = OrderedDict([
         ("mail",        {"name": "Mail",        "icon": _PC+"01_mail.png",             "screen": "capp_mail",        "unlock": None,            "pinned": True}),
         ("freelance",   {"name": "Freelance",   "icon": _PC+"02_freelance_projects.png","screen": "capp_freelance",  "unlock": "own_computer",  "pinned": True}),
@@ -26,14 +40,14 @@ init python:
         ("files",       {"name": "Collection",  "icon": _PC+"08_files.png",             "screen": "capp_possessions","unlock": None,            "pinned": False}),
         ("browser",     {"name": "Browser",     "icon": _PC+"09_browser.png",           "screen": "capp_stub",       "unlock": None,            "pinned": False,
                          "stub": "No internet connection detected."}),
-        ("programming", {"name": "Programming", "icon": _PC+"10_programming.png",       "screen": "capp_stub",       "unlock": None,            "pinned": False,
-                         "stub": "Code editor — available with an active programming project."}),
+        ("programming", {"name": "Programming", "icon": _PC+"10_programming.png",       "screen": "capp_programming","unlock": None,            "pinned": True}),
         ("finances",    {"name": "Finances",    "icon": _PC+"11_finances.png",          "screen": "capp_stub",       "unlock": None,            "pinned": False,
                          "stub": "Budget tracker — coming soon."}),
         ("contacts",    {"name": "Contacts",    "icon": _PC+"12_contacts.png",          "screen": "capp_stub",       "unlock": None,            "pinned": False,
                          "stub": "Contact list — coming soon."}),
-        ("settings",    {"name": "Settings",    "icon": _PC+"13_settings.png",          "screen": "capp_stub",       "unlock": None,            "pinned": False,
-                         "stub": "System preferences — nothing to configure yet."}),
+        # The dead "Settings" stub now hosts Home Upgrades — reuses the gear icon
+        # rather than adding a 17th asset.
+        ("upgrades",    {"name": "Home Upgrades","icon": _PC+"13_settings.png",         "screen": "capp_upgrades",   "unlock": None,            "pinned": True}),
         ("photos",      {"name": "Photos",      "icon": _PC+"14_photos.png",            "screen": "capp_stub",       "unlock": None,            "pinned": False,
                          "stub": "No photos saved yet."}),
         ("notes",       {"name": "Notes",       "icon": _PC+"15_notes.png",             "screen": "capp_stub",       "unlock": None,            "pinned": False,
@@ -132,7 +146,7 @@ screen computer_desktop():
     modal True
     zorder 150
 
-    add "images/ui/pc_ui/pc_wallpaper.png"
+    add Transform("images/ui/pc_ui/pc_wallpaper.png", size=(config.screen_width, config.screen_height))
     # Tint overlay so window chrome stays readable on any wallpaper
     add Solid("#00000055")
 
@@ -174,18 +188,18 @@ screen computer_icon_grid():
                         background None
                         padding (0, 0, 0, 0)
                         add _app["icon"] fit "contain" xysize (72, 72) xalign 0.5 yalign 0.5
-                    text _app["name"] xalign 0.5 font ACT_FONT size 15 color ("#dfe6ee" if not _is_stub else "#7a90a0")
+                    text _app["name"] xalign 0.5 font ACT_FONT size PC_TEXT_SIZE color (PC_FG if not _is_stub else PC_FG_DIM)
                     if _badge > 0:
-                        text ("● %d" % _badge) xalign 0.5 font ACT_FONT size 13 color "#ff5555"
+                        text ("● %d" % _badge) xalign 0.5 font ACT_FONT size PC_SMALL_SIZE color "#ff5555"
                     else:
-                        null height 17
+                        null height 20
 
 
 screen computer_taskbar():
     frame:
         yalign 1.0
         xfill True
-        ysize 52
+        ysize 56
         background Solid(computer_theme(3))
         padding (10, 0, 10, 0)
 
@@ -195,10 +209,10 @@ screen computer_taskbar():
             yalign 0.5
             xsize 150
             font PROFILE_FONT
-            size 15
+            size PC_TEXT_SIZE
             color computer_theme(4)
 
-        # Centre: pinned app launcher buttons (only the 6 active apps, not all 16)
+        # Centre: pinned app launcher buttons (only the real apps, not every icon)
         hbox:
             xalign 0.5
             yalign 0.5
@@ -206,7 +220,7 @@ screen computer_taskbar():
             for _aid, _app in computer_pinned_apps():
                 $ _b = computer_badge_count(_aid)
                 button:
-                    xysize (48, 44)
+                    xysize (52, 52)
                     action Function(computer_open_app, _aid)
                     background (Solid(computer_theme(2)) if computer_active_app == _aid else None)
                     hover_background Frame("images/ui/act_bar_hover_clean.png", 12, 12, 12, 12)
@@ -215,21 +229,21 @@ screen computer_taskbar():
                         spacing 2
                         add _app["icon"] fit "contain" xysize (28, 28) xalign 0.5
                         if _b > 0:
-                            text "●" font ACT_FONT size 10 color "#ff5555" xalign 0.5
+                            text "●" font ACT_FONT size PC_SMALL_SIZE color "#ff5555" xalign 0.5
                         else:
-                            null height 13
+                            null height 19
 
         # Right: clock, money, exit
         hbox:
             xalign 1.0
             yalign 0.5
             spacing 18
-            text ("%s  ·  Day %d" % (time_label(hour), day + 1)) font ACT_FONT size 14 color "#8ea4bc" yalign 0.5
-            text ("$%d" % money) font ACT_FONT size 14 color "#ffd66a" yalign 0.5
+            text ("%s  ·  Day %d" % (time_label(hour), day + 1)) font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM yalign 0.5
+            text ("$%d" % money) font ACT_FONT size PC_TEXT_SIZE color "#ffd66a" yalign 0.5
             textbutton "Leave":
                 action Return("leave")
                 text_font ACT_FONT
-                text_size 15
+                text_size PC_TEXT_SIZE
                 text_color "#9fb6d6"
                 text_hover_color "#ffffff"
                 background Frame("images/ui/act_bar_idle.png", 14, 14, 14, 14)
@@ -255,15 +269,15 @@ screen computer_app_shell(title):
             # Title bar
             frame:
                 xfill True
-                ysize 46
+                ysize 50
                 background Solid(computer_theme(2))
-                padding (12, 0, 8, 0)
+                padding (14, 0, 10, 0)
                 hbox:
                     yalign 0.5
                     spacing 10
                     if _shell_icon:
                         add _shell_icon fit "contain" xysize (22, 22) yalign 0.5
-                    text title yalign 0.5 font PROFILE_FONT size 17 color "#ffffff"
+                    text title yalign 0.5 font PROFILE_FONT size PC_TITLE_SIZE color "#ffffff"
                 # Window controls (right-aligned)
                 hbox:
                     xalign 1.0
@@ -273,7 +287,7 @@ screen computer_app_shell(title):
                     textbutton "—":
                         action Function(computer_close_app)
                         text_font PROFILE_FONT
-                        text_size 16
+                        text_size PC_TEXT_SIZE
                         text_color "#9fb6d6"
                         text_hover_color "#ffdd88"
                         background None
@@ -283,7 +297,7 @@ screen computer_app_shell(title):
                     textbutton "✕":
                         action Function(computer_close_app)
                         text_font PROFILE_FONT
-                        text_size 16
+                        text_size PC_TEXT_SIZE
                         text_color "#9fb6d6"
                         text_hover_color "#ff8888"
                         background None
@@ -292,7 +306,7 @@ screen computer_app_shell(title):
                         ypadding 8
             frame:
                 xfill True
-                ysize 804
+                ysize 800
                 background None
                 padding (24, 18, 24, 18)
                 transclude
@@ -311,7 +325,102 @@ screen capp_stub():
             spacing 16
             if _app_data.get("icon"):
                 add _app_data["icon"] fit "contain" xysize (72, 72) xalign 0.5
-            text _stub_msg xalign 0.5 font ACT_FONT size 18 color "#4a6080"
+            text _stub_msg xalign 0.5 font ACT_FONT size PC_TITLE_SIZE color PC_FG_DIM
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PROGRAMMING PRACTICE + HOME UPGRADES
+# Both used to hang off the legacy `use_computer` menu; they are desktop apps now.
+# ══════════════════════════════════════════════════════════════════════════════
+
+label capp_programming_practice_ctx:
+    # Runs in its own context so the desktop stays up underneath.
+    # ponytail: the XP/energy numbers mirror the legacy use_computer menu entry
+    # rather than sharing a helper. Upgrade path: move this block into one
+    # do_programming_practice label if a third caller ever appears.
+    $ spend_time(3)
+    $ _prog_xp_base = 7 if own_programming_kit else 5
+    $ _prog_xp_base = int(round(_prog_xp_base * (1.0 + float(equipment_modifier("computer", "prog_xp")))))
+    $ gain_skill_practice("prog", _prog_xp_base, 3)
+    $ _prog_e = max(1, int(15 * apply_skill_prog_energy_modifier() * (1.0 - home_upgrade_effect("desk_efficiency")) * (1.0 - float(equipment_modifier("computer", "project_energy")))))
+    if active_player_state_effect("prog_energy_up") > 0:
+        $ _prog_e = int(_prog_e * (1.0 + active_player_state_effect("prog_energy_up")))
+    $ need_energy = max(0, need_energy - _prog_e)
+    "You work through a few exercises. Good for keeping the fundamentals sharp."
+    return
+
+
+screen capp_programming():
+    $ _prog_eff = current_practice_efficiency("prog")
+    use computer_app_shell("Programming"):
+        vbox:
+            spacing 14
+            xfill True
+            text ("Programming level %d  ·  practice efficiency today %s" % (skill_val("prog"), _prog_eff)):
+                font PROFILE_FONT size PC_TITLE_SIZE color computer_theme(4)
+            text "Drill exercises in the editor. Three hours, costs energy, keeps the fundamentals sharp.":
+                font ACT_FONT size PC_TEXT_SIZE color PC_FG
+            if not own_programming_kit:
+                text "No dedicated programming kit — you learn a little slower without one.":
+                    font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM
+            null height 6
+            textbutton "Practice Programming  ·  3h":
+                xalign 0.5
+                action Function(renpy.call_in_new_context, "capp_programming_practice_ctx")
+                text_font ACT_FONT
+                text_size PC_TITLE_SIZE
+                text_color computer_theme(4)
+                text_hover_color "#ffffff"
+                background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
+                hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16, 16, 16)
+                xpadding 20
+                ypadding 10
+
+
+label capp_home_upgrades_ctx:
+    call screen home_upgrades_scr
+    return
+
+
+screen capp_upgrades():
+    use computer_app_shell("Home Upgrades"):
+        vbox:
+            spacing 14
+            xfill True
+            $ _hu_owned = [d for u, d in HOME_UPGRADE_DEFS.items() if owns_home_upgrade(u)]
+            text ("%d of %d upgrades installed  ·  balance $%d"
+                  % (len(_hu_owned), len(HOME_UPGRADE_DEFS), money)):
+                font PROFILE_FONT size PC_TITLE_SIZE color computer_theme(4)
+            viewport:
+                xfill True
+                ysize 620
+                mousewheel True
+                scrollbars "vertical"
+                vbox:
+                    spacing 6
+                    xfill True
+                    if not _hu_owned:
+                        text "Nothing installed yet." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
+                    for _hd in _hu_owned:
+                        frame:
+                            xfill True
+                            background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
+                            padding (16, 12, 16, 12)
+                            vbox:
+                                spacing 3
+                                text _hd["title"] font PROFILE_FONT size PC_TEXT_SIZE color PC_FG
+                                text _hd["desc"] font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM
+            textbutton "Open Upgrade Catalogue  →":
+                xalign 0.5
+                action Function(renpy.call_in_new_context, "capp_home_upgrades_ctx")
+                text_font ACT_FONT
+                text_size PC_TITLE_SIZE
+                text_color computer_theme(4)
+                text_hover_color "#ffffff"
+                background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
+                hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16, 16, 16)
+                xpadding 20
+                ypadding 10
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -327,7 +436,7 @@ screen capp_mail():
             vbox:
                 xsize 560
                 spacing 6
-                text ("Inbox  ·  %d unread" % unread_mail_count()) font PROFILE_FONT size 15 color computer_theme(4)
+                text ("Inbox  ·  %d unread" % unread_mail_count()) font PROFILE_FONT size PC_TEXT_SIZE color computer_theme(4)
                 viewport:
                     xfill True
                     ysize 730
@@ -337,40 +446,40 @@ screen capp_mail():
                         spacing 6
                         xfill True
                         if not _delivered:
-                            text "No mail yet." font ACT_FONT size 15 color "#4a6080"
+                            text "No mail yet." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                         for _m in reversed(_delivered):
                             button:
                                 xfill True
                                 background (Solid(computer_theme(2)) if _m["tag"] == _active_mail_tag else Frame("images/ui/act_bar_idle.png", 18, 18, 18, 18))
                                 hover_background Frame("images/ui/act_bar_hover_clean.png", 18, 18, 18, 18)
-                                padding (12, 9, 12, 9)
+                                padding (14, 12, 14, 12)
                                 action [Function(mark_mail_read, _m["tag"]), SetVariable("_active_mail_tag", _m["tag"])]
                                 vbox:
                                     spacing 2
                                     hbox:
                                         xfill True
-                                        text _m["sender"] font PROFILE_FONT size 14 color ("#ffffff" if not _m["read"] else "#7a90a8")
+                                        text _m["sender"] font PROFILE_FONT size PC_TEXT_SIZE color ("#ffffff" if not _m["read"] else PC_FG_DIM)
                                         if not _m["read"]:
-                                            text " ●" font PROFILE_FONT size 11 color "#5bcafa" yalign 0.5
-                                    text _m["subject"] font ACT_FONT size 14 color ("#cfe0f5" if not _m["read"] else "#5a7090")
+                                            text " ●" font PROFILE_FONT size PC_SMALL_SIZE color "#5bcafa" yalign 0.5
+                                    text _m["subject"] font ACT_FONT size PC_TEXT_SIZE color (PC_FG if not _m["read"] else PC_FG_DIM)
             # Reading pane
             vbox:
                 xsize 900
                 spacing 8
                 $ _dm = next((m for m in player_mail if m.get("tag") == _active_mail_tag), None)
                 if _dm:
-                    text _dm["subject"] font PROFILE_FONT size 20 color "#ffffff"
-                    text ("From: %s   ·   Day %d" % (_dm["sender"], _dm.get("delivered_on", 0) + 1)) font ACT_FONT size 13 color computer_theme(4)
+                    text _dm["subject"] font PROFILE_FONT size PC_TITLE_SIZE color "#ffffff"
+                    text ("From: %s   ·   Day %d" % (_dm["sender"], _dm.get("delivered_on", 0) + 1)) font ACT_FONT size PC_SMALL_SIZE color computer_theme(4)
                     null height 6
                     viewport:
                         xfill True
                         ysize 700
                         mousewheel True
                         scrollbars "vertical"
-                        text _dm["body"] font ACT_FONT size 16 color "#cfe0f5"
+                        text _dm["body"] font ACT_FONT size PC_TEXT_SIZE color PC_FG
                 else:
                     null height 40
-                    text "Select a message to read it." font ACT_FONT size 16 color "#4a6080"
+                    text "Select a message to read it." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -396,28 +505,28 @@ screen capp_freelance():
             xfill True
             text ("Reputation %d   ·   Completed %d   ·   Failed %d"
                   % (freelance_reputation, freelance_completed, freelance_failed)):
-                font ACT_FONT size 14 color computer_theme(4)
+                font ACT_FONT size PC_TEXT_SIZE color computer_theme(4)
 
             if freelance_active_project is not None:
                 $ _p = freelance_active_project
-                text "Active Project" font PROFILE_FONT size 18 color "#ffffff"
+                text "Active Project" font PROFILE_FONT size PC_TITLE_SIZE color "#ffffff"
                 frame:
                     xfill True
                     background Frame("images/ui/act_bar_idle.png", 20, 20, 20, 20)
                     padding (16, 14, 16, 14)
                     vbox:
                         spacing 6
-                        text _p["title"] font PROFILE_FONT size 17 color "#cfe0f5"
-                        text ("%s  ·  %s  ·  $%d" % (_p["client"], _p["difficulty"].title(), _p["pay"])) font ACT_FONT size 14 color "#8ea4bc"
+                        text _p["title"] font PROFILE_FONT size PC_TITLE_SIZE color PC_FG
+                        text ("%s  ·  %s  ·  $%d" % (_p["client"], _p["difficulty"].title(), _p["pay"])) font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                         $ _frac = min(1.0, float(_p["worked_hours"]) / max(1, _p["required_hours"]))
                         bar value _frac range 1.0 xsize 700 ysize 14
                         text ("%d / %d hours  ·  due Day %d (%d left)"
                               % (_p["worked_hours"], _p["required_hours"], _p["deadline_day"] + 1,
                                  _p["deadline_day"] - day)):
-                            font ACT_FONT size 13 color ("#ff8866" if _p["deadline_day"] - day <= 1 else "#7a9ab8")
+                            font ACT_FONT size PC_SMALL_SIZE color ("#ff8866" if _p["deadline_day"] - day <= 1 else PC_FG_DIM)
             else:
                 $ _offers = [t for t in _all_freelance_templates() if t["id"] in freelance_offers]
-                text ("Available Projects  (%d)" % len(_offers)) font PROFILE_FONT size 18 color "#ffffff"
+                text ("Available Projects  (%d)" % len(_offers)) font PROFILE_FONT size PC_TITLE_SIZE color "#ffffff"
                 viewport:
                     xfill True
                     ysize 560
@@ -427,25 +536,25 @@ screen capp_freelance():
                         spacing 6
                         xfill True
                         if not _offers:
-                            text "No offers on the board right now. Check back after a day or two." font ACT_FONT size 15 color "#4a6080"
+                            text "No offers on the board right now. Check back after a day or two." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                         for _t in _offers:
                             frame:
                                 xfill True
                                 background Frame("images/ui/act_bar_idle.png", 18, 18, 18, 18)
-                                padding (14, 10, 14, 10)
+                                padding (16, 12, 16, 12)
                                 vbox:
                                     spacing 3
-                                    text ("%s — %s" % (_t["title"], _t["client"])) font PROFILE_FONT size 15 color "#cfe0f5"
+                                    text ("%s — %s" % (_t["title"], _t["client"])) font PROFILE_FONT size PC_TEXT_SIZE color PC_FG
                                     text ("$%d  ·  %s  ·  %dh over %d days  ·  needs prog %d"
                                           % (_t["pay"], _t["difficulty"].title(), _t["hours"], _t["days"], _t["min_skill"])):
-                                        font ACT_FONT size 13 color ("#8ea4bc" if freelance_eligible(_t) else "#5a6470")
+                                        font ACT_FONT size PC_SMALL_SIZE color (PC_FG if freelance_eligible(_t) else PC_FG_DIM)
 
             null height 4
             textbutton "Open Freelance Workspace  →":
                 xalign 0.5
                 action Function(renpy.call_in_new_context, "capp_freelance_ctx")
                 text_font ACT_FONT
-                text_size 17
+                text_size PC_TITLE_SIZE
                 text_color computer_theme(4)
                 text_hover_color "#ffffff"
                 background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
@@ -454,7 +563,7 @@ screen capp_freelance():
                 ypadding 10
             text "Accept, work and submit projects there. Working costs time and energy.":
                 xalign 0.5
-                font ACT_FONT size 12 color "#4a6080"
+                font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -475,8 +584,8 @@ screen capp_marketplace():
                     textbutton (("All" if _c == "all" else MARKET_CATEGORY_LABELS.get(_c, _c.title()))):
                         action SetVariable("_capp_market_cat", _c)
                         text_font ACT_FONT
-                        text_size 14
-                        text_color ("#ffffff" if _capp_market_cat == _c else "#8ea4bc")
+                        text_size PC_TEXT_SIZE
+                        text_color ("#ffffff" if _capp_market_cat == _c else PC_FG_DIM)
                         text_hover_color "#ffffff"
                         background (Solid(computer_theme(2)) if _capp_market_cat == _c else Frame("images/ui/act_bar_idle.png", 14, 14, 14, 14))
                         hover_background Frame("images/ui/act_bar_hover_clean.png", 14, 14, 14, 14)
@@ -491,7 +600,7 @@ screen capp_marketplace():
                     spacing 8
                     xfill True
                     if not _shown:
-                        text "Nothing listed in this category." font ACT_FONT size 15 color "#4a6080"
+                        text "Nothing listed in this category." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                     for _l in _shown:
                         frame:
                             xfill True
@@ -505,25 +614,25 @@ screen capp_marketplace():
                                     spacing 3
                                     hbox:
                                         spacing 10
-                                        text _l["name"] font PROFILE_FONT size 16 color "#cfe0f5"
-                                        text MARKET_CATEGORY_LABELS.get(_l["cat"], _l["cat"]) font ACT_FONT size 12 color computer_theme(4) yalign 0.5
+                                        text _l["name"] font PROFILE_FONT size PC_TEXT_SIZE color PC_FG
+                                        text MARKET_CATEGORY_LABELS.get(_l["cat"], _l["cat"]) font ACT_FONT size PC_SMALL_SIZE color computer_theme(4) yalign 0.5
                                     text ("%s  ·  seller: %s  ·  listed until Day %d"
                                           % (listing_condition_text(_l), _l["seller"], _l["expire_day"] + 1)):
-                                        font ACT_FONT size 13 color "#7a9ab8"
+                                        font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM
                                     # ponytail: no equip-delta preview here — market_listing_delta()
                                     # temporarily mutates equipment_condition, which is unsafe to call
                                     # every frame from a screen. Use the phone/shop view for that.
-                                    text ("fair range $%d–$%d" % (_l["fair_low"], _l["fair_high"])) font ACT_FONT size 12 color "#5a6470"
+                                    text ("fair range $%d–$%d" % (_l["fair_low"], _l["fair_high"])) font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM
                                 hbox:
                                     xalign 1.0
                                     yalign 0.5
                                     spacing 10
-                                    text ("$%d" % _l["asking"]) font PROFILE_FONT size 18 color "#ffd66a" yalign 0.5
+                                    text ("$%d" % _l["asking"]) font PROFILE_FONT size PC_TITLE_SIZE color "#ffd66a" yalign 0.5
                                     textbutton "Buy":
                                         action Function(market_buy, _l, _l["asking"])
                                         sensitive (money >= _l["asking"])
                                         text_font ACT_FONT
-                                        text_size 14
+                                        text_size PC_TEXT_SIZE
                                         text_color "#8fe0a0"
                                         text_hover_color "#ffffff"
                                         background Frame("images/ui/act_bar_idle.png", 14, 14, 14, 14)
@@ -533,7 +642,7 @@ screen capp_marketplace():
                                     textbutton "Offer…":
                                         action Function(renpy.call_in_new_context, "market_negotiate_ctx", _l["id"])
                                         text_font ACT_FONT
-                                        text_size 14
+                                        text_size PC_TEXT_SIZE
                                         text_color "#cc9040"
                                         text_hover_color "#ffffff"
                                         background Frame("images/ui/act_bar_idle.png", 14, 14, 14, 14)
@@ -553,7 +662,7 @@ screen capp_calendar():
             spacing 8
             xfill True
             text ("Upcoming  ·  today is Day %d (%s)" % (day + 1, day_name(day))):
-                font PROFILE_FONT size 17 color computer_theme(4)
+                font PROFILE_FONT size PC_TITLE_SIZE color computer_theme(4)
             viewport:
                 xfill True
                 ysize 730
@@ -563,7 +672,7 @@ screen capp_calendar():
                     spacing 6
                     xfill True
                     if not _evts:
-                        text "No upcoming events." font ACT_FONT size 16 color "#4a6080"
+                        text "No upcoming events." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                     else:
                         $ _last = -1
                         for _ce in _evts:
@@ -572,22 +681,22 @@ screen capp_calendar():
                                 null height 6
                                 text ("Day %d  ·  %s%s" % (_ce["day"] + 1, day_name(_ce["day"]),
                                                           "  (today)" if _ce["day"] == day else "")):
-                                    font PROFILE_FONT size 15 color computer_theme(4)
+                                    font PROFILE_FONT size PC_TEXT_SIZE color computer_theme(4)
                             frame:
                                 xfill True
                                 background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                padding (14, 9, 14, 9)
+                                padding (16, 12, 16, 12)
                                 hbox:
                                     spacing 12
                                     yalign 0.5
-                                    text time_label(_ce.get("hour", 0)) font ACT_FONT size 14 color "#ffd66a" xsize 110 yalign 0.5
+                                    text time_label(_ce.get("hour", 0)) font ACT_FONT size PC_TEXT_SIZE color "#ffd66a" xsize 110 yalign 0.5
                                     if _ce.get("commitment"):
-                                        text "●" font PROFILE_FONT size 11 color "#ffd66a" yalign 0.5
-                                    text _ce["title"] font ACT_FONT size 15 color ("#cfe0f5" if _ce["status"] == "upcoming" else "#5a6470") yalign 0.5
+                                        text "●" font PROFILE_FONT size PC_SMALL_SIZE color "#ffd66a" yalign 0.5
+                                    text _ce["title"] font ACT_FONT size PC_TEXT_SIZE color (PC_FG if _ce["status"] == "upcoming" else PC_FG_DIM) yalign 0.5
                                     if _ce.get("npc_id") and _ce["npc_id"] in NPC_DATA:
-                                        text NPC_DATA[_ce["npc_id"]]["name"] font ACT_FONT size 13 color "#7a9ab8" yalign 0.5
+                                        text NPC_DATA[_ce["npc_id"]]["name"] font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM yalign 0.5
                                     if _ce["status"] != "upcoming":
-                                        text _ce["status"].title() font ACT_FONT size 12 color "#5a6470" yalign 0.5
+                                        text _ce["status"].title() font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM yalign 0.5
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -606,7 +715,7 @@ screen capp_portfolio():
             spacing 8
             xfill True
             text ("%d portfolio entries  ·  %d career milestones" % (len(_entries), len(_career))):
-                font PROFILE_FONT size 16 color computer_theme(4)
+                font PROFILE_FONT size PC_TEXT_SIZE color computer_theme(4)
             viewport:
                 xfill True
                 ysize 740
@@ -616,41 +725,41 @@ screen capp_portfolio():
                     spacing 6
                     xfill True
                     if not _entries and not _career:
-                        text "Nothing here yet. Complete projects and reach career milestones." font ACT_FONT size 16 color "#4a6080"
+                        text "Nothing here yet. Complete projects and reach career milestones." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                     for _gname, _gcol, _glist in _groups:
                         if _glist:
                             null height 6
                             $ _paid = sum(e["metadata"].get("pay", 0) for e in _glist)
                             text ("%s  ·  %d entries%s" % (_gname, len(_glist), ("  ·  $%d earned" % _paid) if _paid else "")):
-                                font PROFILE_FONT size 16 color _gcol
+                                font PROFILE_FONT size PC_TEXT_SIZE color _gcol
                             for _pe in sorted(_glist, key=lambda x: -x["day"]):
                                 frame:
                                     xfill True
                                     background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                    padding (14, 9, 14, 9)
+                                    padding (16, 12, 16, 12)
                                     hbox:
                                         spacing 14
                                         yalign 0.5
-                                        text ("Day %d" % (_pe["day"] + 1)) font ACT_FONT size 13 color "#4a6080" xsize 90 yalign 0.5
-                                        text _pe["title"] font ACT_FONT size 15 color "#cfe0f5" yalign 0.5
+                                        text ("Day %d" % (_pe["day"] + 1)) font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM xsize 90 yalign 0.5
+                                        text _pe["title"] font ACT_FONT size PC_TEXT_SIZE color PC_FG yalign 0.5
                                         if _pe["metadata"].get("client"):
-                                            text _pe["metadata"]["client"] font ACT_FONT size 13 color "#7a9ab8" yalign 0.5
+                                            text _pe["metadata"]["client"] font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM yalign 0.5
                                         if _pe["metadata"].get("pay", 0) > 0:
-                                            text ("$%d" % _pe["metadata"]["pay"]) font ACT_FONT size 13 color "#ffd66a" yalign 0.5
+                                            text ("$%d" % _pe["metadata"]["pay"]) font ACT_FONT size PC_SMALL_SIZE color "#ffd66a" yalign 0.5
                     if _career:
                         null height 6
-                        text "Career Milestones" font PROFILE_FONT size 16 color "#ffd66a"
+                        text "Career Milestones" font PROFILE_FONT size PC_TEXT_SIZE color "#ffd66a"
                         for _ce in sorted(_career, key=lambda x: -x["day"]):
                             frame:
                                 xfill True
                                 background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                padding (14, 9, 14, 9)
+                                padding (16, 12, 16, 12)
                                 hbox:
                                     spacing 14
                                     yalign 0.5
-                                    text ("Day %d" % (_ce["day"] + 1)) font ACT_FONT size 13 color "#4a6080" xsize 90 yalign 0.5
-                                    text "★" font PROFILE_FONT size 13 color "#ffd66a" yalign 0.5
-                                    text _ce["title"] font ACT_FONT size 15 color "#ffd66a" yalign 0.5
+                                    text ("Day %d" % (_ce["day"] + 1)) font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM xsize 90 yalign 0.5
+                                    text "★" font PROFILE_FONT size PC_SMALL_SIZE color "#ffd66a" yalign 0.5
+                                    text _ce["title"] font ACT_FONT size PC_TEXT_SIZE color "#ffd66a" yalign 0.5
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -665,7 +774,7 @@ screen capp_browser():
             vbox:
                 xsize 700
                 spacing 10
-                text "CityNet  ·  Local" font PROFILE_FONT size 20 color computer_theme(4)
+                text "CityNet  ·  Local" font PROFILE_FONT size PC_TITLE_SIZE color computer_theme(4)
                 frame:
                     xfill True
                     background Frame("images/ui/act_bar_idle.png", 18, 18, 18, 18)
@@ -673,12 +782,12 @@ screen capp_browser():
                     vbox:
                         spacing 5
                         $ _prof = city_day_profile()
-                        text ("%s in the city" % _prof["name"]) font PROFILE_FONT size 15 color "#cfe0f5"
-                        text _prof["vibe"] font ACT_FONT size 14 color "#8ea4bc"
+                        text ("%s in the city" % _prof["name"]) font PROFILE_FONT size PC_TEXT_SIZE color PC_FG
+                        text _prof["vibe"] font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                         $ _flav = city_flavor_text()
                         if _flav:
-                            text _flav font ACT_FONT size 14 color "#7a9ab8"
-                text "Community Board" font PROFILE_FONT size 17 color computer_theme(4)
+                            text _flav font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
+                text "Community Board" font PROFILE_FONT size PC_TITLE_SIZE color computer_theme(4)
                 viewport:
                     xfill True
                     ysize 560
@@ -689,23 +798,23 @@ screen capp_browser():
                         xfill True
                         $ _posts = [p for p in social_feed_posts if p.get("day", 0) <= day][:8]
                         if not _posts:
-                            text "The board is quiet today." font ACT_FONT size 14 color "#4a6080"
+                            text "The board is quiet today." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                         for _p in _posts:
                             frame:
                                 xfill True
                                 background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                padding (14, 9, 14, 9)
+                                padding (16, 12, 16, 12)
                                 vbox:
                                     spacing 3
                                     $ _pn = "You" if _p["npc_id"] == "you" else NPC_DATA.get(_p["npc_id"], {}).get("name", _p["npc_id"].title())
-                                    text ("%s  ·  Day %d" % (_pn, _p.get("day", 0) + 1)) font PROFILE_FONT size 13 color computer_theme(4)
-                                    text _p["text"] font ACT_FONT size 14 color "#cfe0f5"
+                                    text ("%s  ·  Day %d" % (_pn, _p.get("day", 0) + 1)) font PROFILE_FONT size PC_SMALL_SIZE color computer_theme(4)
+                                    text _p["text"] font ACT_FONT size PC_TEXT_SIZE color PC_FG
 
             # ── Right column: events + jobs ──────────────────────────────────
             vbox:
                 xsize 760
                 spacing 10
-                text "Upcoming Events" font PROFILE_FONT size 17 color computer_theme(4)
+                text "Upcoming Events" font PROFILE_FONT size PC_TITLE_SIZE color computer_theme(4)
                 viewport:
                     xfill True
                     ysize 340
@@ -716,26 +825,26 @@ screen capp_browser():
                         xfill True
                         $ _cevts = sorted([e for e in city_event_schedule if e["status"] == "announced" and e["day"] >= day], key=lambda x: x["day"])
                         if not _cevts:
-                            text "No events announced." font ACT_FONT size 14 color "#4a6080"
+                            text "No events announced." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                         for _e in _cevts:
                             frame:
                                 xfill True
                                 background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                padding (14, 9, 14, 9)
+                                padding (16, 12, 16, 12)
                                 vbox:
                                     spacing 3
-                                    text _e["title"] font PROFILE_FONT size 15 color "#cfe0f5"
+                                    text _e["title"] font PROFILE_FONT size PC_TEXT_SIZE color PC_FG
                                     text ("Day %d  ·  %s  ·  %s" % (_e["day"] + 1, time_label(_e["hour"]), _capp_loc_name(_e["location"]))):
-                                        font ACT_FONT size 13 color "#7a9ab8"
+                                        font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM
                                     if _e.get("req"):
-                                        text ("Recommended: %s" % next_rank_hint(_e["req"])) font ACT_FONT size 12 color "#cc9040"
+                                        text ("Recommended: %s" % next_rank_hint(_e["req"])) font ACT_FONT size PC_SMALL_SIZE color "#cc9040"
                                     if _e.get("saved_to_calendar"):
-                                        text "✓ In your calendar" font ACT_FONT size 12 color "#6fbf8f"
+                                        text "✓ In your calendar" font ACT_FONT size PC_SMALL_SIZE color "#6fbf8f"
                                     else:
                                         textbutton "Add to Calendar":
                                             action Function(_save_city_event_to_calendar_wrapper, _e["id"])
                                             text_font ACT_FONT
-                                            text_size 13
+                                            text_size PC_SMALL_SIZE
                                             text_color computer_theme(4)
                                             text_hover_color "#ffffff"
                                             background Frame("images/ui/act_bar_idle.png", 12, 12, 12, 12)
@@ -743,7 +852,7 @@ screen capp_browser():
                                             xpadding 12
                                             ypadding 5
 
-                text "Job Listings" font PROFILE_FONT size 17 color computer_theme(4)
+                text "Job Listings" font PROFILE_FONT size PC_TITLE_SIZE color computer_theme(4)
                 viewport:
                     xfill True
                     ysize 330
@@ -754,24 +863,24 @@ screen capp_browser():
                         xfill True
                         $ _jobs = [(c, d) for c, d in CAREERS.items() if c not in active_careers]
                         if not _jobs:
-                            text "You already hold every posting on the board." font ACT_FONT size 14 color "#4a6080"
+                            text "You already hold every posting on the board." font ACT_FONT size PC_TEXT_SIZE color PC_FG_DIM
                         for _cid, _cd in _jobs:
                             $ _r0 = _cd["ranks"][0]
                             frame:
                                 xfill True
                                 background Frame("images/ui/act_bar_idle.png", 16, 16, 16, 16)
-                                padding (14, 9, 14, 9)
+                                padding (16, 12, 16, 12)
                                 vbox:
                                     spacing 3
-                                    text ("%s — %s" % (_r0["title"], _cd["name"])) font PROFILE_FONT size 15 color "#cfe0f5"
+                                    text ("%s — %s" % (_r0["title"], _cd["name"])) font PROFILE_FONT size PC_TEXT_SIZE color PC_FG
                                     text ("$%d  ·  %s  ·  %s" % (_r0["pay"], _r0["hours"], _capp_loc_name(_cd["location"]))):
-                                        font ACT_FONT size 13 color "#7a9ab8"
+                                        font ACT_FONT size PC_SMALL_SIZE color PC_FG_DIM
                                     $ _hint = next_rank_hint(_r0["req"])
                                     if can_apply(_cid):
                                         text ("Qualified — apply in person at %s" % _capp_loc_name(_cd["location"])):
-                                            font ACT_FONT size 12 color "#6fbf8f"
+                                            font ACT_FONT size PC_SMALL_SIZE color "#6fbf8f"
                                     else:
-                                        text ("Requires: %s" % (_hint or "—")) font ACT_FONT size 12 color "#cc9040"
+                                        text ("Requires: %s" % (_hint or "—")) font ACT_FONT size PC_SMALL_SIZE color "#cc9040"
 
 
 # ══════════════════════════════════════════════════════════════════════════════

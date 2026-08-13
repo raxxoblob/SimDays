@@ -72,7 +72,7 @@ init 1 python:
         # (home_scenes.rpy:236). Creative project is her default mode.
         "zoe":      {"creative_project": 30, "planning_something": 15,
                      "busy_work": 10, "stressed_week": 10},
-        # Deploys + on-call (it_arc.rpy:136) plus a thesis chapter he is
+        # Deploys + on-call (it_arc.rpy:136) plus a thesis chapter she is
         # avoiding (arcs.rpy:229).
         "eli":      {"busy_work": 25, "creative_project": 15, "stressed_week": 12,
                      "recovering": 8},
@@ -131,7 +131,7 @@ init 1 python:
         if not weights:
             return
         import random as _r
-        rng = _r.Random(current_day * 8837 + abs(hash(npc_id)) % 9973
+        rng = _r.Random(current_day * 8837 + _det_hash(npc_id) % 9973
                         + _ensure_campaign_seed())
         # Most days an NPC is simply having a normal week.
         if rng.random() > 0.18:

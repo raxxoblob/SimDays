@@ -136,7 +136,7 @@ label tr_boundary_case:
     show screen npc_relbar("kai")
     scene pov_trainer
     show screen hud
-    show kai_gym_normal at sprite_r
+    show kai_gym_normal as focus_kai at sprite_r
     "Your 9am is a regular — twelve sessions in, trains for recreational half-marathons."
     "They arrive moving carefully. Before the warm-up finishes, they stop."
     "Client" "Sharp. Just inside the knee. Started yesterday."
@@ -176,7 +176,7 @@ label tr_boundary_case:
             "The client limps slightly on the way to the changing room."
             $ _work_perf(-8)
             $ _apply_trust("kai", -3)
-    hide kai_gym_normal
+    hide focus_kai
     $ _wev_relbar_close()
     hide screen npc_relbar
     $ tr_boundary_done = True
@@ -188,7 +188,7 @@ label tr_boundary_case:
 label tr_boundary_followup:
     scene pov_trainer
     show screen hud
-    show kai_gym_normal at sprite_r
+    show kai_gym_normal as focus_kai at sprite_r
     if tr_boundary_outcome == "referred":
         "The referred client returns with a physio report and a revised training plan."
         "Iliotibial band — tightness compounding over their mileage increase. Three weeks modified; back to full in four to six."
@@ -196,7 +196,7 @@ label tr_boundary_followup:
         kai "Good call on the referral."
         mc "It was the only call."
         kai "The ones who think there's a grey zone there are the ones I watch."
-        hide kai_gym_normal
+        hide focus_kai
         $ _apply_trust("kai", 2)
         $ _work_perf(2)
     elif tr_boundary_outcome == "managed":
@@ -204,7 +204,7 @@ label tr_boundary_followup:
         kai "Your notes were clear. That matters — if anything had developed, the chain was there."
         mc "I wasn't sure it was enough at the time."
         kai "That's why you wrote it down."
-        hide kai_gym_normal
+        hide focus_kai
         $ _apply_trust("kai", 1)
         $ _work_perf(1)
     else:
@@ -213,10 +213,10 @@ label tr_boundary_followup:
         kai "You saw the message?"
         mc "Yes."
         "She waits."
-        hide kai_gym_normal
+        hide focus_kai
         $ _wev_relbar_open("kai")
         show screen npc_relbar("kai")
-        show kai_gym_normal at sprite_r
+        show kai_gym_normal as focus_kai at sprite_r
         menu:
             "Own it.":
                 $ tr_boundary_owned_mistake = True
@@ -241,7 +241,7 @@ label tr_boundary_followup:
                 $ tr_boundary_review_extra_shifts = 2
         $ _wev_relbar_close()
         hide screen npc_relbar
-        hide kai_gym_normal
+        hide focus_kai
     $ tr_boundary_followup_done = True
     $ tr_boundary_followup_pending = False
     return

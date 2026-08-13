@@ -4,6 +4,16 @@
 
 define PROFILE_FONT = "fonts/Quicksand-SemiBold.ttf"
 
+# Fixed column widths so every bar in the panel starts at the same x:
+#   row padding-left 14 + icon 36 + 12 + label 140 + 12  ->  bar x = 214.
+# Row budget: panel 520 - padding 32 - scrollbar ~22 = 466 content, minus 28 row
+# padding = 438; 36+140+160+60 + 3*12 spacing = 432. 6px slack.
+define PROFILE_W     = 520
+define PROFILE_ICON  = 36
+define PROFILE_LABEL = 140
+define PROFILE_BAR   = 160
+define PROFILE_VAL   = 60
+
 # One skill row that fills the panel width: icon + label + bar + value.
 screen stat_chip(label, value, fill, icon=None, tip=""):
     button:
@@ -12,20 +22,20 @@ screen stat_chip(label, value, fill, icon=None, tip=""):
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         action NullAction()
         tooltip tip
-        padding (16, 10, 18, 10)
+        padding (14, 10, 14, 10)
         hbox:
             spacing 12
             yalign 0.5
             if icon:
-                add icon xysize (34, 34) yalign 0.5
+                add icon xysize (PROFILE_ICON, PROFILE_ICON) yalign 0.5
             else:
-                null width 34
-            text label font PROFILE_FONT size 19 color "#cfe0f5" yalign 0.5 xsize 104
+                null width PROFILE_ICON
+            text label font PROFILE_FONT size 18 color "#cfe0f5" yalign 0.5 xsize PROFILE_LABEL
             bar:
                 value StaticValue(value, 100)
-                xsize 148 ysize 16 yalign 0.5
+                xsize PROFILE_BAR ysize 16 yalign 0.5
                 left_bar Frame(fill, 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-            text "[value]" font PROFILE_FONT size 19 color "#ffffff" yalign 0.5 xalign 1.0
+            text "[value]" font PROFILE_FONT size 18 color "#ffffff" yalign 0.5 xsize PROFILE_VAL textalign 1.0
 
 
 # One specialization row (icon + name + 0-10 bar + value). All are shown so the
@@ -37,25 +47,25 @@ screen spec_row(key):
     $ _maxed = _lv >= 10
     button:
         xfill True
-        ysize 52
+        ysize 56
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         action NullAction()
         tooltip ("%s - Lv %d. %s" % (PRO_SKILLS[key][0], _lv, "Maxed out." if _maxed else "%d / %d EXP to next level." % (_ex, _need)))
-        padding (14, 7, 16, 7)
+        padding (14, 7, 14, 7)
         hbox:
-            spacing 10
+            spacing 12
             yalign 0.5
             $ _ic = "images/ui/icons/skill_%s.png" % key
             if renpy.loadable(_ic):
-                add _ic xysize (28, 28) yalign 0.5
+                add _ic xysize (PROFILE_ICON, PROFILE_ICON) yalign 0.5
             else:
-                null width 28
-            text ("%s  Lv%d" % (PRO_SKILLS[key][0], _lv)) font PROFILE_FONT size 17 color ("#cfe0f5" if _lv > 0 else "#7f8ba0") yalign 0.5 xsize 120
+                null width PROFILE_ICON
+            text ("%s  Lv%d" % (PRO_SKILLS[key][0], _lv)) font PROFILE_FONT size 17 color ("#cfe0f5" if _lv > 0 else "#7f8ba0") yalign 0.5 xsize PROFILE_LABEL
             bar:
                 value StaticValue((10 if _maxed else _ex), (10 if _maxed else _need))
-                xsize 108 ysize 13 yalign 0.5
+                xsize PROFILE_BAR ysize 13 yalign 0.5
                 left_bar Frame("images/ui/bar_fill_%s.png" % PRO_SKILLS[key][2], 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-            text ("MAX" if _maxed else "%d/%d" % (_ex, _need)) font PROFILE_FONT size 15 color "#ffffff" yalign 0.5 xalign 1.0
+            text ("MAX" if _maxed else "%d/%d" % (_ex, _need)) font PROFILE_FONT size 16 color "#ffffff" yalign 0.5 xsize PROFILE_VAL textalign 1.0
 
 
 screen profile():
@@ -63,9 +73,9 @@ screen profile():
     # right side, below the topbar; no `modal` -> left menu stays live.
 
     frame:
-        xpos 1490
+        xpos 1920 - PROFILE_W
         ypos 200
-        xsize 430
+        xsize PROFILE_W
         ysize 818
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         padding (20, 16, 12, 16)
@@ -90,22 +100,22 @@ screen profile():
                 scrollbars "vertical"
                 ysize 748
                 vbox:
-                    xsize 360
+                    xsize 466
                     spacing 8
 
-                    text "CORE STATS" font PROFILE_FONT size 15 color "#7fa0cc"
+                    text "CORE STATS" font PROFILE_FONT size 16 color "#7fa0cc"
                     use stat_chip("Strength",   stat_str, "images/ui/bar_fill_str.png", "images/ui/icons/stat_str.png", "Strength - train at the gym. Gates physical jobs.")
                     use stat_chip("Intellect",  stat_int, "images/ui/bar_fill_int.png", "images/ui/icons/stat_int.png", "Intellect - study at the library / work desk jobs. Gates IT, corporate, medicine.")
                     use stat_chip("Charisma",   stat_chr, "images/ui/bar_fill_chr.png", "images/ui/icons/stat_social.png", "Charisma - socialize (bar, club). Helps relationships and people-facing work.")
                     use stat_chip("Appearance", stat_app, "images/ui/bar_fill_app.png", "images/ui/icons/stat_app.png", "Appearance - gym, clothes, grooming. Low hygiene tanks it fast.")
 
                     null height 4
-                    text "SPECIALIZATIONS" font PROFILE_FONT size 15 color "#7fa0cc"
+                    text "SPECIALIZATIONS" font PROFILE_FONT size 16 color "#7fa0cc"
                     for _k in PRO_SKILLS:
                         use spec_row(_k)
 
                     null height 4
-                    text "WORK" font PROFILE_FONT size 15 color "#7fa0cc"
+                    text "WORK" font PROFILE_FONT size 16 color "#7fa0cc"
                     if active_careers:
                         for _cid, _cdata in active_careers.items():
                             $ _c_rank = _cdata.get("rank", 0)
@@ -121,39 +131,39 @@ screen profile():
                                 padding (16, 10, 18, 10)
                                 vbox:
                                     spacing 6
-                                    text _c_title font PROFILE_FONT size 17 color "#ffffff"
+                                    text _c_title font PROFILE_FONT size 18 color "#ffffff"
                                     hbox:
                                         spacing 10
-                                        text "Perf" font PROFILE_FONT size 14 color "#cfe0f5" yalign 0.5
+                                        text "Perf" font PROFILE_FONT size 16 color "#cfe0f5" yalign 0.5
                                         bar:
                                             value StaticValue(_c_perf, 100)
-                                            xsize 160 ysize 14 yalign 0.5
+                                            xsize PROFILE_BAR ysize 14 yalign 0.5
                                             left_bar Frame("images/ui/bar_fill_perf.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-                                        text ("%d" % _c_perf) font PROFILE_FONT size 14 color "#ffffff" yalign 0.5
+                                        text ("%d" % _c_perf) font PROFILE_FONT size 16 color "#ffffff" yalign 0.5
                                     $ _cp = career_arc_progress(_cid)
                                     if _cp[1] > 0:
-                                        text ("Arc: %d/%d" % _cp) font PROFILE_FONT size 12 color "#5a7090"
+                                        text ("Arc: %d/%d" % _cp) font PROFILE_FONT size 14 color "#5a7090"
                                     $ _next_ridx = _c_rank + 1
                                     if _next_ridx < len(_c_ranks):
                                         $ _nr     = _c_ranks[_next_ridx]
                                         $ _nr_req = _nr.get("req", {})
-                                        text ("Next: " + _nr["title"]) font PROFILE_FONT size 13 color "#9fb6d6"
+                                        text ("Next: " + _nr["title"]) font PROFILE_FONT size 15 color "#9fb6d6"
                                         for _rk in _nr_req:
                                             $ _rv = _nr_req[_rk]
                                             if _rk.startswith("stat_"):
                                                 $ _sname = _rk[5:].upper()
                                                 $ _sval  = eff_app() if _rk == "stat_app" else getattr(store, _rk, 0)
                                                 $ _sok   = _sval >= _rv
-                                                text ("%s %d  %s" % (_sname, _rv, "✓" if _sok else "(%d/%d)" % (_sval, _rv))) font PROFILE_FONT size 12 color ("#5bcafa" if _sok else "#c06060")
+                                                text ("%s %d  %s" % (_sname, _rv, "✓" if _sok else "(%d/%d)" % (_sval, _rv))) font PROFILE_FONT size 14 color ("#5bcafa" if _sok else "#c06060")
                                             elif _rk.startswith("skill_"):
                                                 $ _skname = _rk[6:].capitalize()
                                                 $ _skval  = getattr(store, _rk, 0)
                                                 $ _skok   = _skval >= _rv
-                                                text ("%s Lv%d  %s" % (_skname, _rv, "✓" if _skok else "(%d/%d)" % (_skval, _rv))) font PROFILE_FONT size 12 color ("#5bcafa" if _skok else "#c06060")
+                                                text ("%s Lv%d  %s" % (_skname, _rv, "✓" if _skok else "(%d/%d)" % (_skval, _rv))) font PROFILE_FONT size 14 color ("#5bcafa" if _skok else "#c06060")
                                             elif _rk == "degree":
                                                 $ _dok = _rv in degrees
-                                                text ("Degree: " + _rv.replace("_", " ").title() + ("  ✓" if _dok else "  ✗")) font PROFILE_FONT size 12 color ("#5bcafa" if _dok else "#c06060")
-                                        text ("Performance %d/100  %s" % (_c_perf, "✓" if _c_perf >= 100 else "")) font PROFILE_FONT size 12 color ("#5bcafa" if _c_perf >= 100 else "#c06060")
+                                                text ("Degree: " + _rv.replace("_", " ").title() + ("  ✓" if _dok else "  ✗")) font PROFILE_FONT size 14 color ("#5bcafa" if _dok else "#c06060")
+                                        text ("Performance %d/100  %s" % (_c_perf, "✓" if _c_perf >= 100 else "")) font PROFILE_FONT size 14 color ("#5bcafa" if _c_perf >= 100 else "#c06060")
                     else:
                         frame:
                             xfill True
@@ -161,11 +171,11 @@ screen profile():
                             padding (16, 12, 18, 12)
                             vbox:
                                 spacing 4
-                                text "Unemployed" font PROFILE_FONT size 19 color "#ffffff"
-                                text "Find work in the city." font PROFILE_FONT size 15 color "#9fb6d6"
+                                text "Unemployed" font PROFILE_FONT size 20 color "#ffffff"
+                                text "Find work in the city." font PROFILE_FONT size 16 color "#9fb6d6"
 
                     null height 4
-                    text "ASSETS" font PROFILE_FONT size 15 color "#7fa0cc"
+                    text "ASSETS" font PROFILE_FONT size 16 color "#7fa0cc"
                     $ _tiers = "Home t%d   Car t%d   Wardrobe t%d   Jewelry t%d" % (apartment_tier, car_tier, wardrobe_tier, jewelry_tier)
                     $ _cdl = cosmetic_days_left()
                     $ _cosmetic_str = ("Polished Look: %d day%s" % (_cdl, "s" if _cdl != 1 else "")) if _cdl > 0 else ""
@@ -176,12 +186,12 @@ screen profile():
                         padding (16, 10, 18, 10)
                         vbox:
                             spacing 4
-                            text "[_tiers]" font PROFILE_FONT size 15 color "#cfe0f5"
-                            text "Items: [_items]" font PROFILE_FONT size 15 color "#cfe0f5"
+                            text "[_tiers]" font PROFILE_FONT size 16 color "#cfe0f5"
+                            text "Items: [_items]" font PROFILE_FONT size 16 color "#cfe0f5"
                             if _cosmetic_str:
-                                text "[_cosmetic_str]" font PROFILE_FONT size 13 color "#c07bff"
+                                text "[_cosmetic_str]" font PROFILE_FONT size 14 color "#c07bff"
 
             # hover footer: shows the tooltip of whatever stat/skill you point at
             $ _ptt = GetTooltip()
             if _ptt:
-                text "[_ptt]" font PROFILE_FONT size 14 color "#e0c060" xsize 386
+                text "[_ptt]" font PROFILE_FONT size 15 color "#e0c060" xsize 466

@@ -366,8 +366,11 @@ label market_negotiate_ctx(listing_id):
 
 label market_negotiate_loop:
     call screen market_negotiate_scr(_mkt_lid)
+    # market_negotiate_scr contract: ("buy"|"neg", price, discount) | None.
+    # Guard the 3-way unpack below — a bool from the screen layer would raise
+    # TypeError, and `is None` alone doesn't catch it.
     $ _mkt_choice = _return
-    if _mkt_choice is None:
+    if not isinstance(_mkt_choice, tuple) or len(_mkt_choice) != 3:
         return
     $ _l = next((l for l in market_listings if l["id"] == _mkt_lid), None)
     if _l is None or _l.get("purchased"):

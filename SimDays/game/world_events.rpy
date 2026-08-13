@@ -850,7 +850,7 @@ label wevent_marcus_loan:
         return
     $ wed_fire("marcus_loan")
     $ wed_marcus_loan_state = "offered"
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "Hey. I hate to ask — do you have $120 until payday? I can square up by Friday."
     "He's not looking at you when he says it."
     $ _can_full    = (money >= 120 and loan == 0)
@@ -910,7 +910,7 @@ label wevent_sam_off_routine:
     else:
         scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "Sam is here. Wrong day, wrong time. Her coffee is half-finished and she's staring at it."
     menu:
         "\"Thought you were a park person.\"":
@@ -929,7 +929,7 @@ label wevent_sam_off_routine:
             "She looks at her cup."
             sam "Came in for something else and stayed. It's fine."
             $ _apply_aff("sam", 1)
-    hide sam_normal
+    hide focus_sam
     $ add_relationship_memory("sam", "sam_off_routine", "Saw Sam off her schedule")
     return
 
@@ -1012,18 +1012,18 @@ label wevent_bar_quiz_night:
 # ── Callbacks: Marcus loan ────────────────────────────────────────────────
 
 label wevcb_marcus_loan_repay:
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "Hey. The $120 — here."
     "He hands it back without ceremony."
     m "Appreciate it. Seriously."
     $ gain_money(120)
     $ _apply_trust("marcus", 2)
     $ wed_marcus_loan_state = "resolved_repaid"
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 label wevcb_marcus_loan_partial:
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "I said I'd sort something out. You free Saturday morning?"
     menu:
         "Sure, what time?":
@@ -1034,16 +1034,16 @@ label wevcb_marcus_loan_partial:
         "Can't this week.":
             m "Some other time, then."
             $ wed_marcus_loan_state = "resolved_repaid"
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 label wevcb_marcus_loan_solved:
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "Sorted it out, by the way. Just so you know."
     "He doesn't make it into a thing."
     $ _apply_trust("marcus", 1)
     $ wed_marcus_loan_state = "resolved_solved"
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 
@@ -1066,7 +1066,7 @@ label location_marcus_home:
 
     scene expression marcus_home_bg()
     show screen hud
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
 
     # Loan callback fires here when ready
     if wed_marcus_loan_callback_ready and wed_marcus_loan_state in ("pending_repay", "pending_practical"):
@@ -1116,7 +1116,7 @@ label marcus_home_chili:
     return
 
 label marcus_home_game:
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     "The volume is low. He explains the score without being asked."
     $ spend_time(1.5)
     $ need_energy = min(100, need_energy + 8)
@@ -1138,7 +1138,7 @@ label wevent_marcus_first_shift_checkin:
         return
     $ wed_fire("marcus_first_shift_checkin")
     show screen hud
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "You're back."
     "Not a question."
     menu:
@@ -1149,7 +1149,7 @@ label wevent_marcus_first_shift_checkin:
         "\"I could get used to it.\"":
             $ marcus_first_shift_choice = "used_to_it"
             m "Good."
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 
@@ -1161,13 +1161,13 @@ label wevent_marcus_low_energy_comment:
     $ wed_fire("marcus_low_energy_comment")
     $ wed_marcus_low_energy_count += 1
     show screen hud
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "You know your apartment has a bed, right?"
     mc "I've seen it."
     m "Try using it before it becomes decorative."
     mc "I'm fine."
     m "That sentence usually means the opposite."
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 
@@ -1178,13 +1178,13 @@ label wevent_marcus_first_steps_followup:
         return
     $ wed_fire("marcus_first_steps_followup")
     show screen hud
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "Looks like you found your feet."
     mc "Mostly."
     m "Mostly is how everyone walks around here."
     mc "You make this city sound reassuring."
     m "That wasn't the goal."
-    hide marcus_casual_normal
+    hide focus_marcus
     $ add_relationship_memory("marcus", "marcus_found_your_feet", "Marcus noticed I was settling in")
     return
 
@@ -1196,13 +1196,13 @@ label wevent_marcus_new_car_comment:
         return
     $ wed_fire("marcus_new_car_comment")
     show screen hud
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "That yours?"
     mc "Depends. Do you approve?"
     m "It starts?"
     mc "Usually."
     m "Then it's already doing better than half the cars on this street."
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 
@@ -1214,7 +1214,7 @@ label wevent_gym_sam_last_rep:
     $ wed_fire("gym_sam_last_rep")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     sam "One more."
     mc "That was the last one."
     sam "That was the last one you planned."
@@ -1225,13 +1225,13 @@ label wevent_gym_sam_last_rep:
             "You reset your grip."
             $ _apply_trust("sam", 1)
             sam "Clean rep. Don't rush it."
-            hide sam_normal
+            hide focus_sam
             $ gain_skill("fit", 2)
         "Stop with good form.":
             mc "I'm stopping before the form goes."
             sam "Good."
             sam "Knowing when to stop counts too."
-            hide sam_normal
+            hide focus_sam
     return
 
 
@@ -1241,13 +1241,13 @@ label wevent_gym_sam_bad_advice:
     $ wed_fire("gym_sam_bad_advice")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     "A man near the mirrors gives an increasingly complicated explanation of how to avoid warming up."
     mc "Is any of that true?"
     sam "Some of the words are real."
     mc "Should we say something?"
     sam "He'll discover stretching tomorrow."
-    hide sam_normal
+    hide focus_sam
     return
 
 
@@ -1257,13 +1257,13 @@ label wevent_gym_sam_water_break:
     $ wed_fire("gym_sam_water_break")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
     sam "Water."
     mc "I'm fine."
     sam "That wasn't a question."
     mc "You always this encouraging?"
     sam "Only when people start negotiating with dehydration."
-    hide sam_normal
+    hide focus_sam
     return
 
 
@@ -1275,7 +1275,7 @@ label wevent_zoe_sketching_stranger:
     $ wed_fire("zoe_sketching_stranger")
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     z "Don't turn around."
     mc "That's usually when people turn around."
     z "I'm drawing the man behind you."
@@ -1283,7 +1283,7 @@ label wevent_zoe_sketching_stranger:
     z "He has been pretending to read the same page for ten minutes."
     mc "Maybe it's a difficult page."
     z "It's the drinks menu."
-    hide zoe_street_neutral
+    hide focus_zoe
     return
 
 
@@ -1293,7 +1293,7 @@ label wevent_zoe_wrong_colour:
     $ wed_fire("zoe_wrong_colour")
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     z "That wall is the wrong colour."
     mc "It's grey."
     z "Exactly."
@@ -1301,7 +1301,7 @@ label wevent_zoe_wrong_colour:
     z "Still grey."
     mc "Helpful."
     z "A different grey."
-    hide zoe_street_neutral
+    hide focus_zoe
     return
 
 
@@ -1313,7 +1313,7 @@ label wevent_zoe_lost_pencil:
     show screen hud
     $ _wev_relbar_open("zoe")
     show screen npc_relbar("zoe")
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     z "Have you seen a pencil?"
     mc "What kind?"
     z "The kind that was here."
@@ -1323,7 +1323,7 @@ label wevent_zoe_lost_pencil:
     z "I was checking whether you were paying attention."
     mc "Of course."
     z "You weren't."
-    hide zoe_street_neutral
+    hide focus_zoe
     $ _wev_relbar_close()
     hide screen npc_relbar
     $ add_relationship_memory("zoe", "zoe_pencil_attention", "Zoe tested whether I was paying attention")
@@ -1342,34 +1342,34 @@ label wevent_marcus_hallway_texture:
     return
 
 label wevent_marcus_hallway_tex_laundry:
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     "Marcus steps into the hallway carrying a laundry basket."
     m "Machine on the left eats coins."
     mc "The other one?"
     m "Eats socks."
     mc "Good building."
     m "Strong character."
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 label wevent_marcus_hallway_tex_wrong_mail:
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     m "You get anything addressed to apartment sixteen?"
     mc "There is no apartment sixteen."
     m "That explains the delivery rate."
     "He checks the envelope again."
     m "Still not mine."
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 label wevent_marcus_hallway_tex_takeout:
-    show marcus_casual_normal at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_r
     "Marcus balances a paper bag against his hip while unlocking his door."
     mc "Dinner?"
     m "Technically."
     mc "What makes it technical?"
     m "The restaurant included a fork."
-    hide marcus_casual_normal
+    hide focus_marcus
     return
 
 
@@ -1386,33 +1386,33 @@ label wevent_zoe_park_texture:
     return
 
 label wevent_zoe_park_tex_cloud:
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     z "That cloud looks artificial."
     mc "Artificial?"
     z "Too symmetrical."
     mc "Should we report it?"
     z "I already drew evidence."
-    hide zoe_street_neutral
+    hide focus_zoe
     return
 
 label wevent_zoe_park_tex_bench:
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     z "Someone moved this bench."
     mc "How can you tell?"
     z "The view is worse."
     mc "Maybe the view moved."
     z "That would be more interesting."
-    hide zoe_street_neutral
+    hide focus_zoe
     return
 
 label wevent_zoe_park_tex_page:
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "The wind catches one page of Zoe's sketchbook."
     "You stop it with your foot before it crosses the path."
     z "Thanks."
     mc "Do I get to see it?"
     z "That wasn't part of the rescue agreement."
-    hide zoe_street_neutral
+    hide focus_zoe
     return
 
 
@@ -1429,31 +1429,31 @@ label wevent_nora_cafe_texture:
     return
 
 label wevent_nora_cafe_tex_name:
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     n "They spelled your name wrong."
     mc "It's four letters."
     n "That probably made them confident."
-    hide nora_cafe_normal
+    hide focus_nora
     return
 
 label wevent_nora_cafe_tex_pastry:
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "Nora looks at the last pastry in the display."
     mc "Are you going to take it?"
     n "I'm waiting to see whether you're polite."
     mc "And if I am?"
     n "Then I take it."
-    hide nora_cafe_normal
+    hide focus_nora
     return
 
 label wevent_nora_cafe_tex_table:
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     n "That table has been reserved for twenty minutes."
     mc "Nobody's there."
     n "Exactly."
     mc "Reserved by who?"
     n "A laptop charger."
-    hide nora_cafe_normal
+    hide focus_nora
     return
 
 
@@ -1596,8 +1596,8 @@ label wevent_crossover_marcus_nora_coffee:
     $ wed_fire("crossover_marcus_nora_coffee")
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
-    show marcus_casual_normal at sprite_l
+    show nora_cafe_normal as focus_nora at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_l
     "Marcus studies the menu above the counter."
     m "When did coffee start needing this many adjectives?"
     n "Around the same time customers started asking for personality."
@@ -1608,8 +1608,8 @@ label wevent_crossover_marcus_nora_coffee:
     mc "Do you two know each other?"
     n "He asks that every time."
     m "And she never answers."
-    hide nora_cafe_normal
-    hide marcus_casual_normal
+    hide focus_nora
+    hide focus_marcus
     $ add_relationship_memory("marcus", "marcus_met_nora_at_grounds", "I ran into Marcus and Nora at Grounds")
     return
 
@@ -1622,8 +1622,8 @@ label wevent_crossover_sam_zoe_park:
     $ wed_fire("crossover_sam_zoe_park")
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
+    show zoe_street_neutral as focus_zoe at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     "Zoe watches Sam repeat the same movement near the court."
     z "Do that again."
     sam "The shot?"
@@ -1635,8 +1635,8 @@ label wevent_crossover_sam_zoe_park:
     z "For your balance."
     sam "You could have led with that."
     z "Then you would have changed it."
-    hide zoe_street_neutral
-    hide sam_normal
+    hide focus_zoe
+    hide focus_sam
     $ add_relationship_memory("sam", "sam_met_zoe_in_park", "Sam and Zoe crossed paths in the park")
     $ add_relationship_memory("zoe", "zoe_met_sam_in_park", "Zoe studied Sam's movement in the park")
     return
@@ -1650,8 +1650,8 @@ label wevent_crossover_martha_caroline_static:
     $ wed_fire("crossover_martha_caroline_static")
     scene bar
     show screen hud
-    show martha_neutral at sprite_r
-    show caroline_normal at sprite_l
+    show martha_neutral as focus_martha at sprite_r
+    show caroline_normal as focus_caroline at sprite_l
     "Martha and Caroline stand near the quieter end of the bar."
     caro "You changed the order of the presentation."
     ma "I improved the order of the presentation."
@@ -1663,8 +1663,8 @@ label wevent_crossover_martha_caroline_static:
     mc "Should I come back later?"
     caro "Probably."
     ma "You're already here."
-    hide martha_neutral
-    hide caroline_normal
+    hide focus_martha
+    hide focus_caroline
     $ add_relationship_memory("martha", "martha_seen_with_caroline_static", "I saw Martha and Caroline talking at Static")
     $ add_relationship_memory("caroline", "caroline_seen_with_martha_static", "I saw Caroline and Martha talking at Static")
     return
@@ -1683,32 +1683,32 @@ label wevent_crossover_marcus_nora_repeat:
     return
 
 label wevent_cross_mn_order_again:
-    show nora_cafe_normal at sprite_r
-    show marcus_casual_normal at sprite_l
+    show nora_cafe_normal as focus_nora at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_l
     n "Black coffee."
     m "I didn't say anything yet."
     n "You were going to."
     m "I was building to it."
     n "The journey doesn't change the destination."
-    hide nora_cafe_normal
-    hide marcus_casual_normal
+    hide focus_nora
+    hide focus_marcus
     return
 
 label wevent_cross_mn_wrong_name:
-    show nora_cafe_normal at sprite_r
-    show marcus_casual_normal at sprite_l
+    show nora_cafe_normal as focus_nora at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_l
     n "Marco?"
     m "Close."
     n "It's on the cup."
     m "In your handwriting."
     n "Which makes you Marco."
-    hide nora_cafe_normal
-    hide marcus_casual_normal
+    hide focus_nora
+    hide focus_marcus
     return
 
 label wevent_cross_mn_recommendation:
-    show nora_cafe_normal at sprite_r
-    show marcus_casual_normal at sprite_l
+    show nora_cafe_normal as focus_nora at sprite_r
+    show marcus_casual_normal as focus_marcus at sprite_l
     m "What's good today?"
     n "Everything."
     m "What's better than usual?"
@@ -1716,8 +1716,8 @@ label wevent_cross_mn_recommendation:
     m "I come here every week."
     n "And your opinion so far?"
     m "I'm still forming it."
-    hide nora_cafe_normal
-    hide marcus_casual_normal
+    hide focus_nora
+    hide focus_marcus
     return
 
 
@@ -1734,8 +1734,8 @@ label wevent_crossover_sam_zoe_repeat:
     return
 
 label wevent_cross_sz_shadow:
-    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
+    show zoe_street_neutral as focus_zoe at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     "Zoe is looking at the ground rather than her sketchbook."
     sam "Are you drawing shadows?"
     z "I'm drawing what the light avoids."
@@ -1743,26 +1743,26 @@ label wevent_cross_sz_shadow:
     z "It isn't."
     "Sam considers this."
     sam "Show me the difference."
-    hide zoe_street_neutral
-    hide sam_normal
+    hide focus_zoe
+    hide focus_sam
     return
 
 label wevent_cross_sz_pace:
-    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
+    show zoe_street_neutral as focus_zoe at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     sam "I'm running a different loop today."
     z "I know."
     sam "You've been here forty minutes."
     z "You changed your pace near the third bench."
     sam "Did it look worse?"
     z "It looked like something."
-    hide zoe_street_neutral
-    hide sam_normal
+    hide focus_zoe
+    hide focus_sam
     return
 
 label wevent_cross_sz_stop:
-    show zoe_street_neutral at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
+    show zoe_street_neutral as focus_zoe at sprite_crop(sprite_display_scale("zoe"), _SPRITE_XP_R, sprite_display_y_offset("zoe"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_L, sprite_display_y_offset("sam"))
     "Sam stops beside the bench where Zoe is sitting."
     sam "You're always here."
     z "So are you."
@@ -1770,8 +1770,8 @@ label wevent_cross_sz_stop:
     z "I'm working."
     sam "Is watching people work?"
     z "Watching people is the work."
-    hide zoe_street_neutral
-    hide sam_normal
+    hide focus_zoe
+    hide focus_sam
     return
 
 
@@ -1788,8 +1788,8 @@ label wevent_crossover_martha_caroline_repeat:
     return
 
 label wevent_cross_mc_deadline:
-    show martha_neutral at sprite_r
-    show caroline_normal at sprite_l
+    show martha_neutral as focus_martha at sprite_r
+    show caroline_normal as focus_caroline at sprite_l
     caro "The deadline moved."
     ma "By how much?"
     caro "Three days earlier."
@@ -1798,13 +1798,13 @@ label wevent_cross_mc_deadline:
     ma "Then we should help them see it."
     caro "That ship has sailed."
     ma "Find it."
-    hide martha_neutral
-    hide caroline_normal
+    hide focus_martha
+    hide focus_caroline
     return
 
 label wevent_cross_mc_credit:
-    show martha_neutral at sprite_r
-    show caroline_normal at sprite_l
+    show martha_neutral as focus_martha at sprite_r
+    show caroline_normal as focus_caroline at sprite_l
     ma "You attributed the forecast model to Hendricks."
     caro "He ran the model."
     ma "You built it."
@@ -1812,13 +1812,13 @@ label wevent_cross_mc_credit:
     ma "There's a large difference."
     caro "I'll note it next time."
     "Martha does not look satisfied with that answer."
-    hide martha_neutral
-    hide caroline_normal
+    hide focus_martha
+    hide focus_caroline
     return
 
 label wevent_cross_mc_seat:
-    show martha_neutral at sprite_r
-    show caroline_normal at sprite_l
+    show martha_neutral as focus_martha at sprite_r
+    show caroline_normal as focus_caroline at sprite_l
     "Caroline is already at the bar when Martha arrives."
     ma "You're in my seat."
     caro "There are no assigned seats."
@@ -1826,8 +1826,8 @@ label wevent_cross_mc_seat:
     caro "I prefer this one."
     "Martha sits one stool over without comment."
     "This is also, apparently, fine."
-    hide martha_neutral
-    hide caroline_normal
+    hide focus_martha
+    hide focus_caroline
     return
 
 
@@ -2078,7 +2078,7 @@ label wevent_marcus_park_invite_scene:
     $ wed_fire("marcus_park_invite_scene")
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    show marcus_park_neutral at sprite_r
+    show marcus_park_neutral as focus_marcus at sprite_r
     "Marcus is leaning against the fence near the court."
     m "You actually came."
     mc "You invited me."
@@ -2096,7 +2096,7 @@ label wevent_marcus_park_invite_scene:
             mc "I'm supervising."
             m "Knew I hired the right person."
             "You stay near the court and talk while Marcus takes occasional shots."
-    hide marcus_park_neutral
+    hide focus_marcus
     $ spend_time(1)
     $ _fu_d = dict(store.npc_invitation_followup_pending); _fu_d["marcus"] = {"invitation_id": "marcus_park_invite", "completed_day": day}; store.npc_invitation_followup_pending = _fu_d
     $ store.npc_invitation_pending = None
@@ -2114,7 +2114,7 @@ label wevent_zoe_park_invite_scene:
     $ wed_fire("zoe_park_invite_scene")
     scene expression ("parknight" if hour >= 20 else "parkday")
     show screen hud
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "Zoe is sitting near the path with her sketchbook open across her knees."
     z "You came."
     mc "You asked for a second opinion."
@@ -2137,7 +2137,7 @@ label wevent_zoe_park_invite_scene:
         "Neither yet.":
             mc "Neither. Not yet."
             z "That is irritatingly close to what I thought."
-    hide zoe_street_neutral
+    hide focus_zoe
     $ spend_time(0.5)
     $ _fu_d = dict(store.npc_invitation_followup_pending); _fu_d["zoe"] = {"invitation_id": "zoe_park_invite", "completed_day": day}; store.npc_invitation_followup_pending = _fu_d
     $ store.npc_invitation_pending = None
@@ -2155,7 +2155,7 @@ label wevent_eli_library_invite_scene:
     $ wed_fire("eli_library_invite_scene")
     scene expression ("librarynight" if hour >= 20 else "libraryday")
     show screen hud
-    show eli_normal at sprite_r
+    show eli_normal as focus_eli at sprite_r
     "Eli is sitting at the end of a long table with two cables running toward the wall."
     eli "The second outlet still works."
     mc "You sound surprised."
@@ -2172,7 +2172,7 @@ label wevent_eli_library_invite_scene:
             eli "That is how long breaks become long breaks."
             mc "You invited me."
             eli "I invited you to the table."
-    hide eli_normal
+    hide focus_eli
     $ spend_time(1)
     $ _fu_d = dict(store.npc_invitation_followup_pending); _fu_d["eli"] = {"invitation_id": "eli_library_invite", "completed_day": day}; store.npc_invitation_followup_pending = _fu_d
     $ store.npc_invitation_pending = None
@@ -2191,7 +2191,7 @@ label wevent_nora_grounds_invite_scene:
     $ wed_fire("nora_grounds_invite_scene")
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "Nora sets a small cup on the counter in front of you."
     n "Before you ask, it isn't on the menu."
     mc "Comforting."
@@ -2214,7 +2214,7 @@ label wevent_nora_grounds_invite_scene:
             n "That is technically information."
             mc "Useful?"
             n "Not remotely."
-    hide nora_cafe_normal
+    hide focus_nora
     $ spend_time(0.5)
     $ _fu_d = dict(store.npc_invitation_followup_pending); _fu_d["nora"] = {"invitation_id": "nora_grounds_invite", "completed_day": day}; store.npc_invitation_followup_pending = _fu_d
     $ store.npc_invitation_pending = None
@@ -2235,7 +2235,7 @@ label wevent_nora_static_date_scene:
     show screen hud
     $ _wev_relbar_open("nora")
     show screen npc_relbar("nora")
-    show nora_casual_normal at sprite_r
+    show nora_casual_normal as focus_nora at sprite_r
     "Nora is at the far end of the bar with a glass in front of her that isn't water."
     n "You came."
     mc "You asked."
@@ -2259,7 +2259,7 @@ label wevent_nora_static_date_scene:
             n "That is an interesting thing to say unprompted."
             mc "I just wanted to be clear."
             n "Then we both know what it is."
-    hide nora_casual_normal
+    hide focus_nora
     $ spend_time(1.5)
     $ fs_record_social("nora", "date")
     $ record_social_attention("nora", "date")
@@ -2285,7 +2285,7 @@ label wevent_zoe_beach_date_scene:
     show screen hud
     $ _wev_relbar_open("zoe")
     show screen npc_relbar("zoe")
-    show zoe_street_neutral at sprite_r
+    show zoe_street_neutral as focus_zoe at sprite_r
     "Zoe is at the edge of the sand with her shoes off and a sketchbook closed beside her."
     z "You actually came."
     mc "You said I should be here."
@@ -2311,7 +2311,7 @@ label wevent_zoe_beach_date_scene:
             z "Sitting. Watching the water."
             mc "That's it?"
             z "That's enough."
-    hide zoe_street_neutral
+    hide focus_zoe
     $ spend_time(1.5)
     $ fs_record_social("zoe", "date")
     $ record_social_attention("zoe", "date")
@@ -2329,8 +2329,8 @@ label wevent_crossover_nora_elle_grounds:
     $ wed_fire("crossover_nora_elle_grounds")
     scene expression cafe_bg()
     show screen hud
-    show nora_cafe_normal at sprite_r
-    show elle_sundress_normal at sprite_l
+    show nora_cafe_normal as focus_nora at sprite_r
+    show elle_sundress_normal as focus_elle at sprite_l
     "Elle is already at the counter when Nora sets something down in front of her — without being asked."
     n "Oat, extra shot, no foam."
     el "I didn't order yet."
@@ -2349,8 +2349,8 @@ label wevent_crossover_nora_elle_grounds:
     el "She remembers orders."
     n "She asks questions."
     "They both seem to find this satisfactory."
-    hide nora_cafe_normal
-    hide elle_sundress_normal
+    hide focus_nora
+    hide focus_elle
     $ add_relationship_memory("nora", "nora_met_elle_at_grounds", "Nora and Elle have a routine at Grounds")
     $ add_relationship_memory("elle", "elle_met_nora_at_grounds", "Nora already knows Elle's order")
     return
@@ -2360,8 +2360,8 @@ label wevent_crossover_lena_marcus_bar:
     $ wed_fire("crossover_lena_marcus_bar")
     scene bar
     show screen hud
-    show drlena_normal at sprite_r
-    show marcus_bar_normal at sprite_l
+    show drlena_normal as focus_lena at sprite_r
+    show marcus_bar_normal as focus_marcus at sprite_l
     "Lena is at the corner of the bar — the seat nearest the exit."
     "Marcus sits down one stool over, closer to the centre."
     m "The end one has a draft."
@@ -2377,8 +2377,8 @@ label wevent_crossover_lena_marcus_bar:
     m "Bar etiquette. Different thing."
     lena "Is it?"
     "He orders without answering."
-    hide drlena_normal
-    hide marcus_bar_normal
+    hide focus_lena
+    hide focus_marcus
     $ add_relationship_memory("lena", "lena_met_marcus_at_static", "Marcus noticed Lena's seat preference before she said anything")
     $ add_relationship_memory("marcus", "marcus_met_lena_at_static", "Lena noted Marcus was more observant than expected")
     return
@@ -2388,8 +2388,8 @@ label wevent_crossover_sam_kai_gym:
     $ wed_fire("crossover_sam_kai_gym")
     scene gymdaypeople
     show screen hud
-    show sam_normal at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
-    show kai_gym_normal at sprite_crop(sprite_display_scale("kai"), _SPRITE_XP_L, sprite_display_y_offset("kai"))
+    show sam_normal as focus_sam at sprite_crop(sprite_display_scale("sam"), _SPRITE_XP_R, sprite_display_y_offset("sam"))
+    show kai_gym_normal as focus_kai at sprite_crop(sprite_display_scale("kai"), _SPRITE_XP_L, sprite_display_y_offset("kai"))
     "Sam is checking her phone between sets. Kai walks over."
     kai "You skipped the cool-down again."
     sam "I had time for one more set."
@@ -2404,8 +2404,8 @@ label wevent_crossover_sam_kai_gym:
     sam "You don't actually rest between sets."
     kai "I move differently between sets. That's rest."
     "Neither of them asks MC."
-    hide sam_normal
-    hide kai_gym_normal
+    hide focus_sam
+    hide focus_kai
     $ add_relationship_memory("sam", "sam_met_kai_gym_debate", "Sam and Kai disagree about what recovery means")
     $ add_relationship_memory("kai", "kai_met_sam_gym_debate", "Sam caught Kai's own inconsistency back at him")
     return
@@ -2415,8 +2415,8 @@ label wevent_crossover_caroline_marcus_thursday:
     $ wed_fire("crossover_caroline_marcus_thursday")
     scene bar
     show screen hud
-    show caroline_normal at sprite_r
-    show marcus_bar_normal at sprite_l
+    show caroline_normal as focus_caroline at sprite_r
+    show marcus_bar_normal as focus_marcus at sprite_l
     "Marcus is already at the bar when Caroline arrives on Thursday."
     m "You're consistent."
     caro "It's Thursday."
@@ -2431,8 +2431,8 @@ label wevent_crossover_caroline_marcus_thursday:
     caro "That's not HR. That's a house rule."
     m "So yes, then."
     caro "I didn't say yes."
-    hide caroline_normal
-    hide marcus_bar_normal
+    hide focus_caroline
+    hide focus_marcus
     $ add_relationship_memory("marcus", "marcus_met_caroline_thursday", "Marcus and Caroline have their own Thursday routine")
     $ add_relationship_memory("caroline", "caroline_met_marcus_thursday", "Marcus does not ask for HR advice at the bar")
     return

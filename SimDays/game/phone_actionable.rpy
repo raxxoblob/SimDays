@@ -695,7 +695,7 @@ label phone_martha_coffee_scene:
     $ complete_commitment("martha_coffee_1")
     scene cafeday
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "Martha is already there when you arrive. Two coffees on the table. She pushes one toward you."
     ma "I always order before the person gets there. Presumptuous — it's faster."
     menu:
@@ -709,7 +709,7 @@ label phone_martha_coffee_scene:
             $ _apply_trust("martha", 2)
     ma "I wanted to say — you're handling the pressure well. Better than I did at your stage."
     ma "That's all. You can go back to being new now."
-    hide martha_neutral
+    hide focus_martha
     $ _apply_trust("martha", 3)
     $ add_relationship_memory("martha", "martha_first_coffee", "Coffee outside work")
     return
@@ -777,11 +777,11 @@ label phone_lena_case_scene:
     $ complete_commitment("lena_case_1")
     scene hospital1
     show screen hud
-    show drlena_normal at sprite_r
+    show drlena_normal as focus_lena at sprite_r
     "The third-year presents the case. Complex, bilateral involvement, non-obvious history."
     "Lena listens without interrupting for two minutes. Then she asks one question. Everything shifts."
     lena "Write down what changed after the question. Not the answer — what the question did."
-    hide drlena_normal
+    hide focus_lena
     "You fill half a page in your notes."
     $ _apply_trust("lena", 3)
     $ gain_skill("med", 5)
@@ -815,7 +815,7 @@ label phone_nora_closing_scene:
     $ complete_commitment("nora_closing_1")
     scene cafenight
     show screen hud
-    show nora_cafe_normal at sprite_r
+    show nora_cafe_normal as focus_nora at sprite_r
     "Closing the café is quieter than a shift. Chairs up. Counters wiped. Henry went home at nine."
     n "Okay, I have a theory about the foam. Are you ready for this theory?"
     "You tell her you are."
@@ -823,7 +823,7 @@ label phone_nora_closing_scene:
     "She makes you a perfect flat white at 10pm to prove her point."
     $ _apply_aff("nora", 4)
     $ _apply_trust("nora", 2)
-    hide nora_cafe_normal
+    hide focus_nora
     $ add_relationship_memory("nora", "nora_cafe_closing", "Closing the café together")
     return
 

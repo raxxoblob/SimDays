@@ -9,7 +9,7 @@ label corporate_atlas_intro:
     scene goodoffice1
     show screen hud
     "Caroline's assistant flags you on the way in. Third floor. Now."
-    show caroline_normal at sprite_r
+    show caroline_normal as focus_caroline at sprite_r
     caro "Close the door."
     "She doesn't look up until you do."
     caro "I'm giving you Atlas. Client presentation to the Nexus board in three weeks."
@@ -44,7 +44,7 @@ label corporate_atlas_intro:
             $ atlas_route = "people_first"
             $ atlas_martha_involved = True
             $ atlas_score += 1
-    hide caroline_normal
+    hide focus_caroline
     "Three weeks. One responsible party. You."
     $ atlas_started = True
     $ atlas_intro_done = True
@@ -63,7 +63,7 @@ label corporate_atlas_research:
     "You sit with it for a while."
     menu:
         "Ask Martha. She's already across the account.":
-            show martha_neutral at sprite_r
+            show martha_neutral as focus_martha at sprite_r
             if martha_trust >= 20:
                 ma "I was wondering when you'd get there."
                 ma "The Q3 figures are the problem. Meridian's been running pre-reform assumptions on segment two. Nobody corrected them."
@@ -77,7 +77,7 @@ label corporate_atlas_research:
                 "She helps. It's efficient and a little impersonal — you haven't quite earned the shorthand yet."
                 $ _apply_trust("martha", 1)
                 $ atlas_score += 1
-            hide martha_neutral
+            hide focus_martha
             $ atlas_martha_involved = True
             $ atlas_credit_choice = "shared"
         "Work through it yourself.":
@@ -92,9 +92,9 @@ label corporate_atlas_research:
             $ _work_perf("corporate", 3)
         "Send Caroline a quick holding email." if corporate_style != "reliable":
             "You flag the issue. You haven't solved it yet, but she'll know you've seen it."
-            show caroline_normal at sprite_r
+            show caroline_normal as focus_caroline at sprite_r
             caro "Thanks for the heads-up. Keep moving — we'll address it in the review."
-            hide caroline_normal
+            hide focus_caroline
             "She doesn't sound worried. That's not necessarily reassuring."
             $ atlas_score += 1
             $ atlas_risk += 2
@@ -107,7 +107,7 @@ label corporate_atlas_research:
 label corporate_atlas_problem:
     scene goodoffice1
     show screen hud
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "Martha finds you before you find her."
     ma "We need to talk about the segment three recommendation."
     "She pulls up a chair without waiting to be invited."
@@ -117,12 +117,12 @@ label corporate_atlas_problem:
     ma "Caroline knows."
     menu:
         "It's not our job to make that call. We give the client the best strategic option.":
-            hide martha_neutral
-            show caroline_normal at sprite_r
+            hide focus_martha
+            show caroline_normal as focus_caroline at sprite_r
             "Caroline agrees."
             caro "The recommendation is sound. Meridian's board will make their own decisions about implementation. We don't run the company."
             caro "Keep it in."
-            hide caroline_normal
+            hide focus_caroline
             "Martha doesn't come to your desk for the rest of the afternoon."
             $ atlas_score += 2
             $ atlas_risk += 2
@@ -131,15 +131,15 @@ label corporate_atlas_problem:
         "At minimum, there should be a note. Something the client can see.":
             ma "A note."
             "She says it flat. Not a question."
-            hide martha_neutral
-            show caroline_normal at sprite_r
+            hide focus_martha
+            show caroline_normal as focus_caroline at sprite_r
             "You take it to Caroline."
             caro "A disclosure. Fine. One line, appendix, keep it clean."
-            hide caroline_normal
-            show martha_neutral at sprite_r
+            hide focus_caroline
+            show martha_neutral as focus_martha at sprite_r
             "Martha reads the final version later. She doesn't say thank you."
             "She sits closer at the next team briefing."
-            hide martha_neutral
+            hide focus_martha
             $ atlas_score += 1
             $ atlas_risk = max(0, atlas_risk - 1)
             $ _apply_trust("martha", 3)
@@ -151,17 +151,17 @@ label corporate_atlas_problem:
             "Yes."
             ma "Caroline won't like the cost projection."
             "No."
-            hide martha_neutral
+            hide focus_martha
             "You take it to Caroline anyway."
-            show caroline_normal at sprite_r
+            show caroline_normal as focus_caroline at sprite_r
             caro "..."
             caro "The board will push back on the extended timeline."
             "She looks at the numbers for a long time."
             caro "It's defensible. Frame it as the conservative scenario. Put it in."
-            hide caroline_normal
-            show martha_neutral at sprite_r
+            hide focus_caroline
+            show martha_neutral as focus_martha at sprite_r
             "Martha meets your eye when you walk back to your desk. Just briefly."
-            hide martha_neutral
+            hide focus_martha
             $ atlas_score += 3
             $ atlas_risk = max(0, atlas_risk - 1)
             $ _apply_trust("martha", 1)
@@ -190,16 +190,16 @@ label corporate_atlas_crunch:
             "Two in the morning. It's done. Not perfect. But close enough that you can defend every line."
         "Ask Martha if she can stay.":
             if martha_trust < 20:
-                show martha_neutral at sprite_r
+                show martha_neutral as focus_martha at sprite_r
                 ma "I have somewhere to be."
-                hide martha_neutral
+                hide focus_martha
                 "Fair enough."
                 "You close the blinds and stay alone."
                 $ spend_time(3)
                 $ need_energy = max(0, need_energy - 25)
                 $ atlas_score += 1
             else:
-                show martha_neutral at sprite_r
+                show martha_neutral as focus_martha at sprite_r
                 if not atlas_martha_involved:
                     ma "You've been running this alone for three weeks."
                     "A beat."
@@ -220,7 +220,7 @@ label corporate_atlas_crunch:
                 $ atlas_score += 2
                 $ atlas_martha_involved = True
                 $ _apply_trust("martha", 1)
-                hide martha_neutral
+                hide focus_martha
                 "You finish by midnight. It's better than it would have been alone."
         "Leave it. It's good enough at this point.":
             "You close the laptop."
@@ -246,22 +246,22 @@ label corporate_atlas_presentation:
         "The room shifts about eight minutes in — the specific change in posture that means people have stopped evaluating and started listening."
         "The segment three slide gets a question. You answer it cleanly. So does the data."
         "Meridian's CFO closes his notebook before you've finished the last section."
-        show caroline_normal at sprite_r
+        show caroline_normal as focus_caroline at sprite_r
         caro "Well done."
         "She says it in front of the room. That's not a small thing."
         if atlas_martha_involved and atlas_credit_choice == "shared":
-            show martha_neutral at sprite_r
+            show martha_neutral as focus_martha at sprite_r
             caro "The Meridian account framing was already in good shape when this started. That work held."
             "She's looking at Martha when she says it."
             ma "We built on it."
             "Martha looks at you when she says 'we.'"
-            hide martha_neutral
+            hide focus_martha
         elif atlas_martha_involved:
-            show martha_neutral at sprite_r
+            show martha_neutral as focus_martha at sprite_r
             "Martha is watching from her seat. She doesn't say anything."
             "She's waiting to see what you do with this moment."
-            hide martha_neutral
-        hide caroline_normal
+            hide focus_martha
+        hide focus_caroline
         $ _work_perf("corporate", 15)
         $ corp_review_score += 2
         $ gain_skill("biz", 8)
@@ -270,10 +270,10 @@ label corporate_atlas_presentation:
         "Most of it lands. The segment three recommendation generates harder questions than the model suggested."
         "The CFO pushes on the timeline. You give him the honest answer about the year-one cost."
         "It's not the room you wanted. But it's not a collapse either."
-        show caroline_normal at sprite_r
+        show caroline_normal as focus_caroline at sprite_r
         caro "The growth projections will need to be revisited. I'll set up a follow-up call with their team."
         "She's not pleased. She's also not shutting it down."
-        hide caroline_normal
+        hide focus_caroline
         $ _work_perf("corporate", 8)
         $ corp_review_score += 1
         $ gain_skill("biz", 5)
@@ -283,11 +283,11 @@ label corporate_atlas_presentation:
         "The regulatory gap — he's already across it. So is his team. Has been for months."
         "The next forty minutes are a recovery exercise. You answer what you can and acknowledge what you can't."
         "It's the second kind of performance review you don't write down."
-        show caroline_normal at sprite_r
+        show caroline_normal as focus_caroline at sprite_r
         "Caroline finds you in the corridor when Meridian's team has left."
         caro "We'll regroup this week. I need to understand what happened on the research side."
         "It's not a firing. It's something more uncomfortable — an open question."
-        hide caroline_normal
+        hide focus_caroline
         $ _work_perf("corporate", -5)
         $ gain_skill("biz", 3)
     $ atlas_presentation_done = True
@@ -307,7 +307,7 @@ label corporate_atlas_aftermath:
         "The follow-up call with Meridian is scheduled for next Thursday. People are being professional about it."
     else:
         "Caroline's call with the Meridian account lead is happening right now. You're not in it."
-    show martha_neutral at sprite_r
+    show martha_neutral as focus_martha at sprite_r
     "Martha finds you at eleven. She brings two coffees and doesn't explain why."
     if _atlas_result >= 6:
         if atlas_martha_involved:
@@ -375,14 +375,14 @@ label corporate_atlas_aftermath:
     "A longer silence. The coffee goes cold at a reasonable pace."
     menu:
         "\"It was a team effort.\" (Say it where Caroline can hear.)":
-            show caroline_normal at sprite_r
+            show caroline_normal as focus_caroline at sprite_r
             "You say it when Caroline stops by. In front of Martha."
             if _atlas_result >= 6:
                 caro "Noted."
                 "She sounds like she means it."
             else:
                 caro "Let's focus on getting the Meridian follow-up right."
-            hide caroline_normal
+            hide focus_caroline
             $ _apply_trust("martha", 3)
             $ atlas_credit_choice = "shared"
         "\"It was my project. I own the outcome either way.\"":
@@ -400,7 +400,7 @@ label corporate_atlas_aftermath:
             "It's not nothing. She noticed you're not planting a flag."
             $ _apply_trust("martha", 1)
             $ atlas_credit_choice = "modest"
-    hide martha_neutral
+    hide focus_martha
     $ atlas_completed = True
     $ atlas_aftermath_done = True
     $ atlas_stage = 6
