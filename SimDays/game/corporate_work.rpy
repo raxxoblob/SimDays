@@ -139,6 +139,19 @@ init python:
         ]))
         return _opts
 
+    _MARTHA_COLLAB_POOL = [
+        "mco_kellner_review",
+        "mco_report_draft",
+        "mco_end_of_day_note",
+    ]
+
+    _NET_POOL = [
+        "net_martha_venting",
+        "net_office_rumour",
+        "net_team_coffee",
+        "net_analyst_chat",
+    ]
+
 
 # ── Work-choice screen ────────────────────────────────────────────────────────
 # Replaces the old bare 4-line menu, which showed neither cost nor consequence
@@ -198,19 +211,6 @@ screen corp_work_choice_scr():
                 background "#1e3a5f"
                 padding (20, 7)
                 text "Not today" font PROFILE_FONT size 13 color "#5bcafa" hover_color "#ffffff"
-
-    _MARTHA_COLLAB_POOL = [
-        "mco_kellner_review",
-        "mco_report_draft",
-        "mco_end_of_day_note",
-    ]
-
-    _NET_POOL = [
-        "net_martha_venting",
-        "net_office_rumour",
-        "net_team_coffee",
-        "net_analyst_chat",
-    ]
 
 
 # ── REGULAR WORK ──────────────────────────────────────────────────────────
