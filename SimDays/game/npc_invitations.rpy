@@ -459,30 +459,53 @@ screen npc_invitation_cards():
                 else:
                     text _iv_c[3] font ACT_FONT size 12 color "#4a8a6a" xalign 1.0
 
-    # ── Generic invitation scene content ─────────────────────────────────────
+
+
+# ── Generic invitation scene content ─────────────────────────────────────────
+
+init python:
+
     INV_SCENE_LINES = {
         "bar_drink": {
-            "marcus": ["Marcus has a corner table saved. He slides you a glass without asking.",
-                       "The bar is loud but it's easier to talk here than it looks."],
-            "default": ["You find a table and order something. It's good to be out."],
+            "marcus": [
+                "Marcus has a corner table saved. He slides you a glass without asking.",
+                "The bar is loud but it's easier to talk here than it looks."
+            ],
+            "default": [
+                "You find a table and order something. It's good to be out."
+            ],
         },
         "coffee": {
-            "nora": ["Nora is already there, hands around a mug, looking like she needed this.",
-                     "You talk for a while. It's the kind of conversation that doesn't have to go anywhere."],
-            "default": ["You sit down and talk over coffee. Time passes easily."],
+            "nora": [
+                "Nora is already there, hands around a mug, looking like she needed this.",
+                "You talk for a while. It's the kind of conversation that doesn't have to go anywhere."
+            ],
+            "default": [
+                "You sit down and talk over coffee. Time passes easily."
+            ],
         },
         "study_session": {
-            "eli": ["Eli has notes spread across the table. She pushes some aside to make room.",
-                    "You work in parallel for a while. Occasionally one of you says something."],
-            "default": ["You find a table and get some work done together."],
+            "eli": [
+                "Eli has notes spread across the table. She pushes some aside to make room.",
+                "You work in parallel for a while. Occasionally one of you says something."
+            ],
+            "default": [
+                "You find a table and get some work done together."
+            ],
         },
         "park_walk": {
-            "zoe": ["Zoe sets the pace — not fast, not slow. She points out things you walk past every day.",
-                    "You talk, or don't. Either way it's fine."],
-            "default": ["You walk for a while. The city looks different on foot."],
+            "zoe": [
+                "Zoe sets the pace — not fast, not slow. She points out things you walk past every day.",
+                "You talk, or don't. Either way it's fine."
+            ],
+            "default": [
+                "You walk for a while. The city looks different on foot."
+            ],
         },
         "public_outing": {
-            "default": ["You meet up and spend some time out. It's a good break from the usual."],
+            "default": [
+                "You meet up and spend some time out. It's a good break from the usual."
+            ],
         },
     }
 
@@ -494,7 +517,10 @@ screen npc_invitation_cards():
             "zoe":    "Zoe is outside, looking at something on her phone. She looks up.",
             "eli":    "Eli is at a corner table, laptop open. She closes it when she sees you.",
         }
-        return templates.get(npc, NPC_DATA.get(npc, {}).get("name", npc.title()) + " is here, as arranged.")
+        return templates.get(
+            npc,
+            NPC_DATA.get(npc, {}).get("name", npc.title()) + " is here, as arranged."
+        )
 
 
 # ── Generic invitation scene runner ──────────────────────────────────────────

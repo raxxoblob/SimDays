@@ -52,11 +52,13 @@ init python:
 
 
 label check_levelup_notices:
-    python:
-        _notices = list(store._pending_levelup_notices)
-        store._pending_levelup_notices = []
-    for _notice in _notices:
+    $ _notices = list(store._pending_levelup_notices)
+    $ store._pending_levelup_notices = []
+
+    while _notices:
+        $ _notice = _notices.pop(0)
         call screen skill_levelup_scr(_notice)
+
     return
 
 
