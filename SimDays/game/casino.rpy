@@ -617,7 +617,7 @@ screen casino_roulette():
 
             # total bet + clear
             hbox:
-                xpos 0 ypos 430 spacing 16 yalign 0.5
+                xpos 0 ypos 430 spacing 16
                 text ("Total bet: $%d" % rou_game.total_bet()) font PROFILE_FONT size 18 color "#d4af37" yalign 0.5
                 if rou_game.bets:
                     textbutton "Clear":
