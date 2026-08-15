@@ -1,4 +1,4 @@
-# world_events.rpy — Central World Event Director
+﻿# world_events.rpy — Central World Event Director
 #
 # One data-driven system replaces scattered random checks in location labels.
 # Location labels call wed_poll_ambient / wed_poll_personal once; this file
@@ -1226,7 +1226,7 @@ label wevent_gym_sam_last_rep:
             $ _apply_trust("sam", 1)
             sam "Clean rep. Don't rush it."
             hide focus_sam
-            $ gain_skill("fit", 2)
+            $ gain_skill("fit", 20)
         "Stop with good form.":
             mc "I'm stopping before the form goes."
             sam "Good."

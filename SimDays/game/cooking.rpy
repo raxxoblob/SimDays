@@ -1,4 +1,4 @@
-# Phase 61 — Cooking system.
+﻿# Phase 61 — Cooking system.
 # A real repeatable Culinary activity built on the Phase 60 roll engine.
 # SKILL (skill_cook) sets capability; recipe DIFFICULTY sets the challenge;
 # recipe MASTERY + kitchen EQUIPMENT + APPROACH modify odds; RNG sets quality.
@@ -22,36 +22,36 @@ init python:
     RECIPES = {
         # ── Beginner (1-3) ────────────────────────────────────────
         "scrambled_eggs": {"name": "Scrambled Eggs", "min_cook": 0, "difficulty": 1,
-                           "time": 0.5,  "cost": 4,  "hunger": 30, "energy": 0,  "xp": 3},
+                           "time": 0.5,  "cost": 4,  "hunger": 30, "energy": 0,  "xp": 15},
         "grilled_sandwich":{"name": "Grilled Sandwich","min_cook": 0, "difficulty": 1,
-                           "time": 0.25, "cost": 4,  "hunger": 26, "energy": 0,  "xp": 3},
-        "veggie_soup":    {"name": "Vegetable Soup", "min_cook": 1, "difficulty": 2,
-                           "time": 0.75, "cost": 6,  "hunger": 38, "energy": 2,  "xp": 4},
-        "pasta_primavera":{"name": "Pasta Primavera","min_cook": 1, "difficulty": 2,
-                           "time": 1.0,  "cost": 8,  "hunger": 45, "energy": 2,  "xp": 5},
-        "pancakes":       {"name": "Pancakes",       "min_cook": 1, "difficulty": 3,
-                           "time": 0.75, "cost": 6,  "hunger": 40, "energy": 4,  "xp": 6},
+                           "time": 0.25, "cost": 4,  "hunger": 26, "energy": 0,  "xp": 15},
+        "veggie_soup":    {"name": "Vegetable Soup", "min_cook": 10, "difficulty": 2,
+                           "time": 0.75, "cost": 6,  "hunger": 38, "energy": 2,  "xp": 20},
+        "pasta_primavera":{"name": "Pasta Primavera","min_cook": 10, "difficulty": 2,
+                           "time": 1.0,  "cost": 8,  "hunger": 45, "energy": 2,  "xp": 25},
+        "pancakes":       {"name": "Pancakes",       "min_cook": 10, "difficulty": 3,
+                           "time": 0.75, "cost": 6,  "hunger": 40, "energy": 4,  "xp": 30},
         # ── Intermediate (4-6) ────────────────────────────────────
-        "chicken_stirfry":{"name": "Chicken Stir-Fry","min_cook": 3, "difficulty": 4,
-                           "time": 1.0,  "cost": 11, "hunger": 55, "energy": 8,  "xp": 9},
-        "beef_tacos":     {"name": "Beef Tacos",     "min_cook": 4, "difficulty": 5,
-                           "time": 1.0,  "cost": 13, "hunger": 58, "energy": 6,  "xp": 11},
-        "baked_salmon":   {"name": "Baked Salmon",   "min_cook": 4, "difficulty": 5,
-                           "time": 1.5,  "cost": 16, "hunger": 60, "energy": 8,  "xp": 12},
-        "mushroom_risotto":{"name":"Mushroom Risotto","min_cook": 5, "difficulty": 6,
-                           "time": 1.5,  "cost": 15, "hunger": 62, "energy": 6,  "xp": 14},
+        "chicken_stirfry":{"name": "Chicken Stir-Fry","min_cook": 30, "difficulty": 4,
+                           "time": 1.0,  "cost": 11, "hunger": 55, "energy": 8,  "xp": 45},
+        "beef_tacos":     {"name": "Beef Tacos",     "min_cook": 40, "difficulty": 5,
+                           "time": 1.0,  "cost": 13, "hunger": 58, "energy": 6,  "xp": 55},
+        "baked_salmon":   {"name": "Baked Salmon",   "min_cook": 40, "difficulty": 5,
+                           "time": 1.5,  "cost": 16, "hunger": 60, "energy": 8,  "xp": 60},
+        "mushroom_risotto":{"name":"Mushroom Risotto","min_cook": 50, "difficulty": 6,
+                           "time": 1.5,  "cost": 15, "hunger": 62, "energy": 6,  "xp": 70},
         # ── Advanced (7-8) ────────────────────────────────────────
-        "sunday_roast":   {"name": "Sunday Roast",   "min_cook": 6, "difficulty": 7,
-                           "time": 2.0,  "cost": 20, "hunger": 75, "energy": 12, "xp": 17},
-        "chocolate_souffle":{"name":"Chocolate Soufflé","min_cook": 7,"difficulty": 8,
-                           "time": 1.5,  "cost": 18, "hunger": 42, "energy": 6,  "xp": 19},
-        "seared_duck":    {"name": "Seared Duck Breast","min_cook": 7,"difficulty": 8,
-                           "time": 2.0,  "cost": 24, "hunger": 70, "energy": 10, "xp": 20},
+        "sunday_roast":   {"name": "Sunday Roast",   "min_cook": 60, "difficulty": 7,
+                           "time": 2.0,  "cost": 20, "hunger": 75, "energy": 12, "xp": 85},
+        "chocolate_souffle":{"name":"Chocolate Soufflé","min_cook": 70,"difficulty": 8,
+                           "time": 1.5,  "cost": 18, "hunger": 42, "energy": 6,  "xp": 95},
+        "seared_duck":    {"name": "Seared Duck Breast","min_cook": 70,"difficulty": 8,
+                           "time": 2.0,  "cost": 24, "hunger": 70, "energy": 10, "xp": 100},
         # ── High-tier (9-10) ──────────────────────────────────────
-        "tasting_menu":   {"name": "Three-Course Tasting Menu","min_cook": 9,"difficulty": 9,
-                           "time": 3.0,  "cost": 40, "hunger": 85, "energy": 15, "xp": 24},
-        "signature_dish": {"name": "Signature Dish",  "min_cook": 9, "difficulty": 10,
-                           "time": 3.0,  "cost": 45, "hunger": 90, "energy": 18, "xp": 26},
+        "tasting_menu":   {"name": "Three-Course Tasting Menu","min_cook": 90,"difficulty": 9,
+                           "time": 3.0,  "cost": 40, "hunger": 85, "energy": 15, "xp": 120},
+        "signature_dish": {"name": "Signature Dish",  "min_cook": 90, "difficulty": 10,
+                           "time": 3.0,  "cost": 45, "hunger": 90, "energy": 18, "xp": 130},
     }
 
     # design difficulty 1..10 -> engine difficulty (higher = harder).
@@ -431,11 +431,11 @@ init python:
 
     CATERING_ORDERS = [
         {"id": "bake_sale",    "label": "Tray of cakes for a school bake sale",
-         "hours": 2.0, "cost": 14, "pay": 55,  "difficulty": 40, "min_cook": 3},
+         "hours": 2.0, "cost": 14, "pay": 55,  "difficulty": 40, "min_cook": 30},
         {"id": "office_lunch", "label": "Lunch platter for a small office",
-         "hours": 2.5, "cost": 22, "pay": 85,  "difficulty": 50, "min_cook": 5},
+         "hours": 2.5, "cost": 22, "pay": 85,  "difficulty": 50, "min_cook": 50},
         {"id": "birthday",     "label": "Birthday dinner for eight",
-         "hours": 3.0, "cost": 30, "pay": 115, "difficulty": 62, "min_cook": 7},
+         "hours": 3.0, "cost": 30, "pay": 115, "difficulty": 62, "min_cook": 70},
     ]
     CATERING_COOLDOWN = 3      # days between orders
     _CATERING_CHANCE  = 0.55   # ~1-2 orders a week once off cooldown

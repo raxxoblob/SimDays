@@ -1,4 +1,4 @@
-# Computer OS shell — a desktop presentation layer over EXISTING systems.
+﻿# Computer OS shell — a desktop presentation layer over EXISTING systems.
 # Zero new game state: mail, freelance, marketplace, calendar, portfolio and
 # CityNet all read/write the same stores the phone uses.
 # Single-window manager: computer_active_app names the one open app, or None.
@@ -339,7 +339,7 @@ label capp_programming_practice_ctx:
     # rather than sharing a helper. Upgrade path: move this block into one
     # do_programming_practice label if a third caller ever appears.
     $ spend_time(3)
-    $ _prog_xp_base = 7 if own_programming_kit else 5
+    $ _prog_xp_base = 35 if own_programming_kit else 25
     $ _prog_xp_base = int(round(_prog_xp_base * (1.0 + float(equipment_modifier("computer", "prog_xp")))))
     $ gain_skill_practice("prog", _prog_xp_base, 3)
     $ _prog_e = max(1, int(15 * apply_skill_prog_energy_modifier() * (1.0 - home_upgrade_effect("desk_efficiency")) * (1.0 - float(equipment_modifier("computer", "project_energy")))))

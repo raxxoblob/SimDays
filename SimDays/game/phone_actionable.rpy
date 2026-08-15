@@ -1,4 +1,4 @@
-# phone_actionable.rpy — response option constants + accept/decline labels for the 5 invitations.
+﻿# phone_actionable.rpy — response option constants + accept/decline labels for the 5 invitations.
 # Scene stubs live here too; replace with real content when art/writing is ready.
 
 init python:
@@ -747,7 +747,7 @@ label phone_eli_debug_scene:
     eli "Good catch. Write it up before you leave."
     $ _apply_trust("eli", 4)
     $ _apply_aff("eli", 2)
-    $ gain_skill("prog", 4)
+    $ gain_skill("prog", 40)
     $ add_relationship_memory("eli", "eli_debug_session", "Late debug session")
     return
 
@@ -784,7 +784,7 @@ label phone_lena_case_scene:
     hide focus_lena
     "You fill half a page in your notes."
     $ _apply_trust("lena", 3)
-    $ gain_skill("med", 5)
+    $ gain_skill("med", 50)
     $ add_relationship_memory("lena", "lena_case_observation", "Ward B case observation")
     $ lena_case_observation_done = True
     return

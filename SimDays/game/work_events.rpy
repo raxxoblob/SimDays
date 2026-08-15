@@ -1,4 +1,4 @@
-# Work events — story beats that fire every 2–4 shifts per career.
+﻿# Work events — story beats that fire every 2–4 shifts per career.
 # Each career has a pool; unseen events are prioritised before repeating.
 
 init python:
@@ -207,14 +207,14 @@ label wev_it_prod_bug:
             $ _rc = renpy.random.random()
             if _rc > 0.4:
                 $ _work_perf(12)
-                $ gain_skill("prog", 3)
+                $ gain_skill("prog", 30)
                 "Clean rollback, fix ready by close. Your lead notices."
             else:
                 $ _work_perf(-8)
                 "The rollback introduces a second issue. A long afternoon."
         "Careful — reproduce first, then fix.":
             $ _work_perf(5)
-            $ gain_skill("prog", 4)
+            $ gain_skill("prog", 40)
             "Slower but clean. No new fires."
         "Escalate to senior.":
             $ _work_perf(-4)
@@ -229,11 +229,11 @@ label wev_it_pr_review:
         "Address every point. Thank them.":
             $ _work_perf(3)
             $ _apply_trust("eli", 2)
-            $ gain_skill("prog", 3)
+            $ gain_skill("prog", 30)
             "The second review passes in twenty minutes."
         "Push back on the main one.":
             $ _apply_trust("eli", -1)
-            $ gain_skill("prog", 2)
+            $ gain_skill("prog", 20)
             "You're probably right. Doesn't matter. Pick your battles."
     $ _mark_wev("it", "wev_it_pr_review")
     return
@@ -253,7 +253,7 @@ label wev_it_scope_creep:
             $ spend_time(1)
             $ store.need_energy = max(0, store.need_energy - 15)
             $ _work_perf(10)
-            $ gain_skill("prog", 2)
+            $ gain_skill("prog", 20)
             "You fit it in. It costs you an evening."
         "Escalate to your manager.":
             $ _apply_trust("eli", 1)
@@ -267,7 +267,7 @@ label wev_it_help_colleague:
     menu:
         "Sit down and walk them through it.":
             $ _work_perf(-5)
-            $ gain_skill("prog", 3)
+            $ gain_skill("prog", 30)
             "Your own sprint takes a hit. Theirs doesn't."
         "Point them to the relevant docs.":
             $ _work_perf(2)
@@ -286,7 +286,7 @@ label wev_it_deploy_crisis:
             $ spend_time(2)
             $ store.need_energy = max(0, store.need_energy - 20)
             $ _work_perf(15)
-            $ gain_skill("prog", 5)
+            $ gain_skill("prog", 50)
             "You leave at nine. The fix is clean. Nobody emails you over the weekend."
         "Quick patch — get it stable, fix properly Monday.":
             $ _rc = renpy.random.random()
@@ -341,7 +341,7 @@ label wev_it_eli_code_comment:
     mc "It was temporary."
     eli "Three months ago."
     hide focus_eli
-    $ gain_skill("prog", 2)
+    $ gain_skill("prog", 20)
     $ _mark_wev("it", "wev_it_eli_code_comment")
     return
 
@@ -502,14 +502,14 @@ label wev_hosp_difficult_patient:
             $ _rc = renpy.random.random()
             if _rc > 0.5:
                 $ _work_perf(8)
-                $ gain_skill("med", 2)
+                $ gain_skill("med", 20)
                 "They come around. It takes half an hour."
             else:
                 $ _work_perf(-3)
                 "They need more time. Lena takes over."
         "Use empathy. Sit with their fear first.":
             $ _work_perf(6)
-            $ gain_skill("med", 2)
+            $ gain_skill("med", 20)
             $ gain_stat("chr", 8)
             "It takes longer but they agree. Lena watches from the door."
         "Call Lena in directly.":
@@ -526,7 +526,7 @@ label wev_hosp_shortage:
     menu:
         "Use the approved alternative.":
             $ _work_perf(6)
-            $ gain_skill("med", 2)
+            $ gain_skill("med", 20)
             "It works. You document everything carefully."
         "Wait for the restock. Adjust care plans.":
             $ _work_perf(-5)
@@ -535,7 +535,7 @@ label wev_hosp_shortage:
             $ spend_time(1)
             $ store.need_energy = max(0, store.need_energy - 10)
             $ _work_perf(10)
-            $ gain_skill("med", 3)
+            $ gain_skill("med", 30)
             "You find it. Two pharmacies away. Lena hears about it the next morning."
     $ _mark_wev("hospital", "wev_hosp_shortage")
     return
@@ -546,17 +546,17 @@ label wev_hosp_near_miss:
     menu:
         "Report it formally through incident review.":
             $ _work_perf(-8)
-            $ gain_skill("med", 5)
+            $ gain_skill("med", 50)
             "It goes on record. Lena reads it and doesn't say much, which means something."
         "Note it in your own log. Learn from it quietly.":
-            $ gain_skill("med", 2)
+            $ gain_skill("med", 20)
             "You won't make that error again."
         "Tell Lena directly.":
             show drlena_normal as focus_lena at sprite_r
             lena "Thank you for telling me. That's the right call."
             $ _apply_trust("lena", 4)
             $ _work_perf(-3)
-            $ gain_skill("med", 3)
+            $ gain_skill("med", 30)
             hide focus_lena
     $ _mark_wev("hospital", "wev_hosp_near_miss")
     return
@@ -599,7 +599,7 @@ label wev_corp_meeting_moved:
     ma "No."
     ma "I'm efficient."
     hide focus_martha
-    $ gain_skill("biz", 2)
+    $ gain_skill("biz", 20)
     $ _mark_wev("corporate", "wev_corp_meeting_moved")
     return
 
@@ -694,7 +694,7 @@ label wev_hosp_read_chart_again:
     lena "There it is."
     lena "Being quick is useful after being correct."
     hide focus_lena
-    $ gain_skill("med", 2)
+    $ gain_skill("med", 20)
     $ _mark_wev("hospital", "wev_hosp_read_chart_again")
     return
 
@@ -1006,7 +1006,7 @@ label wev_hosp_tex_double_chart:
     "You stop before entering the next value."
     "The dates of birth are different."
     mc "That would have been memorable."
-    $ gain_skill("med", 2)
+    $ gain_skill("med", 20)
     return
 
 label wev_warehouse_shift_texture:

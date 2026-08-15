@@ -1,4 +1,4 @@
-# test_gameplay_polish.rpy — self-contained tests for Systems 1-10, mutex test (14),
+﻿# test_gameplay_polish.rpy — self-contained tests for Systems 1-10, mutex test (14),
 # Content Pack 2 trigger/retry tests (15-20), physical interaction/kiss system (21),
 # romance architecture (22), and pilot scene state effects (23).
 # Run via: jump test_gameplay_polish_run
@@ -1951,8 +1951,8 @@ init python:
         store.cul_crisis_rena_informed = False
         store.cul_crisis_bad_plate = False
         store.skill_cook = 1   # below threshold of 2
-        _t7 = "failed" if store.skill_cook < 2 else "recovered"
-        _af7 = "bad"   if store.skill_cook < 2 else "mixed"
+        _t7 = "failed" if store.skill_cook < 20 else "recovered"
+        _af7 = "bad"   if store.skill_cook < 20 else "mixed"
         check("32-7: solo branch, skill_cook=1 → technical=failed, aftermath=bad",
               store.cul_crisis_branch == "solo"
               and not store.cul_crisis_rena_informed
@@ -1962,8 +1962,8 @@ init python:
         _restore()
         store.cul_crisis_branch = "solo"
         store.skill_cook = 3   # at or above threshold
-        _t8 = "failed" if store.skill_cook < 2 else "recovered"
-        _af8 = "bad"   if store.skill_cook < 2 else "mixed"
+        _t8 = "failed" if store.skill_cook < 20 else "recovered"
+        _af8 = "bad"   if store.skill_cook < 20 else "mixed"
         check("32-8: solo branch, skill_cook=3 → technical=recovered, aftermath=mixed",
               store.cul_crisis_branch == "solo"
               and _t8 == "recovered" and _af8 == "mixed")

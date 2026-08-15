@@ -1,4 +1,4 @@
-# Gig work — temporary jobs posted to the phone's "Jobs" app.
+﻿# Gig work — temporary jobs posted to the phone's "Jobs" app.
 # Each day there's a 40% chance a new gig gets posted. A gig stays on the board
 # for a per-gig number of days, and each gig can only be worked during its own
 # hours window (shown in the listing). You apply; you're accepted only if you
@@ -25,12 +25,12 @@ init python:
          "line": "Six hours, whistle in hand, eyes on the water. Nobody drowns on your watch."},
 {"id": "guitar", "title": "Fill-in Bar Gig",
          "blurb": "A bar's act cancelled — they need a musician tonight.",
-         "req": {"skill_music": 2}, "window": (20, 27), "days": 1,
+         "req": {"skill_music": 20}, "window": (20, 27), "days": 1,
          "hours": 3, "pay": 70, "energy": 12, "exp": [("music", 10)], "stat": [("chr", 6)], "bg": "bar",
          "line": "Three sets, a few requests, a couple of tips in the jar. Not bad for a fill-in."},
         {"id": "catering", "title": "Catering Shift",
          "blurb": "An event caterer is short-staffed for the next couple of evenings.",
-         "req": {"skill_cook": 2}, "window": (15, 22), "days": 2,
+         "req": {"skill_cook": 20}, "window": (15, 22), "days": 2,
          "hours": 4, "pay": 80, "energy": 22, "exp": [("cook", 10)], "bg": "restaurantnight",
          "line": "Plated two hundred covers without a single one coming back. The chef nods once — high praise."},
         {"id": "promo", "title": "Promo / Modelling Gig",

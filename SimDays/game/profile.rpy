@@ -14,58 +14,64 @@ define PROFILE_LABEL = 140
 define PROFILE_BAR   = 160
 define PROFILE_VAL   = 60
 
-# One skill row that fills the panel width: icon + label + bar + value.
+# One skill row that fills the panel width: icon + label (xfill) + bar + value.
+# Label uses xfill True so the bar is always pinned to the right edge regardless
+# of label length — no more "Programming" wrapping under the bar.
 screen stat_chip(label, value, fill, icon=None, tip=""):
     button:
         xfill True
-        ysize 76
+        ysize 68
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         action NullAction()
         tooltip tip
-        padding (14, 10, 14, 10)
+        padding (12, 8, 12, 8)
         hbox:
-            spacing 12
+            xfill True
+            spacing 10
             yalign 0.5
             if icon:
-                add icon xysize (PROFILE_ICON, PROFILE_ICON) yalign 0.5
+                add icon xysize (28, 28) yalign 0.5
             else:
-                null width PROFILE_ICON
-            text label font PROFILE_FONT size 18 color "#cfe0f5" yalign 0.5 xsize PROFILE_LABEL
+                null width 28
+            text label font PROFILE_FONT size 17 color "#cfe0f5" yalign 0.5 xfill True
             bar:
                 value StaticValue(value, 100)
-                xsize PROFILE_BAR ysize 16 yalign 0.5
+                xsize 148 ysize 14 yalign 0.5
                 left_bar Frame(fill, 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-            text "[value]" font PROFILE_FONT size 18 color "#ffffff" yalign 0.5 xsize PROFILE_VAL textalign 1.0
+            text "[value]" font PROFILE_FONT size 17 color "#ffffff" yalign 0.5 xsize 48 textalign 1.0
 
 
-# One specialization row (icon + name + 0-10 bar + value). All are shown so the
+# One specialization row (icon + name + 0-10 bar + level). All are shown so the
 # player sees the full set of trades, learned or not.
+# Skill name is xfill so bar is always right-aligned; level replaces xp fraction
+# (xp is still readable in the tooltip).
 screen spec_row(key):
     $ _lv = skill_val(key)
     $ _ex = skill_exp.get(key, 0)
     $ _need = skill_exp_needed(_lv)
-    $ _maxed = _lv >= 10
+    $ _maxed = _lv >= 100
     button:
         xfill True
-        ysize 56
+        ysize 50
         background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
         action NullAction()
-        tooltip ("%s - Lv %d. %s" % (PRO_SKILLS[key][0], _lv, "Maxed out." if _maxed else "%d / %d EXP to next level." % (_ex, _need)))
-        padding (14, 7, 14, 7)
+        tooltip ("%s — Lv %d. %s" % (PRO_SKILLS[key][0], _lv, "Maxed." if _maxed else "%d/%d XP to next." % (_ex, _need)))
+        padding (12, 6, 12, 6)
         hbox:
-            spacing 12
+            xfill True
+            spacing 10
             yalign 0.5
             $ _ic = "images/ui/icons/skill_%s.png" % key
             if renpy.loadable(_ic):
-                add _ic xysize (PROFILE_ICON, PROFILE_ICON) yalign 0.5
+                add _ic xysize (26, 26) yalign 0.5
             else:
-                null width PROFILE_ICON
-            text ("%s  Lv%d" % (PRO_SKILLS[key][0], _lv)) font PROFILE_FONT size 17 color ("#cfe0f5" if _lv > 0 else "#7f8ba0") yalign 0.5 xsize PROFILE_LABEL
+                null width 26
+            text PRO_SKILLS[key][0] font PROFILE_FONT size 16 color ("#cfe0f5" if _lv > 0 else "#7f8ba0") yalign 0.5 xfill True
             bar:
                 value StaticValue((10 if _maxed else _ex), (10 if _maxed else _need))
-                xsize PROFILE_BAR ysize 13 yalign 0.5
+                xsize 130 ysize 12 yalign 0.5
                 left_bar Frame("images/ui/bar_fill_%s.png" % PRO_SKILLS[key][2], 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
-            text ("MAX" if _maxed else "%d/%d" % (_ex, _need)) font PROFILE_FONT size 16 color "#ffffff" yalign 0.5 xsize PROFILE_VAL textalign 1.0
+            text ("MAX" if _maxed else "Lv%d" % _lv) font PROFILE_FONT size 15 color "#ffffff" yalign 0.5 xsize 44 textalign 1.0
 
 
 screen profile():

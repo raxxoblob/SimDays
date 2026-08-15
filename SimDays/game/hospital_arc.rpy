@@ -1,4 +1,4 @@
-# hospital_arc.rpy — Hospital career preview arc (Clinical Assistant → Resident)
+﻿# hospital_arc.rpy — Hospital career preview arc (Clinical Assistant → Resident)
 # NPC: Dr. Lena — warm, medically precise, carries the weight of the work
 # Lena's Character (`lena`) is defined once in characters.rpy — do not redefine
 # here; a second `define` with a different color makes the color load-order dependent.
@@ -25,7 +25,7 @@ label hosp_first_day:
     menu:
         "\"What's the most important thing to get right on day one?\"":
             lena "Don't fall behind on charts. Everything flows from the paperwork. If the paperwork's wrong, the treatment plan is wrong."
-            $ gain_skill("med", 3)
+            $ gain_skill("med", 30)
         "\"How will I know if I'm doing well?\"":
             lena "You won't, at first. You'll know when something goes wrong. That's normal — it's how the skill builds."
         "\"Ready.\"":
@@ -56,7 +56,7 @@ label hosp_task_1:
             "You write up both versions side by side and mark the inconsistency. The chart is dense."
             show drlena_normal as focus_lena at sprite_r
             lena "The discrepancy needs resolving before any prescriptions are written. Good catch."
-            $ gain_skill("med", 5)
+            $ gain_skill("med", 50)
             $ _apply_trust("lena", 3)
             hide focus_lena
             $ _hosp_patv = "thorough"
@@ -64,7 +64,7 @@ label hosp_task_1:
             "He's not sure. His daughter insists. You document her version with a note about the patient's uncertainty."
             show drlena_normal as focus_lena at sprite_r
             lena "The family member's account can be more reliable. But note the uncertainty — don't resolve it for them. Keep both versions."
-            $ gain_skill("med", 3)
+            $ gain_skill("med", 30)
             $ _apply_trust("lena", 2)
             hide focus_lena
             $ _hosp_patv = "patient_centered"
@@ -72,7 +72,7 @@ label hosp_task_1:
             "You limit yourself to what he's confirmed. The chart is thin but clean."
             show drlena_normal as focus_lena at sprite_r
             lena "In doubt, document less and flag more. You erred on the right side. Build confidence and the charts will fill out."
-            $ gain_skill("med", 3)
+            $ gain_skill("med", 30)
             $ _apply_trust("lena", 2)
             hide focus_lena
             $ _hosp_patv = "conservative"
@@ -107,7 +107,7 @@ label hosp_npc1_lena:
         "\"You didn't start with the medical questions.\"":
             lena "People will tell you what you need if they trust you're interested in what they're saying. The clinical picture is in what they choose to share."
             lena "The textbook gives you the framework. What's in front of you is the patient."
-            $ gain_skill("med", 5)
+            $ gain_skill("med", 50)
             $ _apply_trust("lena", 3)
             $ _hosp_presv = "observed_method"
         "\"You seemed different in there.\"":
@@ -118,7 +118,7 @@ label hosp_npc1_lena:
             $ _hosp_presv = "observed_shift"
         "\"How do you always know the right thing to say?\"":
             lena "I don't. I know how to listen well enough that they tell me."
-            $ gain_skill("med", 3)
+            $ gain_skill("med", 30)
             $ _apply_trust("lena", 2)
             $ _hosp_presv = "asked_how"
     hide focus_lena
@@ -154,12 +154,12 @@ label hosp_npc2_lena:
             lena "I put it somewhere specific. Not away — somewhere I can find it again. You learn what it means over time."
             lena "The ones that still sit with you after fifteen years — those are the ones that made you the doctor you are."
             $ _apply_trust("lena", 3)
-            $ gain_skill("med", 3)
+            $ gain_skill("med", 30)
             $ _hosp_npc2v = "asked"
         "\"Was there anything else that could have been done?\"":
             "She considers the question properly."
             lena "That's the right thing to want to know. Probably not. But go back through it when you're ready — not to find blame, to understand."
-            $ gain_skill("med", 4)
+            $ gain_skill("med", 40)
             $ _apply_trust("lena", 3)
             $ _hosp_npc2v = "analytical"
     hide focus_lena
@@ -203,7 +203,7 @@ label hosp_review_assistant:
         "\"What changes when I'm a resident?\"":
             lena "More decisions are yours to make. More of the picture is yours to read. The paperwork expands."
             lena "The part that doesn't change: you still ask when you're uncertain."
-            $ gain_skill("med", 4)
+            $ gain_skill("med", 40)
         "\"What should I be ready for?\"":
             lena "The patients are the same. Your relationship to what they need — that shifts. Take it one day."
             $ _apply_trust("lena", 2)
@@ -226,7 +226,7 @@ label wev_hosp_case_presentation:
         "Acknowledge the discrepancy and keep presenting.":
             "\"The imaging and the bloods don't align — flagged for follow-up. Working hypothesis is...\""
             "The attending nods. Lena says nothing. Her silence is specific."
-            $ gain_skill("med", 5)
+            $ gain_skill("med", 50)
             $ _work_perf(4)
         "Rush through it and hope nobody notices.":
             "The attending notices. The follow-up question lands exactly where you didn't want it to."

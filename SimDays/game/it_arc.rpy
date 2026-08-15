@@ -1,4 +1,4 @@
-# it_arc.rpy — IT career preview arc (Junior Dev → Mid Dev)
+﻿# it_arc.rpy — IT career preview arc (Junior Dev → Mid Dev)
 # NPC: Eli (she/her) — senior developer, dry, precise, good teacher
 # Work events are appended to _IT_POOL on init so they fire via the existing work_event_it label.
 # Sprites: eli_normal, eli_focused — add to images.rpy when art is ready.
@@ -20,7 +20,7 @@ label it_first_day:
     menu:
         "\"What's #4471 actually doing?\"":
             eli "Failing one in five in CI but not locally. Start with the test runner logs. Don't touch the implementation until you understand why it's failing."
-            $ gain_skill("prog", 3)
+            $ gain_skill("prog", 30)
         "\"Is there documentation for the codebase?\"":
             eli "There's a wiki. Last updated in 2019. Treat it as archaeology rather than instruction."
             $ _work_perf(2)
@@ -48,7 +48,7 @@ label it_task_1:
     menu:
         "Work through the stack trace methodically.":
             "You start at the top and work down. Two hours. When you find it — a race condition in session refresh — you have a complete picture."
-            $ gain_skill("prog", 5)
+            $ gain_skill("prog", 50)
             $ _work_perf(5)
             eli "Took longer than it needed to. But you got there without guessing. Write the test first next time."
             $ _apply_trust("eli", 2)
@@ -56,8 +56,8 @@ label it_task_1:
         "Check git blame to understand the context first.":
             "Six commits. The problematic logic was introduced fourteen months ago during a crunch push. The message says \"quick fix — revisit.\""
             "It was never revisited."
-            $ gain_skill("prog", 4)
-            $ gain_skill("biz", 3)
+            $ gain_skill("prog", 40)
+            $ gain_skill("biz", 30)
             eli "Good instinct. Understanding the why is half the fix."
             $ _apply_trust("eli", 3)
             $ _it_t1v = "git"
@@ -66,7 +66,7 @@ label it_task_1:
             "You walk her through it. She stops you twice to ask why you ruled something out."
             eli "The race condition is in session refresh. Go fix it."
             "The guidance saves two hours. Being guided feels useful and slightly uncomfortable."
-            $ gain_skill("prog", 3)
+            $ gain_skill("prog", 30)
             $ _apply_trust("eli", 1)
             $ _it_t1v = "asked"
     if _it_t1v == "stack":
@@ -95,7 +95,7 @@ label it_npc1_eli:
             "You pull up the PR. You go through the three you're uncertain about."
             eli "This one — you're naming a function after what it does today. When this gets extended in six months, the name will lie."
             eli "The others are style. You can push back on style. You can't push back on naming."
-            $ gain_skill("prog", 5)
+            $ gain_skill("prog", 50)
             $ _apply_trust("eli", 3)
             $ _it_n1v = "naming"
         "\"I can make all the changes.\"":
@@ -109,7 +109,7 @@ label it_npc1_eli:
             "You explain. She listens without interrupting."
             eli "You're not wrong. But you're optimising for now, not six months from now. The extra branch costs three lines and saves whoever maintains this from guessing."
             eli "You can still push back. Know why you're doing it."
-            $ gain_skill("prog", 6)
+            $ gain_skill("prog", 60)
             $ _apply_trust("eli", 4)
             $ _it_n1v = "pushback"
     if _it_n1v == "naming":
@@ -181,7 +181,7 @@ label it_review_junior:
         "\"What changed?\"":
             eli "You stopped asking whether something was worth understanding. You just understood it."
             eli "That's the threshold. Not a skill level — a habit."
-            $ gain_skill("prog", 5)
+            $ gain_skill("prog", 50)
         "\"Thank you.\"":
             eli "Don't thank me. You did the work."
             "A pause."
@@ -189,8 +189,8 @@ label it_review_junior:
         "\"What's the next threshold?\"":
             eli "You start having opinions about the architecture. Other people's opinions bother you for reasons you can explain."
             eli "Right now you're fixing problems. Next level you're preventing them."
-            $ gain_skill("prog", 3)
-            $ gain_skill("biz", 2)
+            $ gain_skill("prog", 30)
+            $ gain_skill("biz", 20)
     $ promote()
     if it_incident_followup_done:
         python:

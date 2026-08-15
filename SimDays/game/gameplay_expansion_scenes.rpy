@@ -1,4 +1,4 @@
-# gameplay_expansion_scenes.rpy — 19 gameplay expansion scenes.
+﻿# gameplay_expansion_scenes.rpy — 19 gameplay expansion scenes.
 # Triggered via pending flags (set in new_day / thresholds / gift system);
 # each scene clears its own pending + done flags on completion.
 #
@@ -168,7 +168,7 @@ label scene_wardrobe_martha:
 
 
 # ── scene_guitar_zoe_busking ──────────────────────────────────────────────────
-# Player-initiated from park menu (Thu/Fri, 14-17, skill_music >= 3, minor).
+# Player-initiated from park menu (Thu/Fri, 14-17, skill_music >= 30, minor).
 
 label scene_guitar_zoe_busking:
     scene parkday
@@ -185,20 +185,20 @@ label scene_guitar_zoe_busking:
             $ _apply_trust("zoe", 4)
             z "That was genuinely good."
             z "You've been hiding that."
-            $ gain_skill("music", 5)
+            $ gain_skill("music", 50)
         "Stop and banter about it.":
             $ _apply_aff("zoe", 3)
             $ _apply_trust("zoe", 2)
             z "You stopped the good part to talk about it. Classic."
             "She's smiling though."
-            $ gain_skill("music", 3)
+            $ gain_skill("music", 30)
         "Let her take the guitar.":
             "She hesitates — then takes it."
             "Whatever she plays is simple and deliberate. Not showing off. Showing you."
             z "Now you try that bit."
             $ _apply_aff("zoe", 4)
             $ _apply_trust("zoe", 3)
-            $ gain_skill("music", 4)
+            $ gain_skill("music", 40)
     $ spend_time(2)
     hide focus_zoe
     scene parkday
@@ -666,25 +666,25 @@ label scene_programming_kit_eli:
     eli "I need a second pair of eyes. This is the prototype."
     scene cg_eli_hardware with dissolve
     show screen hud
-    if skill_prog >= 5:
+    if skill_prog >= 50:
         "You see the issue in the first pass. Clean fix."
         eli "That was faster than I expected."
         eli "Write up what you found. I want it in the docs."
         $ _apply_trust("eli", 3)
         $ _apply_aff("eli", 2)
-        $ gain_skill("prog", 5)
-    elif skill_prog >= 3:
+        $ gain_skill("prog", 50)
+    elif skill_prog >= 30:
         "You work through it together. Two hours, one working prototype."
         eli "Not bad. You've got good instincts."
         $ _apply_trust("eli", 3)
         $ _apply_aff("eli", 2)
-        $ gain_skill("prog", 3)
+        $ gain_skill("prog", 30)
     else:
         "It takes longer than either of you expected. But you stay with it."
         eli "You're patient. That's actually half the job."
         $ _apply_trust("eli", 2)
         $ _apply_aff("eli", 2)
-        $ gain_skill("prog", 3)
+        $ gain_skill("prog", 30)
     $ spend_time(2.0)
     hide focus_eli
     scene hub_pov

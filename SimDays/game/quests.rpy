@@ -1,4 +1,4 @@
-# Quest/objective system. All completion logic is derived from existing store
+﻿# Quest/objective system. All completion logic is derived from existing store
 # variables — no separate quest state. active_quests() / completed_quests()
 # are called at render time by phone_goals_scr.
 
@@ -114,27 +114,27 @@ init python:
         _q("prog_skill", "Sharpen Your Code",
            "You're on the IT track. Push Programming to Lv3.",
            lambda: "it" in store.active_careers,
-           lambda: store.skill_prog >= 3),
+           lambda: store.skill_prog >= 30),
 
         _q("biz_skill", "Learn the Business",
            "You're in the corporate world. Push Business to Lv3.",
            lambda: "corporate" in store.active_careers,
-           lambda: store.skill_biz >= 3),
+           lambda: store.skill_biz >= 30),
 
         _q("med_skill", "Bedside Manner",
            "You're on the medical track. Push Medicine to Lv3.",
            lambda: "hospital" in store.active_careers,
-           lambda: store.skill_med >= 3),
+           lambda: store.skill_med >= 30),
 
         _q("cook_skill", "Find Your Palate",
            "You're working the kitchen. Push Cooking to Lv3.",
            lambda: "culinary" in store.active_careers,
-           lambda: store.skill_cook >= 3),
+           lambda: store.skill_cook >= 30),
 
         _q("fit_skill", "Train the Trainer",
            "You're coaching clients. Push Fitness to Lv3.",
            lambda: "trainer" in store.active_careers,
-           lambda: store.skill_fit >= 3),
+           lambda: store.skill_fit >= 30),
 
         _q("reach_mentor_trust",
            "Earn Their Trust",

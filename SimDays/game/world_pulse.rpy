@@ -1,4 +1,4 @@
-# Phase 67 — Living world pulse.
+﻿# Phase 67 — Living world pulse.
 #
 # One generation pass per day, at day start, seeded so that reloading a save
 # from the same day reproduces exactly the same world. Everything downstream
@@ -147,7 +147,7 @@ init 1 python:
             "intro": "A musician has set up a small acoustic set in the corner.",
             "actions": [
                 {"label": "Listen for a bit", "outcome": ("mood", 4)},
-                {"label": "Ask about local venues", "cond": "skill_music >= 3",
+                {"label": "Ask about local venues", "cond": "skill_music >= 30",
                  "outcome": ("music", 6)},
             ],
         },
@@ -182,7 +182,7 @@ init 1 python:
             "intro": "A trainer is demonstrating a new routine near the free weights.",
             "actions": [
                 {"label": "Watch", "outcome": ("fit", 3)},
-                {"label": "Join in", "cond": "skill_fit >= 2", "outcome": ("fit", 7)},
+                {"label": "Join in", "cond": "skill_fit >= 20", "outcome": ("fit", 7)},
             ],
         },
         "library_study_group": {
@@ -198,7 +198,7 @@ init 1 python:
             "intro": "Someone is rehearsing a pitch to an audience of two and a plant.",
             "actions": [
                 {"label": "Listen", "outcome": ("biz", 4)},
-                {"label": "Give honest feedback", "cond": "skill_biz >= 3",
+                {"label": "Give honest feedback", "cond": "skill_biz >= 30",
                  "outcome": ("biz", 7)},
             ],
         },

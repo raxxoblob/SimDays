@@ -1,4 +1,4 @@
-# trainer_arc.rpy — Trainer career preview arc (Assistant Trainer → Lead Trainer)
+﻿# trainer_arc.rpy — Trainer career preview arc (Assistant Trainer → Lead Trainer)
 # NPC: Kai (she/her) — head trainer, reads clients, observational before directive
 # Sprites: kai_normal — may already exist (Kai is at gym_floor); verify before adding new define.
 # Defines _TR_POOL and work_event_trainer.
@@ -27,7 +27,7 @@ label tr_first_day:
         "\"Their left shoulder was compensating on the press.\"":
             kai "Yes. They've been doing it eight months. I'm working it out slowly — if I correct it too fast, they'll stop trusting the process."
             kai "Observation first. Always."
-            $ gain_skill("fit", 4)
+            $ gain_skill("fit", 40)
             $ _apply_trust("kai", 3)
         "\"You barely talked during the session.\"":
             kai "The talking is in the adjustments. If you're narrating everything, they stop feeling what's happening."
@@ -35,7 +35,7 @@ label tr_first_day:
         "\"They looked comfortable with you.\"":
             kai "Two years. But comfort isn't automatic — you maintain it. Every session."
             kai "That's the first thing to understand."
-            $ gain_skill("fit", 3)
+            $ gain_skill("fit", 30)
             $ _apply_trust("kai", 2)
     return
 
@@ -56,18 +56,18 @@ label tr_task_1:
             "You rebuild the session mentally while they talk. Bodyweight first. Lower the stakes."
             "They finish looking surprised at themselves."
             kai "You read them right. The plan matters less than the first experience."
-            $ gain_skill("fit", 5)
+            $ gain_skill("fit", 50)
             $ _apply_trust("kai", 3)
         "Stick to the plan — they said they had experience.":
             "The session works mechanically. They complete it. They're quiet at the end."
             "They don't rebook immediately."
             kai "The form was what they wished was true. What did the actual session tell you?"
             $ _apply_trust("kai", 1)
-            $ gain_skill("fit", 3)
+            $ gain_skill("fit", 30)
         "Check in mid-session: ask them how they're finding it.":
             "They tell you. You adjust. The session shifts into something they can stay with."
             kai "Good. Asking mid-session is harder than adjusting upfront. You made them feel like it was their decision."
-            $ gain_skill("fit", 5)
+            $ gain_skill("fit", 50)
             $ _apply_trust("kai", 4)
     return
 
@@ -84,17 +84,17 @@ label tr_npc1_kai:
         "\"Recovery. Three days gives enough time between sessions.\"":
             kai "That's the technical answer. What's the real answer?"
             kai "Four days means four choices to come. Three means the choice is smaller. For a first-year client, compliance is the programme."
-            $ gain_skill("fit", 5)
+            $ gain_skill("fit", 50)
             $ _apply_trust("kai", 3)
         "\"Their schedule was tight.\"":
             kai "Right. But there's another layer."
             "She explains the compliance reasoning. Three minutes. By the end you have a different understanding of what periodization actually does."
-            $ gain_skill("fit", 4)
+            $ gain_skill("fit", 40)
             $ _apply_trust("kai", 2)
         "\"I don't know — what's the right answer?\"":
             kai "The honest answer. Good."
             "She walks through the logic without condescension. The plan becomes legible."
-            $ gain_skill("fit", 5)
+            $ gain_skill("fit", 50)
             $ _apply_trust("kai", 3)
     kai "Programming isn't just physical. It's a conversation about what they can sustain."
     return
@@ -268,7 +268,7 @@ label tr_review_asst:
         "\"What does Lead Trainer look different?\"":
             kai "You own the relationship from intake to programme review. No checking with me — your call, your accountability."
             kai "I'm available. But you're not asking permission anymore."
-            $ gain_skill("fit", 4)
+            $ gain_skill("fit", 40)
         "\"Thank you for the chance.\"":
             kai "You earned the slot. I moved the paperwork."
             "She sounds like she means it."
@@ -288,12 +288,12 @@ label wev_tr_challenging_client:
         "Hold the line — explain the reason clearly.":
             "You explain progressive overload. They listen, not entirely convinced."
             "You hold the programme. They come back next week."
-            $ gain_skill("fit", 4)
+            $ gain_skill("fit", 40)
             $ _work_perf(3)
         "Give them one heavier set at the end as a concession.":
             "One set, controlled, to acknowledge the goal."
             "They're pleased. The form holds."
-            $ gain_skill("fit", 3)
+            $ gain_skill("fit", 30)
             $ _work_perf(3)
         "Let them lead — it's their workout.":
             "They go heavier. Form breaks on the third rep."
@@ -311,7 +311,7 @@ label wev_tr_equipment_issue:
         "Redesign the session using available equipment.":
             "Bulgarian split squat variation with a single dumbbell and the bench."
             "The client barely notices the change."
-            $ gain_skill("fit", 5)
+            $ gain_skill("fit", 50)
             $ _work_perf(4)
         "Have them warm up while you wait.":
             "Five minutes becomes ten. The session runs short."
@@ -329,12 +329,12 @@ label wev_tr_group_class:
         "Stop them discreetly and assess.":
             "You cue a water break for the group, move to them quietly."
             "First class back after an illness. You modify the remaining exercises. They finish."
-            $ gain_skill("fit", 5)
+            $ gain_skill("fit", 50)
             $ _work_perf(5)
         "Call a general pace reduction for the whole class.":
             "You lower intensity for everyone. The participant recovers. A few fitter members look mildly frustrated."
             "Good call for safety. Slightly messy in execution."
-            $ gain_skill("fit", 3)
+            $ gain_skill("fit", 30)
             $ _work_perf(2)
     return
 
@@ -361,7 +361,7 @@ label wev_trainer_tex_wrong_weight:
     "One side is heavier than the other."
     "The difference is small enough to miss and large enough to matter."
     mc "Reset it."
-    $ gain_skill("fit", 3)
+    $ gain_skill("fit", 30)
     return
 
 label wev_trainer_tex_busy_floor:
@@ -463,7 +463,7 @@ init python:
         gain_money(pay, "fitness")
         store.gym_class_last_day = store.day
         store.gym_classes_led   += 1
-        xp = gain_skill_practice("fit", 8, 1)
+        xp = gain_skill_practice("fit", 40, 1)
         gain_stat("str", 6)
         record_game_event("gym_class_day%d" % store.day, "career",
                           "Led a group class at the gym", summary=True, journal=False,

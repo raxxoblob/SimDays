@@ -1,4 +1,4 @@
-# Corporate shift activity system.
+﻿# Corporate shift activity system.
 # Each label handles one activity type at Nexus Tower.
 # Called from location_office; all return after completing.
 # Overtime is a post-shift secondary decision in location_office.
@@ -482,7 +482,7 @@ label net_analyst_chat:
     "She's been on a different strand of the same client family — different angle, different framing."
     "You compare notes for ten minutes. Nothing she says is exactly new."
     "But the way she's structured it is different from yours. You take two things from it."
-    $ gain_skill("biz", 3)
+    $ gain_skill("biz", 30)
     $ _mark_wev("corp_net", "net_analyst_chat")
     return
 
@@ -575,13 +575,13 @@ label mco_client_call:
             "A pause. He tells you. You write it down."
             $ _corp_measured_in_call = True
             $ _apply_trust("martha", 2)
-            $ gain_skill("biz", 3)
+            $ gain_skill("biz", 30)
         "Reframe — the timeline is a quality gate, not a project problem.":
             "\"The current timeline exists because we're building something that holds on first deployment. A rushed revision risks the outcome Hartwell cares about.\""
             "Three seconds of quiet on the other end."
             $ _corp_client_reframe = True
             $ _apply_trust("martha", 1)
-            $ gain_skill("biz", 4)
+            $ gain_skill("biz", 40)
     "Martha closes the call. Thanks them for their time. Screen goes dark."
     scene cg_corp_client_after
     show screen hud

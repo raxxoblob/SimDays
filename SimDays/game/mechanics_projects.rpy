@@ -1,4 +1,4 @@
-# Phase 61 — Mechanics: practical repair challenges (safe replace vs skill-based repair).
+﻿# Phase 61 — Mechanics: practical repair challenges (safe replace vs skill-based repair).
 # A rotating board of small fix-it jobs. Each job offers:
 #   * Diagnose (optional): time + small XP, reveals the fault, raises repair odds.
 #   * Replace part: guaranteed fix, costs more, little XP, smaller net pay.
@@ -102,7 +102,7 @@ init python:
         """1h + small XP. Reveals the fault and unlocks the diagnosis modifier."""
         spend_time(1.0)
         store.need_energy = max(0, store.need_energy - 4)
-        gain_skill_practice("mech", 3, 1)
+        gain_skill_practice("mech", 15, 1)
         if job["id"] not in store._mech_diagnosed:
             store._mech_diagnosed = list(store._mech_diagnosed) + [job["id"]]
 
@@ -111,7 +111,7 @@ init python:
         if not try_spend(job["replace"], "discretionary"):
             return None
         spend_time(0.5)
-        gain_skill_practice("mech", 2, 1)
+        gain_skill_practice("mech", 10, 1)
         gain_money(job["reward"])
         _mech_complete(job)
         return {"mode": "replace", "net": job["reward"] - job["replace"]}

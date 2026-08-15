@@ -1,4 +1,4 @@
-# Returning client system — client profiles, trust, and repeat offers.
+﻿# Returning client system — client profiles, trust, and repeat offers.
 
 init python:
 
@@ -9,10 +9,10 @@ init python:
             "initial_project_ids": ["script_01"],
             "follow_up_projects": [
                 {"id": "crane_followup_01", "title": "Expand automation system",
-                 "min_skill": 4, "min_rep": 5, "hours": 5, "days": 5, "pay": 300, "exp": 15,
+                 "min_skill": 40, "min_rep": 5, "hours": 5, "days": 5, "pay": 300, "exp": 150,
                  "mail_on_complete": "The expanded script is saving us real time every week. Good work."},
                 {"id": "crane_followup_02", "title": "Database integration",
-                 "min_skill": 6, "min_rep": 12, "hours": 7, "days": 6, "pay": 460, "exp": 22,
+                 "min_skill": 60, "min_rep": 12, "hours": 7, "days": 6, "pay": 460, "exp": 220,
                  "mail_on_complete": "Exactly what we needed. We'll be in touch for the next phase."},
             ],
         },
@@ -22,10 +22,10 @@ init python:
             "initial_project_ids": ["wp_plugin_01"],
             "follow_up_projects": [
                 {"id": "hazel_followup_01", "title": "Custom booking widget",
-                 "min_skill": 4, "min_rep": 5, "hours": 5, "days": 6, "pay": 290, "exp": 14,
+                 "min_skill": 40, "min_rep": 5, "hours": 5, "days": 6, "pay": 290, "exp": 140,
                  "mail_on_complete": "The client loved it! Let us know when you're free again."},
                 {"id": "hazel_followup_02", "title": "Agency portfolio site",
-                 "min_skill": 6, "min_rep": 12, "hours": 8, "days": 7, "pay": 500, "exp": 24,
+                 "min_skill": 60, "min_rep": 12, "hours": 8, "days": 7, "pay": 500, "exp": 240,
                  "mail_on_complete": "Stunning work. We're recommending you to a contact."},
             ],
         },
@@ -35,10 +35,10 @@ init python:
             "initial_project_ids": ["rest_api_01"],
             "follow_up_projects": [
                 {"id": "pulse_followup_01", "title": "API rate limiting and caching",
-                 "min_skill": 5, "min_rep": 8, "hours": 6, "days": 5, "pay": 380, "exp": 18,
+                 "min_skill": 50, "min_rep": 8, "hours": 6, "days": 5, "pay": 380, "exp": 180,
                  "mail_on_complete": "Performance is way up. You clearly know what you're doing."},
                 {"id": "pulse_followup_02", "title": "Full backend service",
-                 "min_skill": 7, "min_rep": 16, "hours": 9, "days": 8, "pay": 620, "exp": 28,
+                 "min_skill": 70, "min_rep": 16, "hours": 9, "days": 8, "pay": 620, "exp": 280,
                  "mail_on_complete": "This is exactly the quality we were looking for. Call it a standing arrangement."},
             ],
         },

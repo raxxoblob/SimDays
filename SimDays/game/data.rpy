@@ -1,4 +1,4 @@
-# Core game data - stats, needs, time, money
+﻿# Core game data - stats, needs, time, money
 
 init python:
     DAY_START = 7      # 7 AM
@@ -199,6 +199,7 @@ default own_metal_detector    = False  # beach searching mechanic
 default own_programming_kit      = False  # bonus prog EXP per self-study / course
 default own_coffee_machine       = False  # unlocks Nora scene + home coffee activity
 default own_kitchen_set          = False  # unlocks dinner invite action
+default own_repair_bench         = False  # home repair bench; buy from marketplace (needs Mechanics ≥1 to appear)
 default home_coffee_calibrated   = False  # set after Nora's tasting; home coffee gives +energy bonus
 default gym_pass_expires      = -1     # game day when gym pass runs out (-1 = no pass)
 default cosmetic_boost_until  = -1     # day when cosmetic temp APP boost expires
@@ -726,7 +727,7 @@ init python:
     def spend_time(hours):
         store.hour += hours
         for need, rate in DECAY.items():
-            if need == "need_hunger" and store.skill_cook >= 3:
+            if need == "need_hunger" and store.skill_cook >= 30:
                 rate *= 0.8   # Meal Prep perk: hunger drains 20% slower
             old = getattr(store, need)
             new = max(0, old - int(round(hours * rate)))
@@ -779,7 +780,7 @@ init python:
         store.hour  = DAY_START + 1.0   # wake up 8 AM
         base_energy = 100 if store.own_bed else 95
         base_energy = min(100, base_energy + int(home_upgrade_effect("sleep_energy")))
-        if store.skill_fit >= 4:   # Metabolic Engine perk: sleep recovery +15%
+        if store.skill_fit >= 40:   # Metabolic Engine perk: sleep recovery +15%
             base_energy = min(100, int(base_energy * 1.15))
         # Phase 62: bedroom gear (mattress, curtains, AC) — capped at +25%.
         # The full-night baseline is unchanged; this only multiplies it, and the

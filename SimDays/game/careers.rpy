@@ -1,11 +1,11 @@
-# Careers + professional skills (technical scaffold).
+﻿# Careers + professional skills (technical scaffold).
 # Core stats (STR/INT/CHR/APP) are 0-100. Professional skills are 0-10 and are
 # LEARNED (college courses, on-the-job). Careers have rank ladders gated by both.
 # This defines the data + helpers; the Performance-bar loop from jobs_system.md
 # plugs in on top later.
 
 init python:
-    # key -> (label, colour, bar-fill key). 0-10 scale. Reuses existing bar fills
+    # key -> (label, colour, bar-fill key). 0-100 scale. Reuses existing bar fills
     # so we don't need 7 new colour assets yet.
     PRO_SKILLS = {
         "med":  ("Medicine",    "#ff6f61", "str"),
@@ -113,41 +113,40 @@ init python:
     def skill_val(key):
         return getattr(store, "skill_" + key)
 
-    # XP thresholds per level (index = current level, value = XP needed to reach next).
-    # Total: 20+35+55+85+125+180+250+340+460+650 = 2200 XP to Lv 10.
-    _SKILL_XP = [20, 35, 55, 85, 125, 180, 250, 340, 460, 650]
-
+    # Skills and stats now share the same curve: 15 + current_level XP to next level.
+    # Lv0→1: 15 XP, Lv99→100: 114 XP. Total to Lv100: 6450 XP.
+    # ponytail: O(1) formula; upgrade path = tune constant if pacing needs adjusting.
     def skill_exp_needed(level):
-        return _SKILL_XP[level] if level < len(_SKILL_XP) else 9999
+        return 15 + level if level < 100 else 9999
 
     # ── Mastery gates ─────────────────────────────────────────────────────
     # Gates without "source_prefix" are placeholder-only (auto-open, non-blocking).
     SKILL_GATES = {
         "prog": {
-            3:  {"desc": "Complete your first freelance project",              "source_prefix": "fl_complete"},
-            5:  {"desc": "Complete an intermediate freelance project (4h+)",   "source_prefix": "fl_intermediate"},
-            7:  {"desc": "Complete a high-tier freelance contract (skill 6+)", "source_prefix": "fl_hightier"},
-            9:  {"desc": "Complete a major programming contract (skill 9+)",   "source_prefix": "fl_major"},
-            10: {"desc": "Complete the programming capstone",                  "source_prefix": "fl_capstone"},
+            30:  {"desc": "Complete your first freelance project",              "source_prefix": "fl_complete"},
+            50:  {"desc": "Complete an intermediate freelance project (4h+)",   "source_prefix": "fl_intermediate"},
+            70:  {"desc": "Complete a high-tier freelance contract (skill 60+)", "source_prefix": "fl_hightier"},
+            90:  {"desc": "Complete a major programming contract (skill 90+)",   "source_prefix": "fl_major"},
+            100: {"desc": "Complete the programming capstone",                  "source_prefix": "fl_capstone"},
         },
         # Music: content-gated by activity availability, NOT skill gates.
-        # Busking: Guitar>=1 + own guitar. Open Mic: Guitar>=4 + rep>=8. Gates are placeholder.
+        # Busking: Guitar>=10 + own guitar. Open Mic: Guitar>=40 + rep>=8. Gates are placeholder.
         "music": {
-            3:  {"desc": "Busking improves tip range at Guitar 3"},
-            5:  {"desc": "Open Mic accessible at Guitar 4 + Rep 8"},
-            7:  {"desc": "Paid booking unlocks at Guitar 6 + Rep 20"},
-            9:  {"desc": "Major performance at Guitar 9 + Rep 60"},
-            10: {"desc": "Complete the music capstone"},
+            30:  {"desc": "Busking improves tip range at Guitar 30"},
+            50:  {"desc": "Open Mic accessible at Guitar 40 + Rep 8"},
+            70:  {"desc": "Paid booking unlocks at Guitar 60 + Rep 20"},
+            90:  {"desc": "Major performance at Guitar 90 + Rep 60"},
+            100: {"desc": "Complete the music capstone"},
         },
         # Placeholder gates (no source_prefix = auto-open, non-blocking for now)
-        "med":  {3: {"desc": "Clinical milestone"}, 5: {"desc": "Clinical milestone"}, 7: {"desc": "Clinical milestone"}, 9: {"desc": "Clinical milestone"}, 10: {"desc": "Medical mastery"}},
-        "biz":  {3: {"desc": "Business milestone"}, 5: {"desc": "Business milestone"}, 7: {"desc": "Business milestone"}, 9: {"desc": "Business milestone"}, 10: {"desc": "Business mastery"}},
-        "cook": {3: {"desc": "Culinary milestone"}, 5: {"desc": "Culinary milestone"}, 7: {"desc": "Culinary milestone"}, 9: {"desc": "Culinary milestone"}, 10: {"desc": "Culinary mastery"}},
-        "fit":  {3: {"desc": "Fitness milestone"},  5: {"desc": "Fitness milestone"},  7: {"desc": "Fitness milestone"},  9: {"desc": "Fitness milestone"},  10: {"desc": "Fitness mastery"}},
-        "mech": {3: {"desc": "Mechanics milestone"},5: {"desc": "Mechanics milestone"},7: {"desc": "Mechanics milestone"},9: {"desc": "Mechanics milestone"},10: {"desc": "Mechanics mastery"}},
-        "art":  {3: {"desc": "Art milestone"},      5: {"desc": "Art milestone"},      7: {"desc": "Art milestone"},      9: {"desc": "Art milestone"},      10: {"desc": "Art mastery"}},
+        "med":  {30: {"desc": "Clinical milestone"}, 50: {"desc": "Clinical milestone"}, 70: {"desc": "Clinical milestone"}, 90: {"desc": "Clinical milestone"}, 100: {"desc": "Medical mastery"}},
+        "biz":  {30: {"desc": "Business milestone"}, 50: {"desc": "Business milestone"}, 70: {"desc": "Business milestone"}, 90: {"desc": "Business milestone"}, 100: {"desc": "Business mastery"}},
+        "cook": {30: {"desc": "Culinary milestone"}, 50: {"desc": "Culinary milestone"}, 70: {"desc": "Culinary milestone"}, 90: {"desc": "Culinary milestone"}, 100: {"desc": "Culinary mastery"}},
+        "fit":  {30: {"desc": "Fitness milestone"},  50: {"desc": "Fitness milestone"},  70: {"desc": "Fitness milestone"},  90: {"desc": "Fitness milestone"},  100: {"desc": "Fitness mastery"}},
+        "mech": {30: {"desc": "Mechanics milestone"},50: {"desc": "Mechanics milestone"},70: {"desc": "Mechanics milestone"},90: {"desc": "Mechanics milestone"},100: {"desc": "Mechanics mastery"}},
+        "art":  {30: {"desc": "Art milestone"},      50: {"desc": "Art milestone"},      70: {"desc": "Art milestone"},      90: {"desc": "Art milestone"},      100: {"desc": "Art mastery"}},
     }
-    _GATED_LEVELS = {3, 5, 7, 9, 10}
+    _GATED_LEVELS = {30, 50, 70, 90, 100}
 
     def skill_gate_required(key, level):
         """Returns gate dict (with source_prefix) or None if no blocking gate."""
@@ -178,11 +177,11 @@ init python:
     def gain_skill(key, amt=1):
         var = "skill_" + key
         lvl = getattr(store, var)
-        if lvl >= 10:
+        if lvl >= 100:
             return
         store.skill_exp[key] = store.skill_exp.get(key, 0) + amt
         leveled = 0
-        while lvl < 10 and store.skill_exp[key] >= skill_exp_needed(lvl):
+        while lvl < 100 and store.skill_exp[key] >= skill_exp_needed(lvl):
             next_lvl = lvl + 1
             if next_lvl in _GATED_LEVELS and not skill_gate_completed(key, next_lvl):
                 break  # gate blocks level-up; XP accumulates
@@ -190,7 +189,7 @@ init python:
             lvl += 1
             leveled += 1
         setattr(store, var, lvl)
-        if lvl >= 10:
+        if lvl >= 100:
             store.skill_exp[key] = 0
         label, colour, fillkey = PRO_SKILLS[key]
         icon_path = "images/ui/icons/skill_%s.png" % key
@@ -221,48 +220,48 @@ init python:
         "hospital": {
             "name": "Medicine - City Hospital", "location": "location_hospital",
             "ranks": [
-                {"title": "Clinical Assistant", "req": {"skill_med": 2, "stat_int": 30, "stat_chr": 15},              "pay": 80,  "hours": "Mon-Fri 08-16", "flex": False, "trial": "hospital_trial_resident"},
-                {"title": "Resident",          "req": {"skill_med": 5, "stat_int": 45, "degree": "med_bach"},  "pay": 140, "hours": "long shifts",   "flex": False},
-                {"title": "Doctor",            "req": {"skill_med": 7, "stat_int": 58, "degree": "med_mast"},  "pay": 240, "hours": "shifts",        "flex": False},
-                {"title": "Attending",         "req": {"skill_med": 8, "stat_int": 68, "stat_chr": 45},        "pay": 350, "hours": "mostly set",    "flex": False},
-                {"title": "Chief of Medicine", "req": {"skill_med": 9, "stat_int": 78, "stat_chr": 60},        "pay": 480, "hours": "flexible",      "flex": True},
+                {"title": "Clinical Assistant", "req": {"skill_med": 10, "stat_int": 10, "stat_chr": 8},              "pay": 80,  "hours": "Mon-Fri 08-16", "flex": False, "trial": "hospital_trial_resident"},
+                {"title": "Resident",          "req": {"skill_med": 50, "stat_int": 45, "degree": "med_bach"},  "pay": 140, "hours": "long shifts",   "flex": False},
+                {"title": "Doctor",            "req": {"skill_med": 70, "stat_int": 58, "degree": "med_mast"},  "pay": 240, "hours": "shifts",        "flex": False},
+                {"title": "Attending",         "req": {"skill_med": 80, "stat_int": 68, "stat_chr": 45},        "pay": 350, "hours": "mostly set",    "flex": False},
+                {"title": "Chief of Medicine", "req": {"skill_med": 90, "stat_int": 78, "stat_chr": 60},        "pay": 480, "hours": "flexible",      "flex": True},
             ],
         },
         "it": {
             "name": "IT - The Hub", "location": "location_hub",
             "ranks": [
-                {"title": "Junior Dev",   "req": {"skill_prog": 2, "stat_int": 30},                                          "pay": 100, "hours": "Mon-Fri 09-17", "flex": False},
-                {"title": "Mid Dev",      "req": {"skill_prog": 3, "stat_int": 40},                                         "pay": 155, "hours": "Mon-Fri 09-17", "flex": False},
-                {"title": "Senior Dev",   "req": {"skill_prog": 5, "stat_int": 55, "stat_chr": 25, "degree": "prog_bach"},  "pay": 230, "hours": "some leeway",  "flex": False, "trial": "it_trial_team_lead"},
-                {"title": "Team Lead",    "req": {"skill_prog": 7, "stat_int": 65, "stat_chr": 40, "degree": "prog_mast"},  "pay": 310, "hours": "mostly flex",  "flex": True},
-                {"title": "Eng. Manager", "req": {"skill_prog": 8, "stat_int": 75, "stat_chr": 55}, "pay": 400, "hours": "flexible",     "flex": True},
+                {"title": "Junior Dev",   "req": {"skill_prog": 10, "stat_int": 10},                                           "pay": 100, "hours": "Mon-Fri 09-17", "flex": False},
+                {"title": "Mid Dev",      "req": {"skill_prog": 25, "stat_int": 30},                                          "pay": 155, "hours": "Mon-Fri 09-17", "flex": False},
+                {"title": "Senior Dev",   "req": {"skill_prog": 50, "stat_int": 55, "stat_chr": 25, "degree": "prog_bach"},   "pay": 230, "hours": "some leeway",  "flex": False, "trial": "it_trial_team_lead"},
+                {"title": "Team Lead",    "req": {"skill_prog": 70, "stat_int": 65, "stat_chr": 40, "degree": "prog_mast"},   "pay": 310, "hours": "mostly flex",  "flex": True},
+                {"title": "Eng. Manager", "req": {"skill_prog": 80, "stat_int": 75, "stat_chr": 55}, "pay": 400, "hours": "flexible",     "flex": True},
             ],
         },
         "corporate": {
             "name": "Corporate - Nexus Tower", "location": "location_office",
             "ranks": [
-                {"title": "Intern",    "req": {"skill_biz": 1, "stat_int": 20, "stat_chr": 20, "stat_app": 20},                      "pay": 85,  "hours": "Mon-Fri 09-18", "flex": False},
-                {"title": "Associate", "req": {"skill_biz": 3, "stat_int": 35, "stat_chr": 35},               "pay": 145, "hours": "Mon-Fri 09-18", "flex": False},
-                {"title": "Analyst",   "req": {"skill_biz": 5, "stat_int": 50, "stat_chr": 45, "degree": "biz_bach"},  "pay": 220, "hours": "long", "flex": False},
-                {"title": "Manager",   "req": {"skill_biz": 7, "stat_int": 55, "stat_chr": 60, "degree": "biz_mast"}, "pay": 310, "hours": "mostly flex",   "flex": True},
-                {"title": "Director",  "req": {"skill_biz": 9, "stat_int": 60, "stat_chr": 75},  "pay": 430, "hours": "flexible",      "flex": True},
+                {"title": "Intern",    "req": {"skill_biz": 10, "stat_int": 10, "stat_chr": 10, "stat_app": 10},               "pay": 85,  "hours": "Mon-Fri 09-18", "flex": False},
+                {"title": "Associate", "req": {"skill_biz": 30, "stat_int": 30, "stat_chr": 30},               "pay": 145, "hours": "Mon-Fri 09-18", "flex": False},
+                {"title": "Analyst",   "req": {"skill_biz": 50, "stat_int": 50, "stat_chr": 45, "degree": "biz_bach"},  "pay": 220, "hours": "long", "flex": False},
+                {"title": "Manager",   "req": {"skill_biz": 70, "stat_int": 55, "stat_chr": 60, "degree": "biz_mast"}, "pay": 310, "hours": "mostly flex",   "flex": True},
+                {"title": "Director",  "req": {"skill_biz": 90, "stat_int": 60, "stat_chr": 75},  "pay": 430, "hours": "flexible",      "flex": True},
             ],
         },
         "trainer": {
             "name": "Personal Trainer - Iron Gate", "location": "location_gym",
             "ranks": [
-                {"title": "Assistant Trainer", "req": {"skill_fit": 1, "stat_str": 25, "stat_app": 25}, "pay": 65,  "hours": "book clients", "flex": True},
-                {"title": "Trainer",           "req": {"skill_fit": 4, "stat_str": 45, "stat_app": 40}, "pay": 115, "hours": "book clients", "flex": True},
-                {"title": "Head Trainer",      "req": {"skill_fit": 7, "stat_str": 60, "stat_chr": 45}, "pay": 190, "hours": "flexible",     "flex": True},
+                {"title": "Assistant Trainer", "req": {"skill_fit": 10, "stat_str": 12, "stat_app": 12}, "pay": 65,  "hours": "book clients", "flex": True},
+                {"title": "Trainer",           "req": {"skill_fit": 40, "stat_str": 45, "stat_app": 40}, "pay": 115, "hours": "book clients", "flex": True},
+                {"title": "Head Trainer",      "req": {"skill_fit": 70, "stat_str": 60, "stat_chr": 45}, "pay": 190, "hours": "flexible",     "flex": True},
             ],
         },
         "culinary": {
             "name": "Kitchen - Eleven", "location": "location_kitchen",
             "ranks": [
-                {"title": "Commis",     "req": {"skill_cook": 1, "stat_str": 20},              "pay": 85,  "hours": "evenings",  "flex": False},
-                {"title": "Line Cook",  "req": {"skill_cook": 3, "stat_str": 35},              "pay": 135, "hours": "evenings",  "flex": False},
-                {"title": "Sous Chef",  "req": {"skill_cook": 6, "stat_str": 45, "stat_chr": 30}, "pay": 220, "hours": "long",   "flex": False},
-                {"title": "Head Chef",  "req": {"skill_cook": 9, "stat_str": 55, "stat_chr": 45}, "pay": 340, "hours": "runs the pass", "flex": False},
+                {"title": "Commis",     "req": {"skill_cook": 10, "stat_str": 10},              "pay": 85,  "hours": "evenings",  "flex": False},
+                {"title": "Line Cook",  "req": {"skill_cook": 30, "stat_str": 35},              "pay": 135, "hours": "evenings",  "flex": False},
+                {"title": "Sous Chef",  "req": {"skill_cook": 60, "stat_str": 45, "stat_chr": 30}, "pay": 220, "hours": "long",   "flex": False},
+                {"title": "Head Chef",  "req": {"skill_cook": 90, "stat_str": 55, "stat_chr": 45}, "pay": 340, "hours": "runs the pass", "flex": False},
             ],
         },
     }
@@ -394,7 +393,10 @@ init python:
         spend_time(hours)
         gain_money(r["pay"])
         # spend_time already applies energy decay; extra cost reflects physical demand
-        store.need_energy = max(0, store.need_energy - int(hours * 3))
+        # ponytail: 4.5/h makes a 4h shift drain ~18 on top of decay — two shifts/day
+        # is the soft ceiling; energy drinks are the intended push-past mechanic.
+        store.need_energy = max(0, store.need_energy - int(hours * 4.5))
+        store.need_hunger = max(0, store.need_hunger - int(hours * 3))
         low = worn_out()
         # Apply workplace context bonus once per career per day (Task 7 guard)
         _ctx_mod = 0
@@ -705,12 +707,12 @@ init python:
         return calculate_check_chance("raise_" + cid, 0, 50, mods), None
 
     DEGREE_EXAMS = {
-        "med_bach":  {"skill": "med",  "min_lvl": 4, "cost": 500,  "hours": 8, "label": "Medicine — Bachelor's"},
-        "med_mast":  {"skill": "med",  "min_lvl": 7, "cost": 1300, "hours": 8, "label": "Medicine — Master's"},
-        "prog_bach": {"skill": "prog", "min_lvl": 4, "cost": 400,  "hours": 8, "label": "CS — Bachelor's"},
-        "prog_mast": {"skill": "prog", "min_lvl": 7, "cost": 1100, "hours": 8, "label": "CS — Master's"},
-        "biz_bach":  {"skill": "biz",  "min_lvl": 4, "cost": 450,  "hours": 8, "label": "Business — Bachelor's"},
-        "biz_mast":  {"skill": "biz",  "min_lvl": 7, "cost": 1200, "hours": 8, "label": "Business — Master's"},
+        "med_bach":  {"skill": "med",  "min_lvl": 40, "cost": 500,  "hours": 8, "label": "Medicine — Bachelor's"},
+        "med_mast":  {"skill": "med",  "min_lvl": 70, "cost": 1300, "hours": 8, "label": "Medicine — Master's"},
+        "prog_bach": {"skill": "prog", "min_lvl": 40, "cost": 400,  "hours": 8, "label": "CS — Bachelor's"},
+        "prog_mast": {"skill": "prog", "min_lvl": 70, "cost": 1100, "hours": 8, "label": "CS — Master's"},
+        "biz_bach":  {"skill": "biz",  "min_lvl": 40, "cost": 450,  "hours": 8, "label": "Business — Bachelor's"},
+        "biz_mast":  {"skill": "biz",  "min_lvl": 70, "cost": 1200, "hours": 8, "label": "Business — Master's"},
     }
 
     _BACH_REQ = {
@@ -741,52 +743,52 @@ init python:
     # ── One-time course tiers (4 per skill, each earnable once) ──────────────
     COURSE_TIERS = {
         "prog": [
-            {"id": "prog_intro",   "name": "Intro to Programming",    "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "prog_inter",   "name": "Intermediate Development", "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "prog_adv",     "name": "Advanced Programming",     "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "prog_master",  "name": "System Architecture",      "min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "prog_intro",   "name": "Intro to Programming",    "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "prog_inter",   "name": "Intermediate Development", "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "prog_adv",     "name": "Advanced Programming",     "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "prog_master",  "name": "System Architecture",      "min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
         "med": [
-            {"id": "med_intro",   "name": "Medical Fundamentals",       "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "med_inter",   "name": "Clinical Methods",           "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "med_adv",     "name": "Advanced Clinical Practice", "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "med_master",  "name": "Medical Specialisation",     "min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "med_intro",   "name": "Medical Fundamentals",       "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "med_inter",   "name": "Clinical Methods",           "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "med_adv",     "name": "Advanced Clinical Practice", "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "med_master",  "name": "Medical Specialisation",     "min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
         "biz": [
-            {"id": "biz_intro",   "name": "Business Basics",      "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "biz_inter",   "name": "Strategy & Operations", "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "biz_adv",     "name": "Corporate Finance",     "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "biz_master",  "name": "Executive Leadership",  "min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "biz_intro",   "name": "Business Basics",      "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "biz_inter",   "name": "Strategy & Operations", "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "biz_adv",     "name": "Corporate Finance",     "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "biz_master",  "name": "Executive Leadership",  "min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
         "cook": [
-            {"id": "cook_intro",   "name": "Kitchen Fundamentals",    "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "cook_inter",   "name": "Culinary Techniques",     "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "cook_adv",     "name": "Advanced Gastronomy",     "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "cook_master",  "name": "Professional Chef Mastery","min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "cook_intro",   "name": "Kitchen Fundamentals",    "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "cook_inter",   "name": "Culinary Techniques",     "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "cook_adv",     "name": "Advanced Gastronomy",     "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "cook_master",  "name": "Professional Chef Mastery","min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
         "fit": [
-            {"id": "fit_intro",   "name": "Fitness Foundations",        "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "fit_inter",   "name": "Training Science",           "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "fit_adv",     "name": "Performance Training",       "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "fit_master",  "name": "Elite Athletic Programming", "min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "fit_intro",   "name": "Fitness Foundations",        "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "fit_inter",   "name": "Training Science",           "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "fit_adv",     "name": "Performance Training",       "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "fit_master",  "name": "Elite Athletic Programming", "min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
         "mech": [
-            {"id": "mech_intro",   "name": "Auto Basics",          "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "mech_inter",   "name": "Vehicle Systems",      "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "mech_adv",     "name": "Advanced Diagnostics", "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "mech_master",  "name": "Master Technician",    "min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "mech_intro",   "name": "Auto Basics",          "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "mech_inter",   "name": "Vehicle Systems",      "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "mech_adv",     "name": "Advanced Diagnostics", "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "mech_master",  "name": "Master Technician",    "min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
         "art": [
-            {"id": "art_intro",   "name": "Visual Arts Foundation",   "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "art_inter",   "name": "Composition & Colour",     "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "art_adv",     "name": "Advanced Studio Practice", "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "art_master",  "name": "Fine Art Mastery",         "min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "art_intro",   "name": "Visual Arts Foundation",   "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "art_inter",   "name": "Composition & Colour",     "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "art_adv",     "name": "Advanced Studio Practice", "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "art_master",  "name": "Fine Art Mastery",         "min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
         "music": [
-            {"id": "music_intro",   "name": "Music Theory",            "min": 0, "max": 3, "cost": 60,  "hours": 3, "xp": 30},
-            {"id": "music_inter",   "name": "Performance Techniques",  "min": 2, "max": 5, "cost": 120, "hours": 3, "xp": 50},
-            {"id": "music_adv",     "name": "Advanced Musicianship",   "min": 4, "max": 7, "cost": 220, "hours": 4, "xp": 80},
-            {"id": "music_master",  "name": "Professional Performance","min": 6, "max": 9, "cost": 400, "hours": 5, "xp": 110},
+            {"id": "music_intro",   "name": "Music Theory",            "min": 0,  "max": 30, "cost": 60,  "hours": 3, "xp": 150},
+            {"id": "music_inter",   "name": "Performance Techniques",  "min": 20, "max": 50, "cost": 120, "hours": 3, "xp": 300},
+            {"id": "music_adv",     "name": "Advanced Musicianship",   "min": 40, "max": 70, "cost": 220, "hours": 4, "xp": 500},
+            {"id": "music_master",  "name": "Professional Performance","min": 60, "max": 90, "cost": 400, "hours": 5, "xp": 700},
         ],
     }
 
@@ -840,7 +842,7 @@ init python:
         """Legacy API — delegates to first available tier course."""
         courses = available_courses(key)
         if not courses:
-            return "max" if skill_val(key) >= 10 else "done"
+            return "max" if skill_val(key) >= 100 else "done"
         return take_course_by_id(courses[0]["id"])
 
     # ── Daily diminishing returns for repeatable practice ────────────────────

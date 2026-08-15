@@ -1,4 +1,4 @@
-# home_scenes.rpy — home-visit scenes unlocked by owned items + NPC relationships.
+﻿# home_scenes.rpy — home-visit scenes unlocked by owned items + NPC relationships.
 # Each scene: NPC-initiated via phone invite → commitment → triggers at location_home.
 # Dinner: player-initiated from home menu (own_kitchen_set gate).
 
@@ -20,13 +20,13 @@ label home_eli_side_project_scene:
     menu:
         "Work through it correctly. More time, cleaner result.":
             "Three hours. But when it's done it holds."
-            $ gain_skill("prog", 6)
+            $ gain_skill("prog", 60)
             $ _apply_trust("eli", 4)
             $ _apply_aff("eli", 2)
             eli "This holds up. I'll merge it."
         "Quick fix — good enough for now.":
             "Twenty minutes. The pipeline runs. Eli reads the diff for a long time."
-            $ gain_skill("prog", 3)
+            $ gain_skill("prog", 30)
             eli "It works. It'll bite you in six months."
             eli "But you made the call. File it."
             $ _apply_trust("eli", 1)
@@ -99,23 +99,23 @@ label home_zoe_guitar_scene:
     $ _wev_relbar_open("zoe")
     show screen npc_relbar("zoe")
     "You pick up the guitar."
-    if skill_music >= 5:
+    if skill_music >= 50:
         "It comes out better than expected. A couple of wrong notes, then something that actually sounds like music."
         z "Okay. That was actually fine."
         $ _apply_aff("zoe", 5)
         $ _apply_trust("zoe", 3)
-        $ gain_skill("music", 5)
-    elif skill_music >= 3:
+        $ gain_skill("music", 50)
+    elif skill_music >= 30:
         "Rough around the edges. But there's something there."
         z "Not bad for someone who clearly doesn't practice enough."
         $ _apply_aff("zoe", 3)
-        $ gain_skill("music", 4)
+        $ gain_skill("music", 40)
     else:
         "It's bad. Not charming-bad. Just bad."
         z "This is the longest minute of my life."
         "She's smiling, though."
         $ _apply_aff("zoe", 2)
-        $ gain_skill("music", 3)
+        $ gain_skill("music", 30)
     "Zoe sketches while you play. You stop worrying about mistakes."
     menu:
         "Ask her what she's drawing.":
@@ -125,7 +125,7 @@ label home_zoe_guitar_scene:
             "A quick sketch — guitar, posture, not quite your face. Better than a photo."
         "Keep playing until she asks you to stop.":
             "She doesn't ask you to stop for an hour."
-            $ gain_skill("music", 3)
+            $ gain_skill("music", 30)
             $ _apply_trust("zoe", 2)
     $ _wev_relbar_close()
     hide screen npc_relbar

@@ -1,4 +1,4 @@
-# Freelance system — contract work the player can pick up via the computer.
+﻿# Freelance system — contract work the player can pick up via the computer.
 # Uses mail.rpy for notifications. Separate from gigs (which are one-shot phone jobs).
 
 default freelance_reputation    = 0

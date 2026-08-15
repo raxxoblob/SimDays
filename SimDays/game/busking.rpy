@@ -1,4 +1,4 @@
-# Busking and open mic performance resolution.
+﻿# Busking and open mic performance resolution.
 # Phase 60 (corrected): two-roll system (crowd + performance), Guitar>=1 unlock.
 # Skill gates are placeholder only — busking available with own_guitar + Guitar>=1.
 
@@ -139,7 +139,7 @@ init python:
             "tips":        tips,
             "followers":   followers,
             "rep_gain":    rep_gain,
-            "xp_base":     18,   # always guaranteed
+            "xp_base":   90,   # always guaranteed
             "rare":        None, # filled by the rare_outcomes.rpy wrapper
         }
 
@@ -181,7 +181,7 @@ init python:
             "rep_gain":  rep_gain,
             "followers": followers,
             "tips":      tips,
-            "xp_base":   25,   # always guaranteed; larger than busking
+            "xp_base":   125,   # always guaranteed; larger than busking
             "rare":      None, # filled by the rare_outcomes.rpy wrapper
         }
 

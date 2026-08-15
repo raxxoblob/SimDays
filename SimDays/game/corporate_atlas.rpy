@@ -1,4 +1,4 @@
-# Project Atlas — Associate arc for the corporate career.
+﻿# Project Atlas — Associate arc for the corporate career.
 # Six scenes spanning ~8 shifts at rank Associate (job_rank == 1).
 # Triggered from location_office. atlas_score - atlas_risk determines outcome.
 # caroline_style carries forward from the Intern arc throughout.
@@ -144,7 +144,7 @@ label corporate_atlas_problem:
             $ atlas_risk = max(0, atlas_risk - 1)
             $ _apply_trust("martha", 3)
             $ _apply_trust("caroline", -1)
-        "There's a third version. Same outcome for Meridian, different timeline for the workforce." if corporate_style == "people_first" or skill_biz >= 3:
+        "There's a third version. Same outcome for Meridian, different timeline for the workforce." if corporate_style == "people_first" or skill_biz >= 30:
             ma "I'm listening."
             "You've been turning it over since yesterday. A phased transition — the strategic recommendation holds, but the implementation window is longer."
             ma "It's more expensive in year one."
@@ -264,7 +264,7 @@ label corporate_atlas_presentation:
         hide focus_caroline
         $ _work_perf("corporate", 15)
         $ corp_review_score += 2
-        $ gain_skill("biz", 8)
+        $ gain_skill("biz", 80)
     elif _atlas_result >= 3:
         # ── Mixed
         "Most of it lands. The segment three recommendation generates harder questions than the model suggested."
@@ -276,7 +276,7 @@ label corporate_atlas_presentation:
         hide focus_caroline
         $ _work_perf("corporate", 8)
         $ corp_review_score += 1
-        $ gain_skill("biz", 5)
+        $ gain_skill("biz", 50)
     else:
         # ── Failure
         "The CFO stops you on slide four."
@@ -289,7 +289,7 @@ label corporate_atlas_presentation:
         "It's not a firing. It's something more uncomfortable — an open question."
         hide focus_caroline
         $ _work_perf("corporate", -5)
-        $ gain_skill("biz", 3)
+        $ gain_skill("biz", 30)
     $ atlas_presentation_done = True
     $ atlas_stage = 5
     return

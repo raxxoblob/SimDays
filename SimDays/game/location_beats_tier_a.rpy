@@ -1,4 +1,4 @@
-# ═══════════════════════════════════════════════════════════════════════════
+﻿# ═══════════════════════════════════════════════════════════════════════════
 # CONTEXTUAL TIER A LOCATION BEATS — content pack 1
 # ═══════════════════════════════════════════════════════════════════════════
 # Sibling of location_beats.rpy (which holds the one-shot Nora cover-shift
@@ -176,10 +176,10 @@ init python:
             return False
         # Alternative requirement: any one of these is enough of a reason for
         # her to ask you rather than the room.
-        if not (_beat_fam("eli") >= 35 or store.skill_prog >= 3
+        if not (_beat_fam("eli") >= 35 or store.skill_prog >= 30
                 or _beat_festival_attended()):
             return False
-        chance = 10 + (4 if store.skill_prog >= 3 else 0)
+        chance = 10 + (4 if store.skill_prog >= 30 else 0)
         return _beat_stable_roll("eli_favor", chance,
                                  pity_per_miss=3, pity_cap=22)
 
@@ -489,7 +489,7 @@ label zoe_walk_scene:
     show zoe_street_laugh as focus_zoe at sprite_r
     z "Half an hour. Forty if I'm being annoying about a tree."
 
-    if store.skill_art >= 2:
+    if store.skill_art >= 20:
         show zoe_street_talk as focus_zoe at sprite_r, react_nod
         z "And you'll actually get why I'm being annoying about the tree, which is worse for both of us."
 
@@ -549,7 +549,7 @@ label eli_favor_scene:
     eli "Hey. Can I borrow a brain for ninety seconds? Mine's been in the same argument since eleven."
     mc "Go ahead."
 
-    if store.skill_prog >= 3:
+    if store.skill_prog >= 30:
         show eli_talk as focus_eli at sprite_r
         eli "Two ways to do the same thing. One's shorter and I can't explain it to anyone. One's longer and boring and everybody understands it instantly."
         eli "I keep picking the short one and then defending it for an hour, which is not, mathematically, shorter."
@@ -682,7 +682,7 @@ label marcus_park_favor_scene:
     show marcus_park_talk as focus_marcus at sprite_r
     m "Because on my own I'm going to call it here and pretend I did four."
 
-    if store.skill_fit >= 3:
+    if store.skill_fit >= 30:
         show marcus_park_laugh as focus_marcus at sprite_r, react_bounce
         m "And you'll make it easy, which is insulting, but I'll take it."
 

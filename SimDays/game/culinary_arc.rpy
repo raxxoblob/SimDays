@@ -1,4 +1,4 @@
-# culinary_arc.rpy — Culinary career preview arc (Commis Chef → Line Cook)
+﻿# culinary_arc.rpy — Culinary career preview arc (Commis Chef → Line Cook)
 # NPC: Rena — head chef, spare, direct, kitchen-precise. New character.
 # Sprites: rena_normal, rena_talk, rena_happy, rena_angry (kitchen); rena_casual_* (off-duty).
 # Defines _CUL_POOL and work_event_culinary (no existing pool for this career).
@@ -39,17 +39,17 @@ label cul_first_day:
         "Start cutting. Work carefully.":
             "You work through twenty onions. By the fifteenth you've found a rhythm. Not fast enough, but consistent."
             rena "Consistent size. That's what we're building."
-            $ gain_skill("cook", 4)
+            $ gain_skill("cook", 40)
             $ _apply_trust("rena", 2)
         "Ask how small the brunoise should be.":
             rena "Three millimetres. Don't ask twice."
             "She demonstrates once and moves on."
-            $ gain_skill("cook", 3)
+            $ gain_skill("cook", 30)
             $ _apply_trust("rena", 1)
         "Watch how the other cooks work first.":
             "A minute of watching tells you more than the instructions did. You adapt your grip."
             "Rena notices. She says nothing."
-            $ gain_skill("cook", 5)
+            $ gain_skill("cook", 50)
             $ _apply_trust("rena", 2)
     return
 
@@ -67,13 +67,13 @@ label cul_task_1:
             "\"Four on pasta, two in the window.\""
             rena "Fire garnish at three minutes, not two. Go."
             "She's already elsewhere. You follow the instruction. Three of four land on time."
-            $ gain_skill("cook", 4)
+            $ gain_skill("cook", 40)
             $ _apply_trust("rena", 2)
         "Adapt your timing and push through.":
             "You recalculate on the fly. It works for three covers. The fourth goes out two minutes late."
             "The expeditor calls it. You hear it."
             rena "Late, not wrong. Better than wrong."
-            $ gain_skill("cook", 5)
+            $ gain_skill("cook", 50)
             $ _apply_trust("rena", 3)
         "Simplify the garnish to buy time.":
             "You reduce the plate. It goes out faster. It goes out correctly."
@@ -81,8 +81,8 @@ label cul_task_1:
             rena "You changed the dish."
             "\"Timing was gone. I had to choose.\""
             rena "Next time: ask first, adapt second. But the service didn't break."
-            $ gain_skill("cook", 3)
-            $ gain_skill("biz", 2)
+            $ gain_skill("cook", 30)
+            $ gain_skill("biz", 20)
             $ _apply_trust("rena", 2)
     return
 
@@ -102,12 +102,12 @@ label cul_npc1_rena:
         "Practice until you match her pace.":
             "You work through a rack of carrots. You don't match her pace. You don't waste pieces."
             rena "Consistent. Speed comes."
-            $ gain_skill("cook", 6)
+            $ gain_skill("cook", 60)
             $ _apply_trust("rena", 3)
         "Ask what she was thinking about while she was working.":
             rena "Tonight's service. What goes wrong. How not to let it."
             rena "Prep isn't about the vegetables."
-            $ gain_skill("cook", 4)
+            $ gain_skill("cook", 40)
             $ _apply_aff("rena", 2)
         "Ask about her training.":
             rena "Lyon. Three years. Then a stage in Tokyo."
@@ -316,7 +316,7 @@ label scene_cul_service_crisis:
         $ cul_crisis_aftermath = "good"
         $ _apply_trust("rena", 3)
         $ _apply_aff("rena", 1)
-        $ gain_skill("cook", 4)
+        $ gain_skill("cook", 40)
         $ _work_perf(3)
         jump _cul_crisis_last_ticket
 
@@ -340,7 +340,7 @@ label scene_cul_service_crisis:
         "A small amount of base. A faster whisk. No announcement. No stopped plates."
         "Fix it first. Explain it later."
 
-        if skill_cook >= 2:
+        if skill_cook >= 20:
             scene cg_cul_crisis_solo_success with dissolve
             "The texture closed."
             "The surface smoothed."
@@ -365,7 +365,7 @@ label scene_cul_service_crisis:
             $ cul_crisis_technical = "recovered"
             $ cul_crisis_aftermath = "mixed"
             $ _apply_trust("rena", -1)
-            $ gain_skill("cook", 5)
+            $ gain_skill("cook", 50)
             $ _work_perf(2)
         else:
             scene cg_cul_crisis_solo_failure with dissolve
@@ -462,7 +462,7 @@ label scene_cul_service_crisis:
         $ cul_crisis_technical = "remade"
         $ cul_crisis_aftermath = "good"
         $ _apply_trust("rena", 2)
-        $ gain_skill("cook", 2)
+        $ gain_skill("cook", 20)
         $ _work_perf(1)
         jump _cul_crisis_last_ticket
 
@@ -737,7 +737,7 @@ label cul_review_commis:
             $ _apply_trust("rena", 2)
         "\"What's the line cook station like?\"":
             rena "More covers, faster decisions, less forgiveness for errors. You'll learn what you can handle."
-            $ gain_skill("cook", 3)
+            $ gain_skill("cook", 30)
         "\"I'm ready.\"":
             rena "I know. Otherwise you wouldn't be moving."
             $ _apply_trust("rena", 1)
@@ -757,7 +757,7 @@ label wev_cul_service_rush:
     menu:
         "Adapt and communicate with the pass.":
             "You call it out clearly. The expeditor adjusts the fire order. You make it work."
-            $ gain_skill("cook", 4)
+            $ gain_skill("cook", 40)
             $ _work_perf(4)
         "Push through quietly without flagging it.":
             "You get through it. Barely. One dish is plated less carefully than it should be."
@@ -776,12 +776,12 @@ label wev_cul_ingredient_shortage:
         "Propose a substitute you know works.":
             "Beef bavette. Similar prep time, same price point. You make the case quickly."
             rena "Write it on the spec board. Tell the waitstaff."
-            $ gain_skill("cook", 5)
+            $ gain_skill("cook", 50)
             $ _apply_trust("rena", 2)
         "Ask the senior cook what they'd do.":
             "They give you an answer. Not the one Rena would have given, but workable."
             "You adapt. Rena watches but says nothing."
-            $ gain_skill("cook", 3)
+            $ gain_skill("cook", 30)
     return
 
 
@@ -856,7 +856,7 @@ label wev_cul_taste_again:
             rena "The second taste was the useful one."
             hide focus_rena
             $ _apply_trust("rena", 1)
-            $ gain_skill("cook", 2)
+            $ gain_skill("cook", 20)
         "Defend it.":
             mc "I thought it was balanced."
             rena "Thinking is why you taste."

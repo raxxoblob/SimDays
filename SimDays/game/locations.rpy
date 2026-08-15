@@ -1,4 +1,4 @@
-# All location labels
+﻿# All location labels
 
 # ── HOME ──────────────────────────────────────────────────────────────
 label location_home:
@@ -9,7 +9,7 @@ label location_home:
     if (own_coffee_machine and nora_affection >= 30 and nora_trust >= 20
             and nora_met and not message_already_queued("nora_coffee_machine_invite")):
         $ queue_phone_message("nora", "You bought a home coffee machine and didn't ask the person who works with coffee all day? This needs an inspection.", day, "nora_coffee_machine_invite", responses=_NORA_HOME_COFFEE_RESP)
-    if (own_guitar and skill_music >= 1 and zoe_affection >= 25
+    if (own_guitar and skill_music >= 10 and zoe_affection >= 25
             and zoe_met and not message_already_queued("zoe_guitar_invite")):
         $ queue_phone_message("zoe", "You own a guitar? Either prove it or stop pretending it counts as furniture.", day, "zoe_guitar_invite", responses=_ZOE_GUITAR_RESP)
     if (apartment_tier == 1 and home_coffee_calibrated and nora_met
@@ -104,7 +104,7 @@ label location_home_actions:
         "Use computer" if own_computer:
             jump use_computer
 
-        "Repair bench":
+        "Repair bench" if own_repair_bench:
             call repair_bench
             jump location_home_actions
 
@@ -132,10 +132,10 @@ label location_home_actions:
             $ _guitar_e = max(1, int(15 * apply_skill_music_energy_modifier() * (1.0 - home_upgrade_effect("guitar_energy"))))
             $ need_energy = max(0, need_energy - _guitar_e)
             if _guitar_uses == 0:
-                $ gain_skill_practice("music", 5, 2)
+                $ gain_skill_practice("music", 25, 2)
                 "You run scales and a couple of songs. Fingers sore, ear sharper."
             elif _guitar_uses == 1:
-                $ gain_skill_practice("music", 2, 2)
+                $ gain_skill_practice("music", 10, 2)
                 "A second session. Progress is slower, but you find a cleaner chord shape."
             else:
                 "You noodle for a bit. Your fingers aren't interested today."
@@ -424,7 +424,8 @@ label cafe_work_shift:
     $ _cafe_pay = 55 if _cafe_n < 5 else (65 if _cafe_n >= 15 else 60)
     $ spend_time(4)
     $ gain_money(_cafe_pay)
-    $ store.need_energy = max(0, store.need_energy - 20)
+    $ store.need_energy = max(0, store.need_energy - 28)
+    $ store.need_hunger = max(0, store.need_hunger - 12)
     $ fs_mark("grounds_shift_done")
     $ fs_mark("outside_activity")
     "Four hours of steaming milk and small talk. You pocket $[_cafe_pay]."
@@ -627,7 +628,7 @@ label gym_floor:
             scene pov_gym_weights
             show screen hud
             $ spend_time(1.5)
-            $ need_energy = max(0, need_energy - 15)
+            $ need_energy = max(0, need_energy - 28)
             $ _str_exp = 30 if has_event("gym_trainer") else 20
             if _sup == "preworkout":
                 $ _str_exp = int(_str_exp * 2.0)
@@ -655,11 +656,11 @@ label gym_floor:
                     $ record_personal_best("best_fitness_pb_tier", _pb_result["tier"], "tier")
                     if _pb_result["tier"] in ("great", "critical"):
                         "You push through and hit a new personal best."
-                        $ gain_skill("fit", 15)
+                        $ gain_skill("fit", 150)
                         $ add_player_state("confident", "pb_%d" % day)
                     elif _pb_result["tier"] == "success":
                         "You finish strong. Not a record, but close."
-                        $ gain_skill("fit", 8)
+                        $ gain_skill("fit", 80)
                     else:
                         "Not today. You finish the session anyway."
                     call screen check_result_scr(_pb_result, title="Personal Best Attempt")
@@ -763,11 +764,12 @@ label location_library:
             $ _study_uses = activity_use_count_today("library_study")
             $ mark_activity_used_today("library_study")
             $ spend_time(2)
+            $ store.need_energy = max(0, store.need_energy - 15)
             if _study_uses == 0:
-                $ gain_stat("int", 10)
+                $ gain_stat("int", 20)
                 "Two hours of focused reading. Your brain hurts in a good way."
             elif _study_uses == 1:
-                $ gain_stat("int", 5)
+                $ gain_stat("int", 8)
                 "Second session. Progress slows — the mind's full — but you push through."
             else:
                 "You're staring at the page. Nothing new is going in. Get some rest."
@@ -785,7 +787,7 @@ label location_library:
                 "Medicine":
                     $ spend_time(2)
                     $ store.need_energy = max(0, store.need_energy - 18)
-                    $ gain_skill_practice("med", 2, 2)
+                    $ gain_skill_practice("med", 10, 2)
                     "Dense textbooks, clinical notes. Slower than a real course, but it sticks."
                 "Programming":
                     $ spend_time(2)
@@ -796,12 +798,12 @@ label location_library:
                 "Business":
                     $ spend_time(2)
                     $ store.need_energy = max(0, store.need_energy - 18)
-                    $ gain_skill_practice("biz", 2, 2)
+                    $ gain_skill_practice("biz", 10, 2)
                     "Case studies and frameworks. Dry but useful."
                 "Art":
                     $ spend_time(2)
                     $ store.need_energy = max(0, store.need_energy - 18)
-                    $ gain_skill_practice("art", 2, 2)
+                    $ gain_skill_practice("art", 10, 2)
                     "Theory, references, sketching. You can feel the improvement in small ways."
             $ fs_mark("study_done")
             $ fs_mark("outside_activity")
@@ -897,7 +899,7 @@ label location_bar:
     $ _vis = location_sprites()
     call show_public_sprites
     $ _drink_cost = 4 if has_event("bar_happy") else 8
-    $ _chr_bonus  = 30 if has_event("bar_happy") else 15
+    $ _chr_bonus  = 22 if has_event("bar_happy") else 14
     show screen people_here_dock("location_bar")
     menu (screen="activity"):
         "Have a drink ($[_drink_cost], 0.5h)":
@@ -905,7 +907,7 @@ label location_bar:
             $ gain_money(-_drink_cost)
             "The noise and the drinks do their job."
             jump location_bar
-        "Open Mic (2h) [[Guitar 4 / Rep 8]]" if own_guitar and skill_music >= 4 and music_reputation >= 8 and hour >= 20:
+        "Open Mic (2h) [[Guitar 4 / Rep 8]]" if own_guitar and skill_music >= 40 and music_reputation >= 8 and hour >= 20:
             if too_tired():
                 "You're too worn out to perform tonight."
                 jump location_bar
@@ -926,6 +928,7 @@ label location_bar:
                 $ _soc_uses = activity_use_count_today("bar_socialize")
                 $ mark_activity_used_today("bar_socialize")
                 $ spend_time(1)
+                $ need_energy = max(0, need_energy - 10)
                 if _soc_uses == 0:
                     $ gain_stat("chr", _chr_bonus)
                     if has_event("bar_happy"):
@@ -1393,7 +1396,8 @@ label location_nightclub:
                 "You need CHR 30 to hold this room."
                 jump location_nightclub
             $ spend_time(1)
-            $ gain_stat("chr", 30 if has_event("club_night") else 15)
+            $ need_energy = max(0, need_energy - 12)
+            $ gain_stat("chr", 22 if has_event("club_night") else 14)
             if has_event("club_night"):
                 "Industry night — the room is full of people who matter. You're on fire."
             else:
@@ -1436,7 +1440,8 @@ label location_flea_market:
     menu (screen="activity"):
         "Browse stalls (1h)":
             $ spend_time(1)
-            $ gain_stat("chr", 8)
+            $ need_energy = max(0, need_energy - 6)
+            $ gain_stat("chr", 6)
             if renpy.random.random() < 0.2:
                 "You end up in a long chat with a vendor who turns out to know everyone. Useful."
             else:
@@ -1462,7 +1467,8 @@ label location_flea_market:
             jump location_flea_market
         "Haggle with vendors (1h)":
             $ spend_time(1)
-            $ gain_stat("chr", 8)
+            $ need_energy = max(0, need_energy - 8)
+            $ gain_stat("chr", 6)
             "Back and forth over prices. Good practice in reading people."
             jump location_flea_market
 
@@ -1543,14 +1549,15 @@ label location_park:
             $ _jog_uses = activity_use_count_today("park_jog")
             $ mark_activity_used_today("park_jog")
             $ spend_time(1)
+            $ need_energy = max(0, need_energy - 12)
             if _jog_uses == 0:
-                $ gain_stat("str", 8 if has_event("park_weather") else 4)
+                $ gain_stat("str", 8 if has_event("park_weather") else 6)
                 if has_event("park_weather"):
                     "Perfect conditions. You hit your stride and don't stop. Best run in weeks."
                 else:
                     "The air is crisp. Good start to the day."
             elif _jog_uses == 1:
-                $ gain_stat("str", 4 if has_event("park_weather") else 2)
+                $ gain_stat("str", 4 if has_event("park_weather") else 3)
                 "Second lap. Body's getting used to it — still worthwhile."
             else:
                 "You're going through the motions. Not much left to gain today."
@@ -1561,26 +1568,31 @@ label location_park:
             $ _read_uses = activity_use_count_today("park_read")
             $ mark_activity_used_today("park_read")
             $ spend_time(1.5)
+            $ need_energy = max(0, need_energy - 8)
             if _read_uses == 0:
-                $ gain_stat("int", 3)
+                $ gain_stat("int", 4)
                 "A quiet hour on the bench. A few ideas shake loose."
             elif _read_uses == 1:
-                $ gain_stat("int", 1)
+                $ gain_stat("int", 2)
                 "You read, but your mind is elsewhere. A bit of INT, at least."
             else:
                 "You stare at the page. The words blur. Nothing left to take in today."
             jump location_park
         "Play basketball (1.5h)" if hour < 20:
+            if too_tired():
+                "Too worn out for a game. Rest first."
+                jump location_park
             scene basketball_court_day
             show screen hud
             $ spend_time(1.5)
-            $ gain_stat("str", 8)
+            $ need_energy = max(0, need_energy - 20)
+            $ gain_stat("str", 10)
             "A pickup game on the court. Sweaty, competitive, good."
             jump location_park
-        "Play guitar (Zoe's here) (2h)" if own_guitar and skill_music >= 3 and zoe_affection >= 30 and zoe_met and not zoe_park_guitar_done and (day % 7 in [3, 4]) and hour >= 14 and hour <= 17:
+        "Play guitar (Zoe's here) (2h)" if own_guitar and skill_music >= 30 and zoe_affection >= 30 and zoe_met and not zoe_park_guitar_done and (day % 7 in [3, 4]) and hour >= 14 and hour <= 17:
             call scene_guitar_zoe_busking
             jump location_park
-        "Busk (1.5h)" if own_guitar and skill_music >= 1 and activity_use_count_today("busking") < BUSK_DAILY_CAP:
+        "Busk (1.5h)" if own_guitar and skill_music >= 10 and activity_use_count_today("busking") < BUSK_DAILY_CAP:
             if too_tired():
                 "Not today — you're running on empty."
                 jump location_park
@@ -1665,9 +1677,14 @@ label location_sandbeach:
                 "Two hours sweeping the shoreline. You find [_sf]."
                 jump location_sandbeach
         "Relax (1h)":
+            $ _relax_uses = activity_use_count_today("beach_relax")
+            $ mark_activity_used_today("beach_relax")
             $ spend_time(1)
-            $ need_energy = min(100, need_energy + 12)
-            "The sound of the waves. The city could be anywhere."
+            $ need_hunger = max(0, need_hunger - 8)
+            if _relax_uses == 0:
+                "The sound of the waves. The city could be anywhere. Your mind clears."
+            else:
+                "You've already relaxed here today. You start checking your phone."
             jump location_sandbeach
         "Swim (1h)" if hour < 19:
             if too_tired():
@@ -1675,17 +1692,26 @@ label location_sandbeach:
                 jump location_sandbeach
             scene sandbeach_swim_day
             show screen hud
+            $ _swim_uses = activity_use_count_today("beach_swim")
+            $ mark_activity_used_today("beach_swim")
             $ spend_time(1)
-            $ need_energy = max(0, need_energy - 8)
-            $ gain_stat("str", 3)
-            "Cold, clear, and exactly what you needed. Your arms are properly tired."
+            $ need_energy = max(0, need_energy - 20)
+            $ need_hunger = max(0, need_hunger - 10)
+            if _swim_uses == 0:
+                $ gain_stat("str", 8)
+                "Cold, clear, and exactly what you needed. Your arms are properly tired."
+            elif _swim_uses == 1:
+                $ gain_stat("str", 4)
+                "Second session. Still good, but your body's running low."
+            else:
+                "Your arms are dead. You swim a short lap and call it."
             jump location_sandbeach
         "Sunbathe (1.5h)" if hour < 19:
             scene sandbeach_sunbath_day
             show screen hud
             $ spend_time(1.5)
-            $ need_energy = min(100, need_energy + 15)
-            $ gain_stat("app", 1)
+            $ need_hunger = max(0, need_hunger - 10)
+            $ gain_stat("app", 8)
             "Salt air and sun."
             jump location_sandbeach
 
@@ -2137,7 +2163,7 @@ label location_hub:
             call run_living_world_extra(_lw[0], _lw[1])
     menu (screen="activity"):
         "Work a shift (8h)" if "it" in active_careers:
-            $ _it_h = 6 if skill_prog >= 5 else 8
+            $ _it_h = 6 if skill_prog >= 50 else 8
             if hour + _it_h > DAY_END:
                 "Too late to start a full shift today."
                 jump location_hub
@@ -2302,7 +2328,7 @@ label location_college:
             hide screen people_here_dock
             call college_course("art")
             jump location_college
-        "Degree examinations →" if skill_med >= 3 or skill_prog >= 3 or skill_biz >= 3:
+        "Degree examinations →" if skill_med >= 30 or skill_prog >= 30 or skill_biz >= 30:
             hide npcsprite
             hide npcsprite2
             hide npcsprite3
@@ -3119,7 +3145,7 @@ label it_trial_team_lead:
     "Your lead is overseas. You're the most senior person awake."
     menu:
         "Dig into the logs carefully":
-            if stat_int >= 55 or skill_prog >= 4:
+            if stat_int >= 55 or skill_prog >= 40:
                 "You comb through stack traces. There — a botched migration."
                 "Three commands. Patch, redeploy, monitor. 4:12 AM: green."
                 $ store.promotion_trials[("it", store.job_rank)] = True
@@ -3147,7 +3173,7 @@ label hospital_trial_resident:
     lena "What does the blood panel tell you — first instinct?"
     menu:
         "Read the inflammation markers carefully":
-            if stat_int >= 45 or skill_med >= 3:
+            if stat_int >= 45 or skill_med >= 30:
                 lena "...That's the right thread. Most residents miss it."
                 "You work through the night. The patient stabilizes before dawn."
                 lena "I put your name on the case report."
@@ -3198,7 +3224,8 @@ label location_anchor:
             jump location_anchor
         "Stay a while (1h, +CHR)":
             $ spend_time(1)
-            $ gain_stat("chr", 10)
+            $ need_energy = max(0, need_energy - 7)
+            $ gain_stat("chr", 8)
             "The crowd here is different from the centrum — looser, less on display. Good conversation finds you."
             jump location_anchor
         "Buy a round ($18, +CHR)":
@@ -3223,9 +3250,15 @@ label location_terrace:
     show screen hud
     menu (screen="activity"):
         "Sit and watch the water (1h)":
+            $ _terrace_relax_uses = activity_use_count_today("terrace_relax")
+            $ mark_activity_used_today("terrace_relax")
             $ spend_time(1)
-            $ need_energy = min(100, need_energy + 18)
-            "The city hum fades here. The tension leaves your shoulders — you feel rested."
+            $ need_hunger = max(0, need_hunger - 6)
+            if _terrace_relax_uses == 0:
+                $ need_energy = min(100, need_energy + 5)
+                "The city hum fades here. The tension leaves your shoulders."
+            else:
+                "Nice enough, but you've had the peace quota for today."
             jump location_terrace
         "Socialize (1h)":
             $ spend_time(1)
@@ -3242,9 +3275,18 @@ label location_terrace:
             "Outdoor table, river smell, decent espresso. You feel a little sharper."
             jump location_terrace
         "Read (1h, +INT)":
+            $ _ter_read_uses = activity_use_count_today("terrace_read")
+            $ mark_activity_used_today("terrace_read")
             $ spend_time(1)
-            $ gain_stat("int", 12)
-            "A chapter in the open air. The light's good."
+            $ need_energy = max(0, need_energy - 10)
+            if _ter_read_uses == 0:
+                $ gain_stat("int", 4)
+                "A chapter in the open air. The light's good, the focus comes easy."
+            elif _ter_read_uses == 1:
+                $ gain_stat("int", 2)
+                "Second session. You're reading but the mind is starting to wander."
+            else:
+                "You're holding the book but not reading it. Nothing left to absorb today."
             jump location_terrace
 
 

@@ -35,6 +35,9 @@ init python:
         "flag_bed":         {"cat": "home",     "name": "Quality Bed Frame",       "value": 300, "grant": "flag", "flag": "own_bed"},
         "flag_sketchbook":  {"cat": "hobby",    "name": "Sketchbook & Supplies",   "value": 30,  "grant": "flag", "flag": "own_sketchbook"},
         "flag_book":        {"cat": "hobby",    "name": "Reference Book",          "value": 25,  "grant": "flag", "flag": "own_book"},
+        # Repair bench: only shown in the pool when Mechanics ≥ 1.
+        # Filtered out for everyone else in refresh_market_listings().
+        "flag_repair_bench": {"cat": "tools",  "name": "Repair Bench",            "value": 280, "grant": "flag", "flag": "own_repair_bench", "req_skill_mech": 10},
     }
 
     # ── Phase 62: the catalog feeds the same pool ─────────────────────────────
@@ -134,6 +137,9 @@ init python:
             d = MARKET_ITEM_POOL[item_id]
             # rare items appear less often
             if d.get("rare") and rng.random() > 0.4:
+                continue
+            # skill-gated items hidden until the player meets the requirement
+            if d.get("req_skill_mech", 0) > 0 and skill_val("mech") < d["req_skill_mech"]:
                 continue
             lid = "mkt_%s_p%d" % (item_id, period)
             if lid in existing:

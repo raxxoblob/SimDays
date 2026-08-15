@@ -1,4 +1,4 @@
-# Downtown Summer Festival — a single authored evening, once per campaign.
+﻿# Downtown Summer Festival — a single authored evening, once per campaign.
 #
 # This is NOT a world-pulse random event. The pulse (world_pulse.rpy) rolls one
 # major event per day out of a weighted pool; an authored beat that must happen
@@ -391,7 +391,7 @@ label summer_festival_main:
     mc "And?"
     z "Painting. Barely."
 
-    if skill_art >= 4:
+    if skill_art >= 40:
         z "You see it, right? The whole left third is a decision. The rest is just finishing."
         mc "The rest is the part they'll sell."
         z "The rest is the part they'll sell, yes. Thank you, that's very cheering."
@@ -523,7 +523,7 @@ label summer_festival_main:
     n "You've heard four bars."
     m "Four good bars."
     "The crowd does the thing crowds do — pulls in about two metres and gets quieter."
-    if skill_music >= 4:
+    if skill_music >= 40:
         "You watch the bass player instead of the singer, because the bass player is the reason it works."
         "She's playing behind the beat by a hair and dragging the whole band into the pocket with her."
         mc "The bassist's carrying it."
@@ -574,7 +574,7 @@ label summer_festival_main:
     "Four hundred people in the dark, being very polite about it, and about six staff."
 
     menu:
-        "\"Let me take a look at the power setup. I might be able to help.\"" if skill_mech >= 3:
+        "\"Let me take a look at the power setup. I might be able to help.\"" if skill_mech >= 30:
             jump summer_festival_blackout_technical
         "\"I can help keep people moving and pointed the right way.\"":
             jump summer_festival_blackout_organize

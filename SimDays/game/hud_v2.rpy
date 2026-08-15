@@ -34,8 +34,8 @@ init -5 python:
 
         # Bars
         "bar_track":      "#ffffff1a",
-        "bar_w_compact":  118,
-        "bar_h_compact":  5,
+        "bar_w_compact":  122,
+        "bar_h_compact":  7,
         "bar_w_expanded": 290,
         "bar_h_expanded": 8,
 

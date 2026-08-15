@@ -1,4 +1,4 @@
-default _challenge_prepped = -1   # day the player bought event-prep supplies
+﻿default _challenge_prepped = -1   # day the player bought event-prep supplies
 
 # Phase 61 — City skill challenges.
 # EXTENDS the existing city-event system (city_events.rpy) — no new generator.
@@ -78,11 +78,11 @@ init 1 python:
          "challenge": {"skill": "art", "recommended": 6, "difficulty": 64, "entry": 0,
                        "min_skill": 3, "cooldown_days": 14,
                        "outcomes": {
-                           "critical_failure": {"label": "No placement",       "xp": 8,  "art_rep": 1},
-                           "weak":             {"label": "Honourable mention", "xp": 12, "art_rep": 3},
-                           "success":          {"label": "Third place",        "xp": 15, "art_rep": 5,  "money": 60,  "portfolio": "art"},
-                           "great":            {"label": "Second place",       "xp": 18, "art_rep": 8,  "money": 120, "portfolio": "art"},
-                           "critical":         {"label": "First place",        "xp": 25, "art_rep": 12, "money": 200, "portfolio": "art",
+                           "critical_failure": {"label": "No placement",       "xp": 40,  "art_rep": 1},
+                           "weak":             {"label": "Honourable mention", "xp": 60, "art_rep": 3},
+                           "success":          {"label": "Third place",        "xp": 75, "art_rep": 5,  "money": 60,  "portfolio": "art"},
+                           "great":            {"label": "Second place",       "xp": 90, "art_rep": 8,  "money": 120, "portfolio": "art"},
+                           "critical":         {"label": "First place",        "xp": 125, "art_rep": 12, "money": 200, "portfolio": "art",
                                                 "journal": True, "confidence": True},
                        }}},
         {"id": "networking_pitch", "title": "Pitch & Network Evening", "category": "career",
