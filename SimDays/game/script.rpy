@@ -4,6 +4,7 @@ label start:
     $ stocks_init()
     $ refresh_market_listings()   # Phase 61: seed day-1 second-hand board
     $ refresh_mech_jobs()         # Phase 61: seed day-1 repair board
+    $ kinky_sms_daily_check()     # Kinky SMS: daily random message roll
     # Move-in day intro (M0). No HUD during the cinematic - it's a cutscene.
     scene hallway with fade
     "Day 1."
@@ -110,6 +111,7 @@ label zone_locked_suburbs:
 label location_hallway:
     scene hallway
     show screen hud
+    $ kinky_sms_daily_check()
     if not marcus_met:
         jump marcus_intro_hallway
     $ _wed_per = wed_poll_personal("location_hallway")

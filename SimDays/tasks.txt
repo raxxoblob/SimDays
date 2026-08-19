@@ -1,1 +1,10 @@
-Uruchamianie zadania: Chce żebyś zaimplementował kinky smsy do MC od postaci, gdy romantyczny pasek jest powyżej np 30. Im większy pasek tym bardziej kinky, np 30 to takie bardziej słodkie cute powiedzmy, powyżej 50 coraz bardziej pikatntne i np 75 to już w ogóle. Wiec żebyś zaimplementował losowe wysyłanie takich smsów do MC. Nie boj się adult języka, pisz po angielsku to. Np wiadomości pokroju I miss you daddy etc. Jeśli zauważysz jakieś rzeczy które również trzeba edytować, dopisz ten task to tasks.txt czyli tego pliku. Oprócz tego dodaj jakieś testy, żebym mógł zobaczyć czy dobrze zrobiles ten task. Pamiętaj ze wiadomości powinny być uzależnione od osobowości postaci.
+Uruchamianie zadania: Chce żebyś zaimplementował kinky smsy do MC od postaci, gdy romantyczny pasek jest powyżej np 30. Im większy pasek tym bardziej kinky, np 30 to takie bardziej słodkie cute powiedzmy, powyżej 50 coraz bardziej pikatntne i np 75 to już w ogóle. Wiec żebyś zaimplementował losowe wysyłanie takich smsów do MC. Nie boj się adult języka, pisz po angielsku to. Np wiadomości pokroju I miss you daddy etc. Jeśli zauważysz jakieś rzeczy które również trzeba edytować, dopisz ten task to tasks.txt czyli tego pliku. Oprócz tego dodaj jakieś testy, żebym mógł zobaczyć czy dobrze zrobiles ten task. Pamiętaj ze wiadomości powinny być uzależnione od osobowości postaci.# SimDays - Task List
+
+## Kinky SMS System (in progress)
+- [x] Create kinky_sms.rpy with personality-tuned message pools per character and tier.
+- [x] Add daily trigger call in script.rpy (label start + location_hallway).
+- [x] Add self-check test: game/tests/kinky_sms_selfcheck.py.
+- [ ] Integrate phone_inbox rendering into the existing phone screen (phone.rpy or equivalent) so messages display in the UI.
+- [ ] Wire kinky_sms_daily_check() into the actual day-transition label (if one exists outside script.rpy, e.g. a "new_day" label).
+- [ ] Add SMS notification sound / badge on the phone icon when new kinky SMS arrives.
+- [ ] Verify all romanceable characters are covered (check docs/ for full NPC list; add pools for any missing ones).
