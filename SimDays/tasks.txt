@@ -1,9 +1,0 @@
-## Task: Zdefiniuj wartości domyślne zmiennych stanu (defaults.rpy)
-
-W `script.rpy` używane są zmienne (`marcus_affection`, `marcus_trust`, `marcus_met`,
-`move_in_complete`, `first_steps_track`, `onboarding_state`, `marcus_mentioned_zoe`,
-`need_hunger`, `stat_str/int/chr/app`) bez wcześniejszej inicjalizacji.
-Należy stworzyć / uzupełnić plik `game/defaults.rpy` z `default()` dla każdej z nich,
-aby gra nie wyrzucała NameError przy pierwszym uruchomieniu.
-
-Kolejny krok po tym: label `location_marcus_home` (interakcje w mieszkaniu Marcusa).
