@@ -429,20 +429,37 @@ screen phone_contacts_scr():
                                         yalign 0.5
                                         spacing 2
                                         text NPC_DATA[_k]["name"] font PROFILE_FONT size 15 color "#cfe0f5"
-                                        # Phase 66: all four axes. Attraction is
-                                        # shown only for romance-capable NPCs and
-                                        # only once it is actually non-zero.
-                                        $ _rx = [("Aff", npc_rel(_k, "affection"), "#ffd76a"),
-                                                 ("Tru", npc_rel(_k, "trust"), "#7fe0ff"),
-                                                 ("Res", npc_rel(_k, "respect"), "#b8a0ff"),
-                                                 ("Fam", npc_rel(_k, "familiarity"), "#8fe0a0")]
-                                        if npc_is_romance_capable(_k) and npc_rel(_k, "attraction") > 0:
-                                            $ _rx = _rx + [("Att", npc_rel(_k, "attraction"), "#ff9ab8")]
-                                        text npc_relationship_stage_label(_k) font ACT_FONT size 11 color "#9fb6d6"
+                                        # Relationship axes — V2 presentation.
+                                        # Primary: Familiarity / Affection / Chemistry.
+                                        # Secondary: Trust / Respect.
+                                        # Chemistry shown only for romance-capable NPCs.
+                                        # Affection can go negative; shown in a different
+                                        # colour so negative sentiment reads as distinct.
+                                        $ _aff_v  = npc_rel(_k, "affection")
+                                        $ _fam_v  = npc_rel(_k, "familiarity")
+                                        $ _chem_v = npc_rel(_k, "attraction")
+                                        $ _tru_v  = npc_rel(_k, "trust")
+                                        $ _res_v  = npc_rel(_k, "respect")
+                                        $ _is_rc  = npc_is_romance_capable(_k)
+                                        $ _rs_str = (get_romance_state(_k) if _is_rc else "")
+                                        # Stage label + optional romance state (meaningful states only)
                                         hbox:
                                             spacing 8
-                                            for _lbl, _val, _col in _rx:
-                                                text "%s %d" % (_lbl, _val) font ACT_FONT size 11 color _col
+                                            text npc_relationship_stage_label(_k) font ACT_FONT size 11 color "#9fb6d6"
+                                            if _rs_str in ("interested", "dating", "committed", "friends"):
+                                                text ("♥ " + _rs_str.capitalize()) font ACT_FONT size 11 color "#ff9ab8"
+                                        # Primary axes
+                                        hbox:
+                                            spacing 10
+                                            text "Familiar %d" % _fam_v font ACT_FONT size 11 color "#8fe0a0"
+                                            text "Affect %d" % _aff_v font ACT_FONT size 11 color ("#ffd76a" if _aff_v >= 0 else "#e07070")
+                                            if _is_rc:
+                                                text "Chem %d" % _chem_v font ACT_FONT size 11 color "#ff9ab8"
+                                        # Secondary axes
+                                        hbox:
+                                            spacing 10
+                                            text "Trust %d" % _tru_v font ACT_FONT size 11 color "#7fe0ff"
+                                            text "Respect %d" % _res_v font ACT_FONT size 11 color "#b8a0ff"
                                         if _avail and _avail != "Currently unavailable." and _avail != "Likely home for the evening.":
                                             text _avail font ACT_FONT size 11 color "#4a8a6a"
                                     button:
@@ -520,6 +537,16 @@ screen phone_thread_scr():
                                         background "#16202ae8"
                                         padding (10, 7, 10, 7)
                                         text _tm["text"] font ACT_FONT size 13 color "#cfe0f5"
+                                    # Photo attachment thumbnail — click opens full preview
+                                    $ _tm_att = _tm.get("attachment")
+                                    if _tm_att and _tm_att.get("kind") == "photo":
+                                        if renpy.loadable(_tm_att.get("path", "")):
+                                            button:
+                                                xysize (160, 120)
+                                                background "#0d1117"
+                                                hover_background "#1a2530"
+                                                action Show("phone_photo_preview", attachment=_tm_att)
+                                                add im.Fit(_tm_att["path"], 160, 120)
                                     # Invitation announcement → the card in the
                                     # Messages list is where accept/decline live.
                                     $ _tm_inv = invitation_for_message(_tm)
@@ -574,6 +601,40 @@ screen phone_thread_scr():
                         text "Where are you?" font ACT_FONT size 11 color "#cfe0f5" hover_color "#ffffff" align (0.5, 0.5)
             null height 4
             textbutton "Back" action [Hide("phone_thread_scr"), Show("phone_messages_scr")] xalign 0.5 text_font ACT_FONT text_size 20 text_color "#9fb6d6" text_hover_color "#ffffff"
+
+
+screen phone_photo_preview(attachment):
+    # Full-size photo overlay. Modal over phone_thread_scr — closing just
+    # hides this screen and reveals the thread underneath; no thread
+    # re-navigation needed.
+    modal True
+    zorder 220
+    add "#000000d0"
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xmaximum 860
+        ymaximum 720
+        background "#0d1117"
+        padding (8, 8, 8, 8)
+        if renpy.loadable(attachment.get("path", "")):
+            # im.Fit uses contain/fit — no distortion for any aspect ratio.
+            imagebutton:
+                idle  im.Fit(attachment["path"], 844, 704)
+                hover im.Fit(attachment["path"], 844, 704)
+                action Hide("phone_photo_preview")
+        else:
+            # Missing asset — clean empty state; never shows broken-image rect.
+            null
+    # Close button — always visible regardless of asset state.
+    textbutton "×":
+        xpos   0.96
+        ypos   0.01
+        text_font        PROFILE_FONT
+        text_size        28
+        text_color       "#9fb6d6"
+        text_hover_color "#ffffff"
+        action Hide("phone_photo_preview")
 
 
 screen phone_goals_scr():

@@ -113,7 +113,32 @@ screen profile():
                     use stat_chip("Strength",   stat_str, "images/ui/bar_fill_str.png", "images/ui/icons/stat_str.png", "Strength - train at the gym. Gates physical jobs.")
                     use stat_chip("Intellect",  stat_int, "images/ui/bar_fill_int.png", "images/ui/icons/stat_int.png", "Intellect - study at the library / work desk jobs. Gates IT, corporate, medicine.")
                     use stat_chip("Charisma",   stat_chr, "images/ui/bar_fill_chr.png", "images/ui/icons/stat_social.png", "Charisma - socialize (bar, club). Helps relationships and people-facing work.")
-                    use stat_chip("Appearance", stat_app, "images/ui/bar_fill_app.png", "images/ui/icons/stat_app.png", "Appearance - gym, clothes, grooming. Low hygiene tanks it fast.")
+                    $ _app_eff  = eff_app()
+                    $ _app_base = stat_app
+                    $ _app_eq   = equipped_appearance_bonus()
+                    $ _app_tmp  = temporary_appearance_bonus()
+                    $ _app_tip  = app_breakdown_tooltip()
+                    $ _app_sub  = ("Base %d" % _app_base) + ("  •  Style +%d" % _app_eq if _app_eq else "") + ("  •  +%d temp" % _app_tmp if _app_tmp else "")
+                    button:
+                        xfill True
+                        background Frame("images/ui/act_bar_idle.png", 30, 30, 30, 30)
+                        action NullAction()
+                        tooltip _app_tip
+                        padding (12, 8, 12, 8)
+                        vbox:
+                            spacing 3
+                            hbox:
+                                xfill True
+                                spacing 10
+                                yalign 0.5
+                                add "images/ui/icons/stat_app.png" xysize (28, 28) yalign 0.5
+                                text "Appearance" font PROFILE_FONT size 17 color "#cfe0f5" yalign 0.5 xfill True
+                                bar:
+                                    value StaticValue(_app_eff, 100)
+                                    xsize 148 ysize 14 yalign 0.5
+                                    left_bar Frame("images/ui/bar_fill_app.png", 14, 0) right_bar Frame("images/ui/bar_track.png", 14, 0) thumb Null()
+                                text "[_app_eff]" font PROFILE_FONT size 17 color "#ffffff" yalign 0.5 xsize 48 textalign 1.0
+                            text "[_app_sub]" font PROFILE_FONT size 12 color "#7a9ab8" xpos 38
 
                     null height 4
                     text "SPECIALIZATIONS" font PROFILE_FONT size 16 color "#7fa0cc"
@@ -158,7 +183,7 @@ screen profile():
                                             $ _rv = _nr_req[_rk]
                                             if _rk.startswith("stat_"):
                                                 $ _sname = _rk[5:].upper()
-                                                $ _sval  = eff_app() if _rk == "stat_app" else getattr(store, _rk, 0)
+                                                $ _sval  = store.stat_app if _rk == "stat_app" else getattr(store, _rk, 0)
                                                 $ _sok   = _sval >= _rv
                                                 text ("%s %d  %s" % (_sname, _rv, "✓" if _sok else "(%d/%d)" % (_sval, _rv))) font PROFILE_FONT size 14 color ("#5bcafa" if _sok else "#c06060")
                                             elif _rk.startswith("skill_"):

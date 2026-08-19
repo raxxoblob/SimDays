@@ -234,6 +234,9 @@ default npc_date_venue_count = {}          # {"npc|venue": times_visited} — di
 default npc_date_invite_last_day = {}      # {"npc_id": day} — last day NPC sent a date invitation
 default npc_last_hug_day = {}              # {npc_id: day_of_last_hug}
 default npc_last_kiss_day = {}             # {npc_id: day_of_last_kiss}
+default npc_photo_messages_sent = set()   # set of photo_ids queued this save (once-ever)
+default npc_last_photo_day = {}           # {npc_id: day} — last day NPC sent a photo initiative msg
+default zoe_photo_replies = {}            # {photo_id: response_id} — saved callback hints
 default failed_physical_attempts = {}     # {(npc_id, action): consecutive_fail_count}
 default _last_hug_accepted = False         # side channel: was the most recent do_hug() accepted?
 default physical_boundary_lockout = {}    # {(npc_id, action): day_lockout_expires}
@@ -930,11 +933,12 @@ init python:
             store.marcus_basketball_invite_pending = True
 
         # ── Zoe spontaneous moment: pending when thresholds met ─────────────
+        # (zoe_beach_night_done removed as prerequisite — Beach After Dark is
+        #  now M3, which comes AFTER this M1 nightclub moment)
         if (not store.zoe_moment_deflected_done
                 and not store.zoe_moment_deflected_pending
                 and store.zoe_affection >= 45
-                and store.zoe_trust >= 35
-                and store.zoe_beach_night_done):
+                and store.zoe_trust >= 35):
             store.zoe_moment_deflected_pending = True
             store.zoe_moment_deflected_pending_day = store.day
 
@@ -1058,6 +1062,10 @@ init python:
                 and store.day > store.npc_invitation_pending.get("expiry_day", -999)):
             store.npc_invitation_pending = None
 
+        # Zoe onboarding (zoe_onboarding.rpy): guaranteed first callback, the
+        # Marcus beach nudge and bootstrap completion. Runs before the picker so
+        # her scripted text is never crowded out by the daily initiative budget.
+        _zoe_bootstrap_tick()
         _check_npc_initiative()
         # Phases 57-59: new daily calls
         expire_player_states()
@@ -1091,15 +1099,67 @@ init python:
     def cosmetic_days_left():
         return max(0, store.cosmetic_boost_until - store.day)
 
+    def equipped_appearance_bonus():
+        """Sum of wearable APP bonuses with 100/70/40/20 diminishing returns.
+        ponytail: scans wardrobe slots only; home/lifestyle items don't count as worn."""
+        bonuses = []
+        for cat, _lbl in WARDROBE_CATEGORIES:
+            iid = store.wardrobe_equipped.get(cat) or WARDROBE_DEFAULT_ITEM.get(cat)
+            if iid and iid in ITEM_CATALOG:
+                b = ITEM_CATALOG[iid].get("appearance", 0)
+                if b > 0:
+                    bonuses.append(b)
+        bonuses.sort(reverse=True)
+        weights = [1.0, 0.7, 0.4, 0.2]
+        total = sum(b * weights[min(i, 3)] for i, b in enumerate(bonuses))
+        return int(round(total))
+
+    def temporary_appearance_bonus():
+        return 10 if store.day < getattr(store, 'cosmetic_boost_until', -1) else 0
+
     def eff_app():
-        """Effective Appearance: stat_app minus hygiene debuff, plus cosmetic temp bonus."""
+        """Effective Appearance: base + equipped + temporary, minus hygiene debuff."""
         h = store.need_hygiene
         if h >= 60: debuff = 0
         elif h >= 40: debuff = 5
         elif h >= 20: debuff = 12
         else: debuff = 22
-        bonus = 10 if store.day < store.cosmetic_boost_until else 0
-        return max(0, store.stat_app - debuff + bonus)
+        return max(0, store.stat_app + equipped_appearance_bonus() + temporary_appearance_bonus() - debuff)
+
+    def app_breakdown_tooltip():
+        """Detailed Appearance decomposition for the profile stat chip tooltip."""
+        base  = store.stat_app
+        equip = equipped_appearance_bonus()
+        temp  = temporary_appearance_bonus()
+        h = store.need_hygiene
+        if h >= 60: debuff = 0
+        elif h >= 40: debuff = 5
+        elif h >= 20: debuff = 12
+        else: debuff = 22
+        effective = max(0, base + equip + temp - debuff)
+        lines = ["Base Appearance: %d" % base]
+        if equip > 0:
+            parts = []
+            bonuses = []
+            for cat, _lbl in WARDROBE_CATEGORIES:
+                iid = store.wardrobe_equipped.get(cat) or WARDROBE_DEFAULT_ITEM.get(cat)
+                if iid and iid in ITEM_CATALOG:
+                    b = ITEM_CATALOG[iid].get("appearance", 0)
+                    if b > 0:
+                        bonuses.append((b, ITEM_CATALOG[iid]["label"]))
+            bonuses.sort(key=lambda x: -x[0])
+            weights = [1.0, 0.7, 0.4, 0.2]
+            for i, (b, lbl) in enumerate(bonuses):
+                eff_b = b * weights[min(i, 3)]
+                parts.append("%s +%d" % (lbl, int(round(eff_b))))
+            lines.append("Equipped: +%d (%s)" % (equip, " / ".join(parts)))
+        else:
+            lines.append("Equipped: +0")
+        lines.append("Temporary: %+d" % temp)
+        if debuff > 0:
+            lines.append("Hygiene penalty: -%d" % debuff)
+        lines.append("Effective: %d" % effective)
+        return "\n".join(lines)
 
     def worn_out():
         # performance penalty zone: shift quality suffers but work still possible

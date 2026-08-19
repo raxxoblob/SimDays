@@ -1577,6 +1577,26 @@ init python:
             _rs[npc_id] = "interested"
             store.romance_states = _rs
 
+    def _commit_first_kiss(npc_id):
+        """Central first-kiss state mutation.
+        Called by do_kiss() for the first-kiss outcome and by the M2 authored scene directly.
+        ponytail: authored scene bypasses do_kiss()'s context/cooldown gates intentionally.
+        """
+        kp = KISS_PROFILES.get(npc_id, {})
+        add_relationship_memory(npc_id, "first_kiss_" + npc_id, "First kiss")
+        _apply_aff(npc_id, kp.get("aff_gain", 5))
+        _apply_trust(npc_id, kp.get("trust_gain", 3))
+        if get_romance_state(npc_id) == "interested":
+            set_romance_state(npc_id, "dating", source="first_kiss")
+        _lk = dict(store.npc_last_kiss_day)
+        _lk[npc_id] = store.day
+        store.npc_last_kiss_day = _lk
+        _fa = dict(store.failed_physical_attempts)
+        _fa[(npc_id, "kiss")] = 0
+        store.failed_physical_attempts = _fa
+        # Chemistry: a first kiss is a genuine romantic milestone for both parties.
+        apply_relationship_change(npc_id, "first_kiss", "story_moment", attraction=6)
+
     def do_kiss(npc_id):
         """Execute a kiss attempt. Returns (outcome_key, display_text).
         outcome_key: low_affection | low_trust | romance_locked | romance_unopened
@@ -1667,13 +1687,7 @@ init python:
         store.npc_last_kiss_day = _lk
         # First kiss?
         if not relationship_memory_exists(npc_id, "first_kiss_" + npc_id):
-            add_relationship_memory(npc_id, "first_kiss_" + npc_id, "First kiss")
-            _apply_aff(npc_id, kp.get("aff_gain", 5))
-            _apply_trust(npc_id, kp.get("trust_gain", 3))
-            # State progression: a first kiss moves an open romance from
-            # "interested" to "dating". "dating"/"committed" stay as-is (no demotion).
-            if get_romance_state(npc_id) == "interested":
-                set_romance_state(npc_id, "dating", source="first_kiss")
+            _commit_first_kiss(npc_id)  # central mutation; also called by authored M2 scene
             return ("first_kiss", kp.get("first_kiss", "A first kiss."))
         # Repeat / warm
         days_since = store.day - last_kiss_day
@@ -2082,6 +2096,12 @@ label npc_interact(npc_id):
             if store._last_date_completed:
                 $ record_social_attention(npc_id, "date")
             $ _act = "leave"   # a date is the whole evening
+    # Farewell. The sprite and relbar are still up here, so it plays inside the
+    # interaction exactly like the greeting does.
+    if npc_id == "marcus" and marcus_met:
+        call marcus_farewell
+    elif npc_id == "zoe" and zoe_met:
+        call zoe_farewell
     $ _npc_panel_npc_id = None
     hide screen npc_relbar
     $ clear_npc_sprites()
@@ -2166,12 +2186,60 @@ label nora_greet:
     return
 
 label marcus_greet:
-    if marcus_affection >= 50:
-        m "Was just about to text you. What's up, man?"
-    elif marcus_affection >= 25:
-        m "There he is. Grab a seat."
+    # Continuity pass (relationship_continuity.rpy) brackets this label: `pre`
+    # may pre-empt the greeting entirely (same-day repeat, a repair he owes, or
+    # a busy shift), `post` runs a micro beat after it. The stage ladder below
+    # is untouched.
+    call rc_marcus_greet_pre
+    if _rc_greet_done:
+        return
+    # npc_last_seen was already stamped for today by npc_interact (line ~2011),
+    # so the gap has to be read from our own copy, the way nora_greet does.
+    # -999 means "never recorded" — a first conversation is not an absence.
+    $ _mg_gap = (day - marcus_last_seen_day) if marcus_last_seen_day >= 0 else 0
+    $ marcus_greet_gap = _mg_gap      # farewell reads it; the stamp below kills it
+    $ marcus_last_seen_day = day
+    $ _mg_stage = npc_relationship_stage("marcus")
+    if _mg_gap >= 5:
+        m "Haven't seen you in a minute."
+    elif (_mg_stage in ("close", "trusted") and not marcus_greet_late_done):
+        # One-shot, then a long gap before anything this playful again.
+        $ marcus_greet_late_done = True
+        $ marcus_greet_late_day  = day
+        m "You're late."
+        mc "For what?"
+        m "Hadn't decided yet."
+    elif _mg_stage in ("friend", "close", "trusted"):
+        m "You free?"
+    elif _mg_stage in ("friendly", "acquaintance"):
+        m "There he is."
     else:
-        m "Hey, neighbor. Surviving?"
+        m "Hey, neighbor."
+    call rc_marcus_greet_post
+    return
+
+
+# Farewell. Called from npc_interact's exit, after the action loop.
+label marcus_farewell:
+    # One farewell per in-game day, whatever the interaction count.
+    if rc_marcus_farewell_day == day:
+        return
+    $ rc_marcus_farewell_day = day
+    if worn_out() or need_energy < 25:
+        m "Go sleep."
+    elif (npc_invitation_pending is not None
+          and npc_invitation_pending.get("npc_id") == "marcus"):
+        # Only where a repeatable thing genuinely exists — the standing park
+        # invite. Otherwise "Same time?" refers to nothing.
+        m "Same time?"
+    elif marcus_greet_late_day == day:
+        # He opened with the playful one; he does not also close with a joke.
+        m "Text me."
+    elif marcus_greet_gap >= 5:
+        # Light, not guilt. He is noting it, not billing you for it.
+        m "Don't disappear."
+    elif "marcus" in npc_contacts and npc_relationship_stage("marcus") in ("friend", "close", "trusted"):
+        m "Text me."
     return
 
 label caroline_greet:
@@ -2220,12 +2288,31 @@ label elle_greet:
     return
 
 label zoe_greet:
-    if zoe_affection >= 50:
-        z "Hey, you. Pull up some grass. I'm avoiding a canvas that's avoiding me."
-    elif zoe_affection >= 25:
-        z "Oh, it's you. Good - I needed an excuse to stop pretending to sketch."
-    else:
-        z "You're blocking my light. ...Kidding. Mostly. I'm Zoe."
+    # Depth-pass callbacks (zoe_arc.rpy): each acknowledged once, in person,
+    # same shape as nora_greet's cover-shift thanks.
+    if zoe_rain_done and not zoe_rain_greet_said:
+        $ zoe_rain_greet_said = True
+        # These two paths skip rc_zoe_greet_pre, which is where the absence
+        # counter is normally stamped — without this, today reads as a day away.
+        $ rc_zoe_last_seen_day = day
+        $ rc_zoe_greet_day = day
+        z "No rain today. Shame. That shelter's wasted on a clear afternoon."
+        return
+    if zoe_home_guitar_done and knows_zoe_bass_history and not zoe_guitar_bass_greet_said:
+        $ zoe_guitar_bass_greet_said = True
+        $ rc_zoe_last_seen_day = day
+        $ rc_zoe_greet_day = day
+        z "I've had your guitar stuck in my head for two days, which is annoying."
+        z "Bass is a different instrument. I'd like that on the record."
+        return
+    # Continuity pass (relationship_continuity.rpy). The affection ladder that
+    # used to live here is now a relationship-STAGE ladder in rc_zoe_stage_greet,
+    # which is the same band system marcus_greet already reads.
+    call rc_zoe_greet_pre
+    if _rc_greet_done:
+        return
+    call rc_zoe_stage_greet
+    call rc_zoe_greet_post
     return
 
 label sam_greet:
@@ -2274,6 +2361,15 @@ label do_hug_interaction(npc_id):
     return
 
 label do_kiss_interaction(npc_id):
+    # Zoe first-kiss guard: the authored M2 scene owns the first kiss.
+    # Prevent generic interaction from stealing it while Zoe is in "interested" state.
+    if (npc_id == "zoe"
+            and get_romance_state("zoe") == "interested"
+            and not relationship_memory_exists("zoe", "first_kiss_zoe")
+            and not zoe_first_date_done):
+        $ show_npc_expr("zoe", "talk")
+        z "You're skipping ahead."
+        return
     $ (_kiss_outcome, _kiss_text) = do_kiss(npc_id)
     $ show_npc_expr(npc_id, "laugh" if _kiss_outcome in ("first_kiss", "warm", "repeat") else "angry")
     if _kiss_outcome == "first_kiss":

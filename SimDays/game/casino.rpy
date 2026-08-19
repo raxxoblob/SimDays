@@ -1,10 +1,10 @@
-# casino.rpy — Blackjack + Roulette
+# casino.rpy — Casino Royal: location floor + Blackjack + Roulette
 # Cards: images/ui/cards_cropped_53/ (126×187 px, ~2:3)
-# Displayed at CARD_W×CARD_H; back uses old cards/card_back.png.
+# Chips: images/ui/casino/chips/chip_N.png (128×128 circular transparent PNG)
 
 init python:
-    CARD_W = 105
-    CARD_H = 156
+    CARD_W = 122
+    CARD_H  = 181
 
     _BJ_RANKS  = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
     _BJ_SUITS  = ["♠","♥","♦","♣"]
@@ -37,40 +37,53 @@ init python:
 
     _ROU_REDS = {1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36}
 
-    # Chip denominations: (label, amount, fill_color, text_color)
+    # Chip denominations: (img_key, amount, text for tray label)
     _CHIPS = [
-        ("5",     5,    "#e8e8e8", "#111"),
-        ("25",   25,    "#2a8a2a", "#fff"),
-        ("100",  100,   "#111111", "#fff"),
-        ("250",  250,   "#7b3fa0", "#fff"),
-        ("500",  500,   "#c8a000", "#111"),
+        (5,   "chip_5"),
+        (25,  "chip_25"),
+        (100, "chip_100"),
+        (250, "chip_250"),
+        (500, "chip_500"),
     ]
+
+    def _chip_img(amt):
+        return "images/ui/casino/chips/chip_%d.png" % amt
 
     # ── Blackjack ─────────────────────────────────────────────────────────────
     class _BJ:
         def __init__(self):
-            self.deck     = _bj_new_deck()
-            self.player   = []
-            self.dealer   = []
-            self.bet      = 25
-            self.hand_bet = 25
-            self.phase    = "betting"   # betting | playing | result
-            self.msg      = ""
+            self.deck      = _bj_new_deck()
+            self.player    = []
+            self.dealer    = []
+            self.bet       = 0          # sum of bet_chips
+            self.bet_chips = []         # list of chip denominations placed
+            self.hand_bet  = 0
+            self.phase     = "betting"  # betting | playing | result
+            self.msg       = ""
 
         def new_game(self):
             if len(self.deck) < 15:
                 self.deck = _bj_new_deck()
-            self.player   = []
-            self.dealer   = []
-            self.phase    = "betting"
-            self.msg      = ""
-            self.hand_bet = self.bet
+            self.player    = []
+            self.dealer    = []
+            self.phase     = "betting"
+            self.msg       = ""
+            self.hand_bet  = self.bet
+            # bet_chips preserved so Play Again re-uses last stake
 
         def add_chip(self, amt):
-            self.bet = min(2000, self.bet + amt)
+            chips = getattr(self, 'bet_chips', [])
+            chips = list(chips)     # copy so old saves don't mutate unexpectedly
+            chips.append(amt)
+            total = sum(chips)
+            if total > 2000:
+                return              # silently cap
+            self.bet_chips = chips
+            self.bet       = total
 
         def clear_bet(self):
-            self.bet = 0
+            self.bet_chips = []
+            self.bet       = 0
 
         def deal(self):
             if self.bet <= 0:
@@ -125,12 +138,13 @@ init python:
     # ── Roulette — multi-bet ──────────────────────────────────────────────────
     class _Rou:
         def __init__(self):
-            self.result   = None
-            self.bets     = []   # list of {"type":str, "num":int|None, "amt":int}
-            self.chip_amt = 25   # currently selected chip denomination
-            self.msg      = ""
-            self.phase    = "betting"
-            self._pending = 0
+            self.result       = None
+            self.bets         = []    # list of {"type":str, "num":int|None, "amt":int, "chips":[int,...]}
+            self.chip_amt     = 25    # currently selected chip denomination
+            self.msg          = ""
+            self.phase        = "betting"
+            self._pending     = 0
+            self._locked_bets = []    # snapshot taken at start_spin(); settlement uses this
 
         def _find_bet(self, bet_type, num):
             for b in self.bets:
@@ -140,10 +154,12 @@ init python:
 
         def add_bet(self, bet_type, num=None):
             existing = self._find_bet(bet_type, num)
+            amt = self.chip_amt
             if existing:
-                existing["amt"] += self.chip_amt
+                existing["amt"] += amt
+                existing.setdefault("chips", []).append(amt)
             else:
-                self.bets.append({"type": bet_type, "num": num, "amt": self.chip_amt})
+                self.bets.append({"type": bet_type, "num": num, "amt": amt, "chips": [amt]})
 
         def remove_bet(self, bet_type, num=None):
             self.bets = [b for b in self.bets
@@ -156,15 +172,32 @@ init python:
             self.bets = []
 
         def bet_on(self, bet_type, num=None):
-            """Amount staked on this exact position (0 if none)."""
             b = self._find_bet(bet_type, num)
             return b["amt"] if b else 0
+
+        def bet_chips_on(self, bet_type, num=None):
+            """Return chip list for a position, or reconstruct from amt for old saves."""
+            b = self._find_bet(bet_type, num)
+            if not b:
+                return []
+            chips = b.get("chips")
+            if chips:
+                return chips
+            # old-save reconstruction: fill with largest denominations that fit
+            amt = b["amt"]
+            result = []
+            for denom in [500, 250, 100, 25, 5]:
+                while amt >= denom:
+                    result.append(denom); amt -= denom
+            return result
 
         def start_spin(self):
             if not self.bets:
                 self.msg = "Place at least one bet."; return False
             if not try_spend(self.total_bet(), category="gambling", toast=False):
                 self.msg = "Not enough money."; return False
+            # Snapshot paid bets before animation — settlement must use this, not live self.bets
+            self._locked_bets = [dict(b) for b in self.bets]
             self._pending = renpy.random.randint(0, 36)
             self.result   = None
             self.msg      = ""
@@ -175,40 +208,62 @@ init python:
             n      = self._pending
             self.result = n
             red    = (n in _ROU_REDS)
-            staked = self.total_bet()
+            # Use locked snapshot — immune to any bet mutation during spin animation
+            locked = getattr(self, '_locked_bets', list(self.bets))
+            staked = sum(b["amt"] for b in locked)
             returned = 0
-            for b in self.bets:
+            for b in locked:
                 bt, ba, bn = b["type"], b["amt"], b.get("num")
                 mult = 0
-                if   bt == "red"    and n != 0 and red:        mult = 2
-                elif bt == "black"  and n != 0 and not red:    mult = 2
-                elif bt == "even"   and n != 0 and n % 2 == 0: mult = 2
-                elif bt == "odd"    and n % 2 == 1:            mult = 2
-                elif bt == "low"    and 1 <= n <= 18:          mult = 2
-                elif bt == "high"   and 19 <= n <= 36:         mult = 2
-                elif bt == "doz1"   and 1 <= n <= 12:          mult = 3
-                elif bt == "doz2"   and 13 <= n <= 24:         mult = 3
-                elif bt == "doz3"   and 25 <= n <= 36:         mult = 3
-                elif bt == "number" and n == bn:               mult = 37
+                if   bt == "red"    and n != 0 and red:         mult = 2
+                elif bt == "black"  and n != 0 and not red:     mult = 2
+                elif bt == "even"   and n != 0 and n % 2 == 0:  mult = 2
+                elif bt == "odd"    and n % 2 == 1:             mult = 2
+                elif bt == "low"    and 1 <= n <= 18:           mult = 2
+                elif bt == "high"   and 19 <= n <= 36:          mult = 2
+                elif bt == "doz1"   and 1 <= n <= 12:           mult = 3
+                elif bt == "doz2"   and 13 <= n <= 24:          mult = 3
+                elif bt == "doz3"   and 25 <= n <= 36:          mult = 3
+                elif bt == "number" and n == bn:                mult = 37
                 returned += ba * mult
             if returned:
                 store.money += returned
-                self.msg = "No. %d  —  +$%d!" % (n, returned - staked)
+                net = returned - staked
+                color_tag = ("GREEN" if n == 0 else ("RED" if red else "BLACK"))
+                self.msg = "%d  %s\n+$%d" % (n, color_tag, net)
             else:
-                self.msg = "No. %d  —  -$%d" % (n, staked)
+                color_tag = ("GREEN" if n == 0 else ("RED" if red else "BLACK"))
+                self.msg = "%d  %s\n-$%d" % (n, color_tag, staked)
             self.phase = "result"
 
         def reset(self):
-            self.result = None
-            self.msg    = ""
-            self.phase  = "betting"
-            self.bets   = []
+            self.result       = None
+            self.msg          = ""
+            self.phase        = "betting"
+            self.bets         = []
+            self._locked_bets = []
 
     bj_game  = _BJ()
     rou_game = _Rou()
 
 
-# ── Entry ──────────────────────────────────────────────────────────────────────
+# ── Transforms ────────────────────────────────────────────────────────────────
+
+transform _rou_spin_anim:
+    rotate 0.0
+    linear 2.5 rotate 1440.0
+
+transform _rou_static(angle):
+    rotate angle
+
+transform _chip_selected:
+    zoom 1.08 yoffset -5
+
+transform _chip_idle:
+    zoom 1.0 yoffset 0
+
+
+# ── Location entry ─────────────────────────────────────────────────────────────
 
 label location_casino:
     $ current_loc = "location_casino"
@@ -218,10 +273,62 @@ label location_casino:
     if stat_chr < 25:
         "The doorman barely glances at you. \"Members and guests only.\" He doesn't move."
         jump location_nadbrzeze
+    jump casino_floor_actions
+
+label casino_floor_actions:
+    $ current_loc = "location_casino"
+    $ activity_exit_jump = "location_nadbrzeze"
+    $ activity_exit_name = "Quayside"
     scene casino_night
     show screen hud
-    $ bj_game.new_game()
-    jump casino_blackjack_loop
+    hide screen people_here_dock
+    # World Event Director
+    $ _wed_amb = wed_poll_ambient("location_casino")
+    if _wed_amb:
+        call expression _wed_amb
+    $ _wed_per = wed_poll_personal("location_casino")
+    if _wed_per:
+        call expression _wed_per
+    # Living-world pipeline: invitation → crossover → ambient (once per visit)
+    $ _lw = process_location_entry("location_casino")
+    if _lw:
+        if _lw[0] == "invitation":
+            call run_npc_invitation(_lw[1]["id"])
+        elif _lw[0] == "crossover":
+            call run_crossover(_lw[1])
+        elif _lw[0] == "ambient":
+            $ record_location_ambient(_lw[1]["id"], "location_casino")
+            $ renpy.notify(_lw[1]["text"])
+        else:
+            call run_living_world_extra(_lw[0], _lw[1])
+    $ _vis = location_sprites()
+    call show_public_sprites
+    show screen people_here_dock("casino_floor_actions")
+    menu (screen="activity"):
+        "Blackjack Table (0.25h per hand)":
+            $ bj_game.new_game()
+            hide screen people_here_dock
+            $ set_hud("hidden")
+            jump casino_blackjack_loop
+        "Roulette Table (0.25h per spin)":
+            $ rou_game.reset()
+            hide screen people_here_dock
+            $ set_hud("hidden")
+            jump casino_roulette_loop
+        "Casino Bar — have a drink ($8, 0.5h)":
+            $ spend_time(0.5)
+            $ gain_money(-8)
+            "The bartender sets down a heavy crystal glass. You nurse it slowly, watching the tables."
+            jump casino_floor_actions
+        "Look Around (0.5h)":
+            $ spend_time(0.5)
+            "The casino hums with restrained energy — the soft clatter of chips, a dealer's murmur, the faint click of a roulette ball finding its number."
+            jump casino_floor_actions
+        "Leave":
+            jump location_nadbrzeze
+
+
+# ── Blackjack loop ─────────────────────────────────────────────────────────────
 
 label casino_blackjack_loop:
     call screen casino_blackjack
@@ -242,12 +349,13 @@ label casino_blackjack_loop:
         $ bj_game.double_down()
     elif _return == "new_game":
         $ bj_game.new_game()
-    elif _return == "roulette":
-        $ rou_game.reset()
-        jump casino_roulette_loop
-    elif _return == "leave":
-        jump location_nadbrzeze
+    elif _return == "back":
+        $ set_hud("full")
+        jump casino_floor_actions
     jump casino_blackjack_loop
+
+
+# ── Roulette loop ──────────────────────────────────────────────────────────────
 
 label casino_roulette_loop:
     call screen casino_roulette
@@ -269,111 +377,103 @@ label casino_roulette_loop:
         $ rou_game.finish_spin()
     elif _return == "reset":
         $ rou_game.reset()
-    elif _return == "blackjack":
-        $ bj_game.new_game()
-        jump casino_blackjack_loop
-    elif _return == "leave":
-        jump location_nadbrzeze
+    elif _return == "back":
+        $ set_hud("full")
+        jump casino_floor_actions
     jump casino_roulette_loop
 
 
-# ── Shared left sidebar ────────────────────────────────────────────────────────
-# Used as `use casino_sidebar(active)` inside both game screens.
-# active: "blackjack" | "roulette"
+# ── Shared chip-stack sub-screen ───────────────────────────────────────────────
+# chips: list of int denominations (oldest first, newest last = visually on top)
+# compact: True = 56px chips, False = 72px chips
+# xsize/ysize of this screen adjusts to content; parent places it with xalign/ypos.
 
-screen casino_sidebar(active):
-    frame:
-        xpos 0 ypos 0
-        xsize 210 ysize 1080
-        background "#0d0f0eee"
-        padding (14, 30, 14, 20)
-        vbox:
-            spacing 0
-            # Casino logo / title
-            text "CASINO" xalign 0.5 font PROFILE_FONT size 28 color "#d4af37"
-            null height 4
-            text "ROYAL" xalign 0.5 font PROFILE_FONT size 13 color "#a07820"
-            null height 20
-            # Balance
-            frame:
-                xfill True
-                background "#1a2a1a"
-                padding (10, 8, 10, 8)
-                vbox:
-                    spacing 2
-                    text "BALANCE" xalign 0.5 font PROFILE_FONT size 11 color "#5a8a5a"
-                    text "$[money]" xalign 0.5 font PROFILE_FONT size 22 color "#7fd06a"
-            null height 30
-            # Game tabs
-            text "GAMES" xalign 0.5 font PROFILE_FONT size 11 color "#5a6a5a"
-            null height 8
-            textbutton "♠ Blackjack":
-                xfill True
-                action (NullAction() if active == "blackjack" else Return("blackjack"))
-                background ("#1a3a1a" if active == "blackjack" else "#111811")
-                hover_background "#1a3a1a"
-                padding (10, 10, 10, 10)
-                text_font PROFILE_FONT text_size 16
-                text_color ("#d4af37" if active == "blackjack" else "#9ab89a")
-                text_hover_color "#d4af37"
-            null height 6
-            textbutton "◉ Roulette":
-                xfill True
-                action (NullAction() if active == "roulette" else Return("roulette"))
-                background ("#1a3a1a" if active == "roulette" else "#111811")
-                hover_background "#1a3a1a"
-                padding (10, 10, 10, 10)
-                text_font PROFILE_FONT text_size 16
-                text_color ("#d4af37" if active == "roulette" else "#9ab89a")
-                text_hover_color "#d4af37"
-            null height 40
-            # Leave
-            textbutton "← Leave":
-                xfill True
-                action Return("leave")
-                background "#0d0f0e"
-                hover_background "#1a1a1a"
-                padding (10, 8, 10, 8)
-                text_font ACT_FONT text_size 15
-                text_color "#5a6a5a" text_hover_color "#9ab89a"
-
+screen casino_chip_stack(chips, compact=False):
+    $ _sz   = 56 if compact else 72
+    $ _step = 8  if compact else 11
+    $ _shown = list(chips)[-5:] if chips else []
+    $ _count = len(_shown)
+    fixed:
+        xsize _sz
+        ysize (_sz + max(0, _count - 1) * _step + 4)
+        for _ci, _ca in enumerate(_shown):
+            # _ci=0 is oldest (bottom of stack, drawn first = behind)
+            # _ci=N-1 is newest (top of stack, drawn last = in front)
+            # bottom chip sits at highest ypos (visually lowest in fixed)
+            add _chip_img(_ca):
+                xysize (_sz, _sz)
+                xpos 0
+                ypos (_count - 1 - _ci) * _step
 
 
 # ── Blackjack screen ───────────────────────────────────────────────────────────
+# Returns: ("chip", amount) | "clear_bet" | "deal" | "hit" | "stand" | "double"
+#          "new_game" | "back"
+# Background: casino_night scene underneath; dark overlay here.
 
 screen casino_blackjack():
-    add "casino_night"
-    use casino_sidebar("blackjack")
+    # Dark overlay so casino bg remains visible but table pops
+    add Solid("#00000096") xpos 0 ypos 0 xsize 1920 ysize 1080
 
-    # ── Main table area (x 210 → 1920) ────────────────────────────────────────
+    # Main panel — centered
     frame:
-        xpos 210 ypos 0
-        xsize 1710 ysize 1080
-        background "#00000000"
+        xalign 0.5 yalign 0.5
+        xsize 1500 ysize 880
+        background "#161616f5"
         padding (0, 0, 0, 0)
 
-        # Green felt
+        # ── Header bar ──────────────────────────────────────────────────────
         frame:
-            xalign 0.5 yalign 0.5
-            xsize 1300 ysize 820
-            background "#0a2a0a"
+            xfill True ysize 58
+            background "#0d0d0dee"
+            padding (28, 0, 20, 0)
+            hbox:
+                xfill True yalign 0.5 spacing 0
+                text "♠  BLACKJACK":
+                    font PROFILE_FONT size 22 color "#d4af37" yalign 0.5
+                null xfill True
+                text ("Balance  $%d" % money):
+                    font ACT_FONT size 18 color "#b8b0a0" yalign 0.5
+                null width 28
+                textbutton "← Back to Casino":
+                    action Return("back")
+                    background None hover_background None
+                    padding (16, 0, 0, 0)
+                    text_font ACT_FONT text_size 17
+                    text_color "#7a8a7a" text_hover_color "#c0d4c0"
+                    yalign 0.5
+
+        # ── Felt table area ─────────────────────────────────────────────────
+        frame:
+            xalign 0.5 ypos 66
+            xsize 1460 ysize 806
+            background "#0b2e0bdd"
             padding (0, 0, 0, 0)
 
-            # ── DEALER section ─────────────────────────────────────────────────
-            text "DEALER" xalign 0.5 ypos 24 font PROFILE_FONT size 14 color "#3a7a3a"
+            # Subtle brass border (drawn as a second frame on top)
+            frame:
+                xfill True yfill True
+                background "#00000000"
+                foreground Frame("images/ui/act_bar_idle.png", 6, 6)
 
-            # dealer total (hidden during play)
+            # ── DEALER ────────────────────────────────────────────────────
+            text "DEALER":
+                xalign 0.5 ypos 22
+                font PROFILE_FONT size 16 color "#3a7040"
+
             if bj_game.dealer and bj_game.phase != "playing":
                 $ _dt = _bj_total(bj_game.dealer)
-                $ _dt_col = ("#e05050" if _dt > 21 else "#ffffff")
-                text str(_dt) xalign 0.5 ypos 52 font PROFILE_FONT size 30 color _dt_col
+                $ _dt_col = ("#e05050" if _dt > 21 else "#f0f0f0")
+                text str(_dt):
+                    xalign 0.5 ypos 48
+                    font PROFILE_FONT size 34 color _dt_col
 
-            # dealer cards centred
-            fixed xalign 0.5 ypos 90 xsize 800 ysize 170:
+            # Dealer cards — centered row
+            fixed xalign 0.5 ypos 90 xsize 900 ysize 190:
                 if bj_game.dealer:
                     $ _dw = len(bj_game.dealer) * CARD_W + (len(bj_game.dealer)-1) * 10
                     hbox:
-                        xpos max(0, (800 - _dw) // 2)
+                        xpos max(0, (900 - _dw) // 2)
                         spacing 10
                         for _di, (_dr, _ds) in enumerate(bj_game.dealer):
                             if _di == 1 and bj_game.phase == "playing":
@@ -381,327 +481,426 @@ screen casino_blackjack():
                             else:
                                 add _card_img(_dr, _ds) xysize (CARD_W, CARD_H)
 
-            # ── Centre divider ─────────────────────────────────────────────────
+            # ── Centre divider ────────────────────────────────────────────
             frame:
-                xalign 0.5 ypos 290
-                xsize 900 ysize 2
-                background "#1a4a1a"
+                xalign 0.5 ypos 306
+                xsize 1000 ysize 2
+                background "#1e5a1e"
 
-            # BET DISPLAY centred
+            # ── Betting spot ──────────────────────────────────────────────
+            # Circular felt area showing stacked chips
+            $ _bchips = getattr(bj_game, 'bet_chips', [])
+            frame:
+                xalign 0.5 ypos 318
+                xsize 150 ysize 100
+                background "#092e09"
+                padding (0, 0, 0, 0)
+                # Chips inside the circle area
+                if _bchips:
+                    fixed xalign 0.5 yalign 0.5:
+                        use casino_chip_stack(_bchips, compact=True)
+                else:
+                    text "BET":
+                        xalign 0.5 yalign 0.5
+                        font PROFILE_FONT size 13 color "#2a5a2a"
+
+            # Bet total below the circle
             if bj_game.phase == "betting":
-                frame:
-                    xalign 0.5 ypos 310
-                    xsize 220 ysize 60
-                    background "#0d200d"
-                    padding (12, 8, 12, 8)
-                    hbox:
-                        xalign 0.5 spacing 12 yalign 0.5
-                        text "BET" font PROFILE_FONT size 14 color "#5a8a5a" yalign 0.5
-                        text ("$%d" % bj_game.bet) font PROFILE_FONT size 26 color "#d4af37" yalign 0.5
-                        if bj_game.bet > 0:
-                            textbutton "✕":
-                                action Return("clear_bet")
-                                background None hover_background None
-                                text_font PROFILE_FONT text_size 18
-                                text_color "#883333" text_hover_color "#cc4444"
-                                yalign 0.5
+                hbox:
+                    xalign 0.5 ypos 424
+                    spacing 14 yalign 0.5
+                    text ("$%d" % bj_game.bet):
+                        font PROFILE_FONT size 28 color "#d4af37" yalign 0.5
+                    if _bchips:
+                        textbutton "✕":
+                            action Return("clear_bet")
+                            background None hover_background None
+                            padding (0, 0, 0, 0)
+                            text_font PROFILE_FONT text_size 20
+                            text_color "#883030" text_hover_color "#cc4040"
+                            yalign 0.5
 
-            # ── PLAYER section ─────────────────────────────────────────────────
-            # player cards centred
-            fixed xalign 0.5 ypos 400 xsize 800 ysize 170:
+            # ── PLAYER cards ──────────────────────────────────────────────
+            fixed xalign 0.5 ypos 436 xsize 900 ysize 190:
                 if bj_game.player:
                     $ _pw = len(bj_game.player) * CARD_W + (len(bj_game.player)-1) * 10
                     hbox:
-                        xpos max(0, (800 - _pw) // 2)
+                        xpos max(0, (900 - _pw) // 2)
                         spacing 10
                         for _pr, _ps in bj_game.player:
                             add _card_img(_pr, _ps) xysize (CARD_W, CARD_H)
 
             if bj_game.player:
                 $ _pt = _bj_total(bj_game.player)
-                $ _pt_col = ("#e05050" if _pt > 21 else ("#d4af37" if _pt == 21 else "#ffffff"))
-                text str(_pt) xalign 0.5 ypos 574 font PROFILE_FONT size 30 color _pt_col
+                $ _pt_col = ("#e05050" if _pt > 21 else ("#d4af37" if _pt == 21 else "#f0f0f0"))
+                text str(_pt):
+                    xalign 0.5 ypos 630
+                    font PROFILE_FONT size 34 color _pt_col
 
-            text "YOU" xalign 0.5 ypos 612 font PROFILE_FONT size 14 color "#3a7a3a"
+            text "YOU":
+                xalign 0.5 ypos 672
+                font PROFILE_FONT size 16 color "#3a7040"
 
-            # ── Message ────────────────────────────────────────────────────────
+            # ── Message ───────────────────────────────────────────────────
             if bj_game.msg:
-                text bj_game.msg xalign 0.5 ypos 650 font PROFILE_FONT size 26 color "#f0d060"
+                text bj_game.msg:
+                    xalign 0.5 ypos 700
+                    font PROFILE_FONT size 26 color "#f0d060"
 
-            # ── Controls ───────────────────────────────────────────────────────
+            # ── Controls ──────────────────────────────────────────────────
             if bj_game.phase == "betting":
-                # Chip strip — centred on the felt
+                # Chip tray
                 hbox:
-                    xalign 0.5 ypos 695 spacing 10
-                    for _clbl, _camt, _cfill, _ctxt in _CHIPS:
+                    xalign 0.5 ypos 466 spacing 14
+                    for _camt, _ckey in _CHIPS:
                         button:
-                            xysize (64, 56)
-                            background Solid(_cfill)
-                            hover_background Solid(_cfill)
+                            xysize (76, 76)
+                            background None hover_background None
                             action Return(("chip", _camt))
-                            text ("$" + _clbl) xalign 0.5 yalign 0.5 font PROFILE_FONT size 13 color _ctxt
+                            add _chip_img(_camt) xysize (76, 76)
 
+                # Deal button
                 textbutton "DEAL":
-                    xalign 0.5 ypos 762
+                    xalign 0.5 ypos 550
                     action Return("deal")
                     background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
                     hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
-                    padding (40, 12, 40, 12)
-                    text_font PROFILE_FONT text_size 28 text_color "#d4af37" text_hover_color "#ffffff"
+                    padding (48, 14, 48, 14)
+                    text_font PROFILE_FONT text_size 26 text_color "#d4af37" text_hover_color "#ffffff"
 
             elif bj_game.phase == "playing":
                 hbox:
-                    xalign 0.5 ypos 720 spacing 20
-
+                    xalign 0.5 ypos 720 spacing 18
                     textbutton "HIT":
                         action Return("hit")
-                        background "#1a3a1a"
-                        hover_background "#2a5a2a"
-                        padding (28, 12, 28, 12)
-                        text_font PROFILE_FONT text_size 24 text_color "#d4af37" text_hover_color "#ffffff"
-
+                        background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        padding (32, 12, 32, 12)
+                        text_font PROFILE_FONT text_size 20 text_color "#d4af37" text_hover_color "#ffffff"
                     textbutton "STAND":
                         action Return("stand")
-                        background "#3a1a1a"
-                        hover_background "#5a2a2a"
-                        padding (28, 12, 28, 12)
-                        text_font PROFILE_FONT text_size 24 text_color "#e08080" text_hover_color "#ffffff"
-
+                        background Frame("images/ui/act_bar_idle.png", 20, 20)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        padding (32, 12, 32, 12)
+                        text_font PROFILE_FONT text_size 20 text_color "#c0c0c0" text_hover_color "#ffffff"
                     if money >= bj_game.hand_bet and len(bj_game.player) == 2:
                         textbutton "DOUBLE":
                             action Return("double")
-                            background "#1a1a3a"
-                            hover_background "#2a2a5a"
-                            padding (22, 12, 22, 12)
-                            text_font PROFILE_FONT text_size 22 text_color "#80a0e0" text_hover_color "#ffffff"
+                            background Frame("images/ui/act_bar_idle.png", 20, 20)
+                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                            padding (26, 12, 26, 12)
+                            text_font PROFILE_FONT text_size 20 text_color "#a0b8c0" text_hover_color "#ffffff"
 
             elif bj_game.phase == "result":
                 hbox:
-                    xalign 0.5 ypos 730 spacing 20
+                    xalign 0.5 ypos 730 spacing 18
                     textbutton "Play Again":
                         action Return("new_game")
-                        background "#1a3a1a" hover_background "#2a5a2a"
-                        padding (24, 10, 24, 10)
-                        text_font PROFILE_FONT text_size 22 text_color "#d4af37" text_hover_color "#ffffff"
-                    textbutton "Roulette":
-                        action Return("roulette")
-                        background "#1a1a3a" hover_background "#2a2a5a"
-                        padding (20, 10, 20, 10)
-                        text_font ACT_FONT text_size 18 text_color "#9ab8e0" text_hover_color "#ffffff"
+                        background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        padding (28, 12, 28, 12)
+                        text_font PROFILE_FONT text_size 19 text_color "#d4af37" text_hover_color "#ffffff"
+                    textbutton "Back to Casino":
+                        action Return("back")
+                        background Frame("images/ui/act_bar_idle.png", 20, 20)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        padding (24, 12, 24, 12)
+                        text_font ACT_FONT text_size 17 text_color "#9ab89a" text_hover_color "#ffffff"
 
 
 # ── Roulette screen ────────────────────────────────────────────────────────────
-
-transform _rou_spin_anim:
-    rotate 0.0
-    linear 2.5 rotate 1440.0
-
-transform _rou_static(angle):
-    rotate angle
+# Returns: ("add_bet", type, num) | ("remove_bet", type, num) | ("set_chip", amt)
+#          "clear_bets" | "spin" | "spin_done" | "reset" | "back"
 
 screen casino_roulette():
     if rou_game.phase == "spinning":
         timer 2.5 action Return("spin_done")
 
-    add "casino_night"
-    use casino_sidebar("roulette")
+    # Dark overlay
+    add Solid("#00000096") xpos 0 ypos 0 xsize 1920 ysize 1080
 
-    # ── Main area x=210 ───────────────────────────────────────────────────────
+    # Main panel — centered
     frame:
-        xpos 218 ypos 30
-        xsize 1680 ysize 1020
-        background "#00000000"
+        xalign 0.5 yalign 0.5
+        xsize 1540 ysize 880
+        background "#161616f5"
         padding (0, 0, 0, 0)
 
-        # ── Betting table (left 1060px) ────────────────────────────────────────
+        # ── Header bar ──────────────────────────────────────────────────────
         frame:
-            xpos 0 ypos 0
-            xsize 1060 ysize 700
-            background "#0a2a0a"
-            padding (12, 12, 12, 12)
+            xfill True ysize 58
+            background "#0d0d0dee"
+            padding (28, 0, 20, 0)
+            hbox:
+                xfill True yalign 0.5 spacing 0
+                text "◉  ROULETTE":
+                    font PROFILE_FONT size 22 color "#d4af37" yalign 0.5
+                null xfill True
+                text ("Balance  $%d" % money):
+                    font ACT_FONT size 18 color "#b8b0a0" yalign 0.5
+                null width 28
+                textbutton "← Back to Casino":
+                    action Return("back")
+                    background None hover_background None
+                    padding (16, 0, 0, 0)
+                    text_font ACT_FONT text_size 17
+                    text_color "#7a8a7a" text_hover_color "#c0d4c0"
+                    yalign 0.5
 
-            # 0 — green cell
-            $ _b0 = rou_game.bet_on("number", 0)
-            button:
-                xysize (52, 213)
+        # ── Content area ────────────────────────────────────────────────────
+        frame:
+            xpos 0 ypos 58
+            xsize 1540 ysize 822
+            background "#00000000"
+            padding (0, 0, 0, 0)
+
+            # ── Left: Betting mat (~920px) ────────────────────────────────
+            frame:
                 xpos 0 ypos 0
-                action Return(("add_bet", "number", 0))
-                background ("#145214" if not _b0 else "#1e7a1e")
-                hover_background "#1e7a1e"
-                vbox:
-                    xalign 0.5 yalign 0.5
-                    text "0" xalign 0.5 yalign 0.5 font PROFILE_FONT size 20 color "#ffffff"
-                    if _b0:
-                        text ("$%d" % _b0) xalign 0.5 font ACT_FONT size 11 color "#d4af37"
+                xsize 920 ysize 822
+                background "#0b2e0bcc"
+                padding (12, 16, 12, 12)
 
-            # Numbers 1–36: col 0-11, row 0-2  → n = col*3 + (3-row)
-            for _col in range(12):
-                for _row in range(3):
-                    $ _n   = _col * 3 + (3 - _row)
-                    $ _bn  = rou_game.bet_on("number", _n)
-                    $ _red = (_n in _ROU_REDS)
-                    $ _base_bg = ("#4a1010" if _red else "#0f0f0f")
-                    $ _sel_bg  = ("#7a2020" if _red else "#2a2a2a")
-                    button:
-                        xysize (78, 69)
-                        xpos 58 + _col * 82
-                        ypos _row * 72
-                        action Return(("add_bet", "number", _n))
-                        background (_sel_bg if _bn else _base_bg)
-                        hover_background _sel_bg
-                        vbox:
-                            xalign 0.5 yalign 0.5
-                            text str(_n) xalign 0.5 yalign 0.5 font PROFILE_FONT size 18 color "#ffffff"
-                            if _bn:
-                                text ("$%d" % _bn) xalign 0.5 font ACT_FONT size 11 color "#d4af37"
+                # Relative positions of cells (within the 896×790 inner area):
+                #   0:      xpos 0,     ypos 0, xysize (58, 219)
+                #   n 1-36: col=(n-1)//3, row=2-((n-1)%3)
+                #           xpos=62+col*70, ypos=row*73, xysize(68,71)
+                #   Dozens: xpos=62+di*278, ypos=222, xysize(276,46)
+                #   Outside:xpos=62+oi*140, ypos=272, xysize(138,46)
 
-            # Dozens row
-            for _di, (_dl, _dt) in enumerate([("1st 12","doz1"),("2nd 12","doz2"),("3rd 12","doz3")]):
-                $ _bd = rou_game.bet_on(_dt)
+                # Is betting locked?
+                $ _rou_locked = (rou_game.phase != "betting")
+
+                # Zero button
+                $ _b0 = rou_game.bet_on("number", 0)
                 button:
-                    xysize (328, 46)
-                    xpos 58 + _di * 332
-                    ypos 218
-                    action Return(("add_bet", _dt))
-                    background ("#2a3a1a" if _bd else "#151515")
-                    hover_background "#2a3a1a"
-                    hbox:
-                        xalign 0.5 yalign 0.5 spacing 8
-                        text _dl xalign 0.5 yalign 0.5 font PROFILE_FONT size 14 color "#cccccc"
-                        if _bd:
-                            text ("$%d" % _bd) font ACT_FONT size 12 color "#d4af37" yalign 0.5
+                    xysize (58, 219)
+                    xpos 0 ypos 0
+                    action (NullAction() if _rou_locked else Return(("add_bet", "number", 0)))
+                    sensitive (not _rou_locked)
+                    background "#145214dd"
+                    hover_background ("#145214dd" if _rou_locked else "#1e7a1edd")
+                    text "0":
+                        xalign 0.5 yalign 0.5
+                        font PROFILE_FONT size 22 color "#ffffff"
 
-            # Outside bets row
-            for _oi, (_ol, _ot, _obg, _ohov) in enumerate([
-                ("1-18",  "low",   "#111","#222"),
-                ("EVEN",  "even",  "#111","#222"),
-                ("RED",   "red",   "#4a1010","#7a2020"),
-                ("BLACK", "black", "#0f0f0f","#2a2a2a"),
-                ("ODD",   "odd",   "#111","#222"),
-                ("19-36", "high",  "#111","#222"),
-            ]):
-                $ _bo = rou_game.bet_on(_ot)
-                button:
-                    xysize (160, 46)
-                    xpos 58 + _oi * 164
-                    ypos 270
-                    action Return(("add_bet", _ot))
-                    background (_ohov if _bo else _obg)
-                    hover_background _ohov
-                    hbox:
-                        xalign 0.5 yalign 0.5 spacing 6
-                        text _ol xalign 0.5 yalign 0.5 font PROFILE_FONT size 14 color "#ffffff"
-                        if _bo:
-                            text ("$%d" % _bo) font ACT_FONT size 12 color "#d4af37" yalign 0.5
+                # Numbers 1–36
+                for _col in range(12):
+                    for _row in range(3):
+                        $ _n   = _col * 3 + (3 - _row)
+                        $ _red = (_n in _ROU_REDS)
+                        $ _base_bg = ("#4a1010cc" if _red else "#101010cc")
+                        $ _hov_bg  = ("#6a1818cc" if _red else "#2a2a2acc")
+                        button:
+                            xysize (68, 71)
+                            xpos 62 + _col * 70
+                            ypos _row * 73
+                            action (NullAction() if _rou_locked else Return(("add_bet", "number", _n)))
+                            sensitive (not _rou_locked)
+                            background _base_bg
+                            hover_background (_base_bg if _rou_locked else _hov_bg)
+                            text str(_n):
+                                xalign 0.5 yalign 0.5
+                                font PROFILE_FONT size 19 color "#f0f0f0"
 
-            # ── Chip selector ──────────────────────────────────────────────────
-            text "CHIP" xpos 0 ypos 334 font PROFILE_FONT size 12 color "#5a8a5a"
-            hbox:
-                xpos 0 ypos 352
-                spacing 8
-                for _clbl, _camt, _cfill, _ctxt in _CHIPS:
-                    $ _csel = (rou_game.chip_amt == _camt)
+                # Dozens row
+                for _di, (_dl, _dt) in enumerate([("1st 12","doz1"),("2nd 12","doz2"),("3rd 12","doz3")]):
                     button:
-                        xysize (70, 60)
-                        background Solid(_cfill)
-                        hover_background Solid(_cfill)
-                        action Return(("set_chip", _camt))
-                        vbox:
+                        xysize (276, 46)
+                        xpos 62 + _di * 278
+                        ypos 222
+                        action (NullAction() if _rou_locked else Return(("add_bet", _dt)))
+                        sensitive (not _rou_locked)
+                        background "#141a10cc"
+                        hover_background ("#141a10cc" if _rou_locked else "#243010cc")
+                        text _dl:
                             xalign 0.5 yalign 0.5
-                            text ("$" + _clbl) xalign 0.5 yalign 0.5 font PROFILE_FONT size 14 color _ctxt
-                        if _csel:
-                            frame:
-                                xysize (70, 60)
-                                background "#00000000"
-                                foreground Frame("images/ui/act_bar_idle.png", 5, 5)
+                            font PROFILE_FONT size 15 color "#cccccc"
 
-            # total bet + clear
-            hbox:
-                xpos 0 ypos 430 spacing 16
-                text ("Total bet: $%d" % rou_game.total_bet()) font PROFILE_FONT size 18 color "#d4af37" yalign 0.5
-                if rou_game.bets:
-                    textbutton "Clear":
-                        action Return("clear_bets")
-                        background "#2a1010" hover_background "#4a1010"
-                        padding (12, 6, 12, 6)
-                        text_font ACT_FONT text_size 15 text_color "#cc6060" text_hover_color "#ffffff"
+                # Outside bets row
+                for _oi, (_ol, _ot, _obg, _ohov) in enumerate([
+                    ("1–18",  "low",   "#111111cc","#222222cc"),
+                    ("EVEN",  "even",  "#111111cc","#222222cc"),
+                    ("RED",   "red",   "#4a1010cc","#6a1818cc"),
+                    ("BLACK", "black", "#101010cc","#2a2a2acc"),
+                    ("ODD",   "odd",   "#111111cc","#222222cc"),
+                    ("19–36", "high",  "#111111cc","#222222cc"),
+                ]):
+                    button:
+                        xysize (138, 46)
+                        xpos 62 + _oi * 140
+                        ypos 272
+                        action (NullAction() if _rou_locked else Return(("add_bet", _ot)))
+                        sensitive (not _rou_locked)
+                        background _obg
+                        hover_background (_obg if _rou_locked else _ohov)
+                        text _ol:
+                            xalign 0.5 yalign 0.5
+                            font PROFILE_FONT size 15 color "#f0f0f0"
 
-        # ── Right panel: wheel + controls (x=1080) ────────────────────────────
-        frame:
-            xpos 1080 ypos 0
-            xsize 580 ysize 700
-            background "#0d0d0d"
-            padding (24, 24, 24, 24)
+                # ── Chip overlay layer: show chips directly on positions ───
+                # Zero
+                if rou_game.bet_on("number", 0):
+                    fixed xpos 0 ypos 0 xsize 58 ysize 219:
+                        $ _zchips = rou_game.bet_chips_on("number", 0)
+                        frame xalign 0.5 yalign 0.5 background "#00000000" padding(0,0,0,0):
+                            use casino_chip_stack(_zchips, compact=True)
 
-            # Wheel
-            fixed xalign 0.5 ypos 0 xsize 532 ysize 260:
-                fixed xalign 0.5 yalign 0.0 xsize 240 ysize 240:
-                    if rou_game.phase == "spinning":
-                        add Transform("images/ui/roulette_wheel_transparent.png", size=(240,240)) at _rou_spin_anim
-                    elif rou_game.result is not None:
-                        add Transform("images/ui/roulette_wheel_transparent.png", size=(240,240)) at _rou_static(rou_game.result * 137)
-                    else:
-                        add Transform("images/ui/roulette_wheel_transparent.png", size=(240,240)) at _rou_static(0)
-                # result badge in centre
-                if rou_game.result is not None:
-                    $ _rn  = rou_game.result
-                    $ _rbc = ("#145214" if _rn == 0 else ("#5a1010" if _rn in _ROU_REDS else "#0f0f0f"))
-                    frame:
-                        xalign 0.5 ypos 88
-                        xysize (64, 64)
-                        background _rbc
-                        text str(_rn) xalign 0.5 yalign 0.5 font PROFILE_FONT size 28 color "#ffffff"
+                # Numbers
+                for _col in range(12):
+                    for _row in range(3):
+                        $ _n = _col * 3 + (3 - _row)
+                        if rou_game.bet_on("number", _n):
+                            $ _ncx = 62 + _col * 70
+                            $ _ncy = _row * 73
+                            fixed xpos _ncx ypos _ncy xsize 68 ysize 71:
+                                $ _nchips = rou_game.bet_chips_on("number", _n)
+                                frame xalign 0.5 yalign 0.5 background "#00000000" padding(0,0,0,0):
+                                    use casino_chip_stack(_nchips, compact=True)
 
-            # Message
-            if rou_game.msg:
-                text rou_game.msg xalign 0.5 ypos 268 font PROFILE_FONT size 22 color "#f0d060" xmaximum 530
+                # Dozens
+                for _di, (_dl2, _dt2) in enumerate([("1st 12","doz1"),("2nd 12","doz2"),("3rd 12","doz3")]):
+                    if rou_game.bet_on(_dt2):
+                        $ _dcx = 62 + _di * 278
+                        fixed xpos _dcx ypos 222 xsize 276 ysize 46:
+                            $ _dchips = rou_game.bet_chips_on(_dt2)
+                            frame xalign 0.5 yalign 0.5 background "#00000000" padding(0,0,0,0):
+                                use casino_chip_stack(_dchips, compact=True)
 
-            # Active bets summary
-            if rou_game.bets:
-                null height 0
-                viewport:
-                    xpos 0 ypos 310
-                    xsize 530 ysize 200
-                    mousewheel True
-                    vbox:
-                        spacing 4
-                        for _sb in rou_game.bets:
-                            $ _sbt = _sb["type"]
-                            $ _sbn = _sb.get("num")
-                            $ _sba = _sb["amt"]
-                            $ _sbk = ("No. %d" % _sbn if _sbt == "number" else _sbt.upper())
-                            hbox:
-                                spacing 10
-                                text ("· %s" % _sbk) font ACT_FONT size 15 color "#cccccc" yalign 0.5 xsize 160
-                                text ("$%d" % _sba) font PROFILE_FONT size 15 color "#d4af37" yalign 0.5
-                                textbutton "✕":
-                                    action Return(("remove_bet", _sbt, _sbn))
-                                    background None hover_background None
-                                    padding (4, 0, 4, 0)
-                                    text_font ACT_FONT text_size 14
-                                    text_color "#664444" text_hover_color "#cc4444"
+                # Outside
+                for _oi2, (_ol2, _ot2) in enumerate([
+                    ("1–18","low"),("EVEN","even"),("RED","red"),
+                    ("BLACK","black"),("ODD","odd"),("19–36","high")
+                ]):
+                    if rou_game.bet_on(_ot2):
+                        $ _ocx = 62 + _oi2 * 140
+                        fixed xpos _ocx ypos 272 xsize 138 ysize 46:
+                            $ _ochips = rou_game.bet_chips_on(_ot2)
+                            frame xalign 0.5 yalign 0.5 background "#00000000" padding(0,0,0,0):
+                                use casino_chip_stack(_ochips, compact=True)
 
-            # Spin / result buttons
-            if rou_game.phase == "betting":
-                textbutton "SPIN":
-                    xalign 0.5 ypos 530
-                    action Return("spin")
-                    background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
-                    hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
-                    padding (50, 14, 50, 14)
-                    text_font PROFILE_FONT text_size 32 text_color "#d4af37" text_hover_color "#ffffff"
-            elif rou_game.phase == "spinning":
-                text "Spinning..." xalign 0.5 ypos 544 font PROFILE_FONT size 24 color "#d4af37"
-            else:
+                # ── Chip tray (below the table) ───────────────────────────
+                text "SELECT CHIP":
+                    xpos 0 ypos 332
+                    font ACT_FONT size 13 color "#6a8a6a"
                 hbox:
-                    xalign 0.5 ypos 530 spacing 16
-                    textbutton "Spin Again":
-                        action Return("reset")
-                        background "#1a3a1a" hover_background "#2a5a2a"
-                        padding (20, 10, 20, 10)
-                        text_font PROFILE_FONT text_size 20 text_color "#d4af37" text_hover_color "#ffffff"
-                    textbutton "Blackjack":
-                        action Return("blackjack")
-                        background "#1a1a3a" hover_background "#2a2a5a"
-                        padding (16, 10, 16, 10)
-                        text_font ACT_FONT text_size 17 text_color "#9ab8e0" text_hover_color "#ffffff"
+                    xpos 0 ypos 352 spacing 14
+                    for _camt2, _ckey2 in _CHIPS:
+                        $ _csel = (rou_game.chip_amt == _camt2)
+                        button:
+                            xysize (72, 72)
+                            background None hover_background None
+                            action (NullAction() if _rou_locked else Return(("set_chip", _camt2)))
+                            sensitive (not _rou_locked)
+                            at (_chip_selected if _csel else _chip_idle)
+                            add _chip_img(_camt2) xysize (72, 72)
+                            if _csel:
+                                frame:
+                                    xfill True yfill True
+                                    background "#00000000"
+                                    foreground Frame("images/ui/act_bar_hover_clean.png", 8, 8)
+
+                # Total bet + clear
+                hbox:
+                    xpos 0 ypos 440 spacing 16 yalign 0.5
+                    text ("Total  $%d" % rou_game.total_bet()):
+                        font PROFILE_FONT size 20 color "#d4af37" yalign 0.5
+                    if rou_game.bets and not _rou_locked:
+                        textbutton "Clear All":
+                            action Return("clear_bets")
+                            background Frame("images/ui/act_bar_idle.png", 16, 16)
+                            hover_background Frame("images/ui/act_bar_hover_clean.png", 16, 16)
+                            padding (14, 6, 14, 6)
+                            text_font ACT_FONT text_size 15
+                            text_color "#cc6060" text_hover_color "#ffffff"
+
+                # Active bets list (compact summary)
+                if rou_game.bets:
+                    viewport:
+                        xpos 0 ypos 478
+                        xsize 896 ysize 160
+                        mousewheel True
+                        vbox:
+                            spacing 4
+                            for _sb in rou_game.bets:
+                                $ _sbt = _sb["type"]
+                                $ _sbn = _sb.get("num")
+                                $ _sba = _sb["amt"]
+                                $ _sbk = ("No. %d" % _sbn if _sbt == "number" else _sbt.upper())
+                                hbox:
+                                    spacing 10
+                                    text ("· %s" % _sbk):
+                                        font ACT_FONT size 15 color "#cccccc" yalign 0.5 xsize 130
+                                    text ("$%d" % _sba):
+                                        font PROFILE_FONT size 15 color "#d4af37" yalign 0.5
+                                    if not _rou_locked:
+                                        textbutton "✕":
+                                            action Return(("remove_bet", _sbt, _sbn))
+                                            background None hover_background None
+                                            padding (4, 0, 4, 0)
+                                            text_font ACT_FONT text_size 14
+                                            text_color "#664444" text_hover_color "#cc4444"
+
+            # ── Right: Wheel + result + spin ─────────────────────────────
+            frame:
+                xpos 920 ypos 0
+                xsize 620 ysize 822
+                background "#111111dd"
+                padding (28, 24, 28, 24)
+
+                # Wheel — 360×360
+                fixed xalign 0.5 ypos 0 xsize 564 ysize 370:
+                    fixed xalign 0.5 yalign 0.0 xsize 360 ysize 360:
+                        if rou_game.phase == "spinning":
+                            add Transform("images/ui/roulette_wheel_transparent.png", size=(360,360)) at _rou_spin_anim
+                        elif rou_game.result is not None:
+                            add Transform("images/ui/roulette_wheel_transparent.png", size=(360,360)) at _rou_static(rou_game.result * 137)
+                        else:
+                            add Transform("images/ui/roulette_wheel_transparent.png", size=(360,360)) at _rou_static(0)
+                    # Result badge centered on wheel
+                    if rou_game.result is not None:
+                        $ _rn  = rou_game.result
+                        $ _rbc = ("#145214" if _rn == 0 else ("#5a1010" if _rn in _ROU_REDS else "#111111"))
+                        frame:
+                            xalign 0.5 ypos 148
+                            xysize (76, 76)
+                            background _rbc
+                            text str(_rn):
+                                xalign 0.5 yalign 0.5
+                                font PROFILE_FONT size 32 color "#ffffff"
+
+                # Result message
+                if rou_game.msg:
+                    text rou_game.msg:
+                        xalign 0.5 ypos 382
+                        font PROFILE_FONT size 24 color "#f0d060"
+                        xmaximum 560 text_align 0.5
+
+                # Spin / result controls
+                if rou_game.phase == "betting":
+                    textbutton "SPIN":
+                        xalign 0.5 ypos 680
+                        action Return("spin")
+                        background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                        padding (60, 16, 60, 16)
+                        text_font PROFILE_FONT text_size 32 text_color "#d4af37" text_hover_color "#ffffff"
+                elif rou_game.phase == "spinning":
+                    text "Spinning…":
+                        xalign 0.5 ypos 700
+                        font PROFILE_FONT size 24 color "#d4af37"
+                else:
+                    hbox:
+                        xalign 0.5 ypos 680 spacing 16
+                        textbutton "Spin Again":
+                            action Return("reset")
+                            background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                            padding (24, 12, 24, 12)
+                            text_font PROFILE_FONT text_size 19 text_color "#d4af37" text_hover_color "#ffffff"
+                        textbutton "Back to Casino":
+                            action Return("back")
+                            background Frame("images/ui/act_bar_idle.png", 20, 20)
+                            hover_background Frame("images/ui/act_bar_hover_clean.png", 20, 20)
+                            padding (20, 12, 20, 12)
+                            text_font ACT_FONT text_size 17 text_color "#9ab89a" text_hover_color "#ffffff"

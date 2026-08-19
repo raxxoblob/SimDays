@@ -603,9 +603,56 @@ init python:
         d.pop(npc_id, None)
         store.npc_initiative_pending = d
 
+    # ── Universal NPC photo message framework ────────────────────────────────────
+    # _NPC_PHOTO_MESSAGES is the generic authored-content registry, keyed by npc_id.
+    # Populated by register_npc_photo_message() calls in director-owned content files
+    # (game/director_phone/photo_messages_<npc_id>.rpy). Never populated here.
+    # Each entry: { photo_id: { asset, text, responses, category, photo_gap } }
+    _NPC_PHOTO_MESSAGES = {}
+
+    def _npc_photo_base(photo_id, path, npc_id, photo_gap=4):
+        """Shared base eligibility for all NPC photo initiative variants.
+
+        Checks:
+          1. asset exists on disk (variant ineligible until director creates file)
+          2. once-ever: photo has not been queued this save
+          3. per-NPC cooldown: at least photo_gap days since last photo from this NPC
+
+        Per-variant conditions (relationship stage, romance state, callbacks)
+        are authored in each photo entry's lambda, calling this as the base.
+        photo_gap defaults to 4; register_npc_photo_message passes the per-entry value.
+        """
+        return (renpy.loadable(path)
+                and photo_id not in store.npc_photo_messages_sent
+                and store.day - store.npc_last_photo_day.get(npc_id, -999) >= photo_gap)
+
+    # Relationship stage sets for photo eligibility conditions.
+    # Mirrors npc_relationship_stage() return values.
+    _REL_STAGE_ACQUAINTANCE_UP = frozenset({"acquaintance", "friendly", "friend", "close", "trusted"})
+    _REL_STAGE_FRIENDLY_UP     = frozenset({"friendly", "friend", "close", "trusted"})
+
+    # Photo intimacy bands — documentation only; authored entries specify exact conditions.
+    # band 0: observation  — Familiar >= 15  (friendship-only NPCs eligible)
+    # band 1: shared life  — Familiar >= 30, Affection >= 25
+    # band 2: personal     — Familiar >= 35, Affection >= 35, Chemistry >= 20; romance-capable only
+    # band 3: dating       — Familiar >= 45, Affection >= 45, Chemistry >= 35; dating/committed
+    # band 4: established  — Familiar >= 60, Affection >= 55, Chemistry >= 45; committed
+
+    # Attachment registry — populated by per-NPC photo files (e.g. zoe_phone_photos.rpy)
+    # via init 5 python. Empty here; old callers unaffected if a variant has no entry.
+    _VARIANT_ATTACHMENTS = {}
+
     def _queue_initiative_message(npc_id, variant):
-        msg = _INITIATIVE_MSGS[variant]
-        queue_phone_message(npc_id, msg["text"], store.day, variant, responses=msg["responses"])
+        msg  = _INITIATIVE_MSGS[variant]
+        att  = _VARIANT_ATTACHMENTS.get(variant)
+        queue_phone_message(npc_id, msg["text"], store.day, variant,
+                            responses=msg["responses"], attachment=att)
+        # Track photo cooldown at queue time so back-to-back eligibility
+        # checks can't pick two different photos on adjacent days.
+        if att:
+            _d = dict(store.npc_last_photo_day)
+            _d[npc_id] = store.day
+            store.npc_last_photo_day = _d
 
     def _check_npc_initiative():
         if store.npc_initiative_last_global_day >= store.day:

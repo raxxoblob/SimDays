@@ -20,48 +20,89 @@ label arc_zoe_art_1:
     $ mark_topic_today("zoe", "art")
     return
 
+# Generic Talk may DISCOVER the gallery ambition. It must not spend the
+# submission, the rejection or the opening — those belong to the authored
+# path (zoe_not_ready_scene → zoe_deadline_scene → zoe_after_deadline_scene →
+# zoe_exhibition_opening).
 label arc_zoe_art_2:
-    z "There's an exhibition next month. Small gallery, nothing major."
-    z "I submitted three pieces. We'll see what they do with them."
+
+    z "There's a small gallery I keep pretending I'm not thinking about."
+    mc "Why pretending?"
+    z "Because thinking about it becomes planning."
+    mc "And planning?"
+    z "Becomes submitting something."
+    mc "Terrifying."
+    z "You joke. It is."
+
     menu:
-        "I'd like to see it.":
-            z "Yeah?"
-            "She looks briefly caught off guard — the expression of someone who had already braced for the more likely response."
-            z "I'll let you know when the opening is."
-            $ _apply_aff("zoe", 2)
-        "What's the theme?":
-            z "The city. How it changes while you're looking at something else."
+        "\"What would you send?\"":
+            mc "What would you send?"
+            z "Ask me when I know."
+            $ _apply_trust("zoe", 1)
+        "\"You want to do it.\"":
+            mc "You want to do it."
+            z "That's an accusation."
+            mc "Is it wrong?"
+            z "No."
             $ _apply_aff("zoe", 1)
+
+    $ store.knows_zoe_gallery_goal = True
     $ complete_arc("zoe_art_2")
     $ mark_topic_today("zoe", "art")
     return
 
+# DISCOVERY ONLY. The rejection itself is zoe_coffee_not_advice_scene, which
+# this arc is the prerequisite for (zoe_msg_bad_email gates on
+# zoe_funding_application_known). Do NOT set knows_zoe_funding_problem or
+# zoe_grant_discussed here.
 label arc_zoe_art_3:
-    z "The gallery rejected the funding application."
-    "She says it the way you'd read out a weather report. Factual. Completely flat."
-    z "Three years of work. Five hundred words of justification. Apparently not quite what they were looking for."
+
+    z "I sent something off this week."
+    mc "Work?"
+    z "Funding application."
+    mc "For the client stuff?"
+    z "No."
+    z "Mine."
+
+    "She says the last word more carefully than the rest."
+
     menu:
-        "That's genuinely awful. I'm sorry.":
-            z "Yeah."
-            "A long pause. She looks somewhere past your shoulder."
-            z "Thanks for not telling me I'll bounce back."
-            $ _apply_trust("zoe", 3)
-        "What did they say, exactly?":
-            z "That the work is 'technically accomplished but lacks clear commercial direction.'"
-            "She says it in perfect quotation marks. Something tightens in her jaw."
+        "\"So now you wait?\"":
+            mc "So now you wait?"
+            z "Apparently."
+            mc "You sound thrilled."
+            z "I've decided refreshing an inbox is a creative practice."
+            $ _apply_aff("zoe", 1)
             $ _apply_trust("zoe", 1)
-            $ _apply_aff("zoe", -1)
-        "Maybe the commercial angle isn't the point.":
-            z "That's a nice thought."
-            "Pause."
-            z "Doesn't pay for materials, though."
+
+        "\"How long do they take?\"":
+            mc "How long do they take?"
+            z "Long enough that I'm supposed to forget I applied."
+            mc "Will you?"
+            z "Obviously not."
             $ _apply_trust("zoe", 2)
-    $ store.zoe_grant_discussed = True
+
+        "\"You care about this one.\"":
+            mc "You care about this one."
+            z "..."
+            z "Unfortunately."
+            $ _apply_trust("zoe", 2)
+
+    z "Anyway."
+    z "Until they answer, it hasn't happened."
+
+    $ store.zoe_funding_application_known = True
     $ complete_arc("zoe_art_3")
     $ mark_topic_today("zoe", "art")
     return
 
 label arc_zoe_art_4:
+    # The authored path owns the submission and the opening. On a fresh save
+    # that has been through zoe_deadline_scene this arc has nothing left to
+    # say, so it retires silently instead of announcing a second opening.
+    if zoe_after_deadline_done or zoe_deadline_submitted:
+        $ complete_arc("zoe_art_4")
+        return
     z "The opening is Friday. I've been standing in the space trying to decide if the work is done, or if I just ran out of time to change it."
     menu:
         "I'll be there.":
@@ -88,18 +129,30 @@ label arc_zoe_music_1:
     $ mark_topic_today("zoe", "music")
     return
 
+# HINT ONLY. The six years, the stopping and the shop window belong to
+# zoe_bass_window_scene, which picks this hint up by name.
 label arc_zoe_music_2:
-    z "I used to play bass, actually. Did for years."
-    z "Just... stopped one day. I think I was trying to be too many things at once."
+
+    z "I always notice the bassline first."
+    mc "Always?"
+    z "Usually."
+
     menu:
-        "Do you miss it?":
-            z "Sometimes I see a bass in a shop window and think about it for about thirty seconds."
-            z "Then I keep walking."
-            $ _apply_trust("zoe", 2)
-        "You should pick it up again.":
-            z "Yeah, maybe."
-            "She's already looking somewhere else."
+        "\"You play?\"":
+            mc "You play?"
+            z "Used to."
+            mc "Bass?"
+            z "That's as much biography as you're getting out of one song."
+            $ _apply_trust("zoe", 1)
+
+        "\"That's a very specific thing to notice.\"":
+            mc "That's a very specific thing to notice."
+            z "I contain mysteries."
+            mc "Any useful ones?"
+            z "No."
             $ _apply_aff("zoe", 1)
+
+    $ store.zoe_bass_hint_known = True
     $ complete_arc("zoe_music_2")
     $ mark_topic_today("zoe", "music")
     return
@@ -176,6 +229,10 @@ label arc_marcus_sports_1:
     m "Six AM every day. Even weekends."
     m "People think it's discipline. Really it's just that I can't sleep past five anyway."
     $ _apply_aff("marcus", 1)
+    # Same fact as marcus_beat_5am / marcus_ctx_five_am — whichever route the
+    # player takes, the other two stand down and the M8 text unlocks.
+    $ store.marcus_five_am_known = True
+    $ store.marcus_five_am_talk_done = True
     $ complete_arc("marcus_sports_1")
     $ mark_topic_today("marcus", "sports")
     return
@@ -186,14 +243,21 @@ label arc_marcus_sports_2:
     "He doesn't say why. You wait."
     menu:
         "Why not?":
-            m "My dad was sick. Couldn't leave."
+            # He DEFLECTS here. The real answer is marcus_why_stayed_scene
+            # (story_direct_pass.rpy), which quotes this line back at him and is
+            # the only place the father is ever revealed.
+            m "It wasn't the right time."
             "Flat. End of subject."
-            $ _apply_trust("marcus", 3)
+            $ _apply_trust("marcus", 2)
         "Any regrets?":
             m "I try not to deal in those."
             "Then, after a moment:"
             m "Sometimes."
             $ _apply_trust("marcus", 2)
+    # This IS the "could've left" reveal. marcus_ctx_basketball reads it back.
+    $ store.mc_knows_marcus_bball_offer = True
+    # Pacing: marcus_why_stayed_scene must sit at least 3 days behind this.
+    $ store.marcus_bball_offer_day = store.day
     $ complete_arc("marcus_sports_2")
     $ mark_topic_today("marcus", "sports")
     return
@@ -213,11 +277,30 @@ label arc_marcus_food_1:
     $ mark_topic_today("marcus", "food")
     return
 
+# HINT ONLY. The mother, the physical notepad, the oil stain and the two
+# hundred times belong to marcus_beat_notepad (marcus_friendship.rpy).
 label arc_marcus_food_2:
-    m "It's my mom's recipe. She wrote it down on a notepad — the actual notepad, which I still have."
-    m "I've made it maybe two hundred times. I still check the notepad every time."
-    "There's a pause. He doesn't explain further and you don't ask."
-    $ _apply_trust("marcus", 3)
+
+    m "Family recipe."
+    mc "Yours?"
+    m "Inherited."
+    mc "That's all I get?"
+    m "For now."
+
+    menu:
+        "\"Secret ingredients?\"":
+            mc "Secret ingredients?"
+            m "No."
+            m "I'm just enjoying having information you don't."
+            $ _apply_aff("marcus", 1)
+
+        "\"Fair enough.\"":
+            mc "Fair enough."
+            m "See? Healthy boundaries."
+            $ _apply_trust("marcus", 1)
+
+    $ store.mc_knows_marcus_chili_family_recipe = True
+    $ marcus_food2_day = day
     $ complete_arc("marcus_food_2")
     $ mark_topic_today("marcus", "food")
     return

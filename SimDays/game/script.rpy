@@ -67,6 +67,17 @@ label start:
     m "Oh - one thing. You'll want money before rent hits. There's a café downtown, \"Grounds,\" always short-staffed. Tell 'em you can carry a tray, they'll take you."
     mc "Noted. Thanks, Marc."
 
+    # Zoe onboarding (zoe_onboarding.rpy): she's a name before she's a person.
+    m "And don't just sit in there unpacking for a week. Beach out past the plaza's decent this time of day."
+    m "Zoe's usually down there sketching something and hating it."
+    m "If you see a girl staring at people like she's deciding whether they were badly designed — that's Zoe."
+    menu:
+        "\"Friend of yours?\"":
+            m "Yeah. She'll deny I said that with too much confidence."
+        "\"I'll keep that in mind.\"":
+            m "Do. She's worth the walk."
+    $ marcus_mentioned_zoe = True
+
     scene intro7 with dissolve
     m "Anytime, neighbor."
     "He heads for the stairs with a lazy wave, towel bouncing on his shoulder."

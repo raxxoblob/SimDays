@@ -34,49 +34,92 @@ init python:
     }
     ACTIVITY_EFFECTS = {
         # ── Grounds / café ───────────────────────────────────────────────
-        ("location_cafe", "Buy a coffee"):        [("0.5h", "time"), ("-$3", "cost"), ("+10 Energy", "gain")],
-        ("location_cafe", "Work a shift - Barista"): [("4h", "time"), ("+pay", "earn"), ("+Service exp", "gain"), ("-Energy", "need")],
+        ("location_cafe", "Buy a coffee"):           [("0.5h", "time"), ("-$3", "cost"), ("+10 Energy", "gain")],
+        ("location_cafe", "Work a shift - Barista"): [("4h", "time"), ("+$55-65", "earn"), ("-28 Energy", "need"), ("-12 Hunger", "need")],
         # ── Gym ──────────────────────────────────────────────────────────
-        ("location_gym", "Train - weights"):      [("1.5h", "time"), ("-15 Energy", "need"), ("+20 Str exp", "gain"), ("+8 Appearance", "gain")],
-        ("location_gym", "Cardio"):               [("1h", "time"), ("-12 Energy", "need"), ("+10 Str exp", "gain"), ("+4 Appearance", "gain")],
-        ("location_gym", "Week pass"):            [("-$40", "cost"), ("7-day access", "info")],
+        # ponytail: energy is -28 in code; the old caption said -15 (fixed in locations.rpy)
+        ("location_gym", "Train - weights"):      [("1.5h", "time"), ("-28 Energy", "need"), ("+STR +XP", "gain"), ("+8 APP", "gain")],
+        ("location_gym", "Cardio"):               [("1h",   "time"), ("-12 Energy", "need"), ("+STR +XP", "gain"), ("+4 APP", "gain")],
+        ("location_gym", "Week pass"):            [("-$40",  "cost"), ("7-day access", "info")],
         ("location_gym", "Month pass"):           [("-$120", "cost"), ("30-day access", "info")],
-        ("location_gym", "Day rate"):             [("-$8", "cost"), ("1-day access", "info")],
-        ("location_gym", "Buy Protein Shake"):    [("-$12", "cost"), ("+1 Protein", "info")],
-        ("location_gym", "Work a shift"):         [("8h", "time"), ("+pay", "earn"), ("-Energy", "need")],
+        ("location_gym", "Day rate"):             [("-$8",   "cost"), ("1-day access", "info")],
+        ("location_gym", "Buy Protein Shake"):    [("-$12",  "cost"), ("+50% STR XP next weights", "info")],
+        ("location_gym", "Buy Pre-workout"):      [("-$20",  "cost"), ("+100% STR XP next weights", "info")],
+        ("location_gym", "Work a shift"):         [("8h",   "time"), ("+pay", "earn"), ("-Energy", "need")],
         # ── Park ─────────────────────────────────────────────────────────
-        ("location_park", "Jog"):                 [("1h", "time"), ("+4 Str exp", "gain")],
-        ("location_park", "Read a book"):         [("1.5h", "time"), ("+3 Int exp", "gain")],
-        ("location_park", "Play basketball"):     [("1.5h", "time"), ("+8 Str exp", "gain")],
+        ("location_park", "Jog"):             [("1h",   "time"), ("-12 Energy", "need"), ("+STR +XP", "gain")],
+        ("location_park", "Read a book"):     [("1.5h", "time"), ("-8 Energy",  "need"), ("+INT +XP", "gain")],
+        ("location_park", "Play basketball"): [("1.5h", "time"), ("-20 Energy", "need"), ("+STR +XP", "gain")],
+        # ── Beach ────────────────────────────────────────────────────────
+        ("location_sandbeach", "Swim"):    [("1h",   "time"), ("-20 Energy", "need"), ("-10 Hunger", "need"), ("+STR +XP", "gain")],
+        ("location_sandbeach", "Sunbathe"):[("1.5h", "time"), ("-10 Hunger", "need"), ("+8 APP",    "gain")],
+        ("location_sandbeach", "Relax"):   [("1h",   "time"), ("-8 Hunger",  "need")],
         # ── Bar ──────────────────────────────────────────────────────────
-        ("location_bar", "Have a drink"):         [("0.5h", "time"), ("-$ drink", "cost")],
-        ("location_bar", "Socialize"):            [("1h", "time"), ("+Charisma", "gain"), ("needs Chr 25", "info")],
+        ("location_bar", "Have a drink"): [("0.5h", "time"), ("-$ drink",   "cost")],
+        ("location_bar", "Socialize"):    [("1h",   "time"), ("-10 Energy", "need"), ("+CHR +XP", "gain"), ("CHR 25 req", "info")],
+        # ── Nightclub ────────────────────────────────────────────────────
+        ("location_nightclub", "Hit the dance floor"):    [("1h",   "time"), ("-10 Energy", "need")],
+        ("location_nightclub", "Work the crowd"):         [("1h",   "time"), ("-12 Energy", "need"), ("+CHR +XP", "gain"), ("CHR 30 req", "info")],
+        ("location_nightclub", "Buy a round"):            [("0.5h", "time"), ("-$15",       "cost"), ("+CHR +XP", "gain")],
+        ("location_nightclub", "DJ night - dance floor"): [("1h",   "time"), ("-15 Energy", "need"), ("+8 CHR",   "gain"), ("Fri-Sun", "info")],
+        ("location_nightclub", "VIP section"):            [("0.5h", "time"), ("-$50",       "cost"), ("+15 CHR",  "gain"), ("Fri-Sun", "info")],
+        # ── Flea Market ──────────────────────────────────────────────────
+        ("location_flea_market", "Browse stalls"):       [("1h",   "time"), ("-6 Energy", "need"), ("+6 CHR",  "gain")],
+        ("location_flea_market", "Buy a vintage piece"): [("0.5h", "time"), ("-$25",      "cost")],
+        ("location_flea_market", "Buy a book"):          [("0.5h", "time"), ("-$12",      "cost"), ("+2 INT",  "gain")],
+        ("location_flea_market", "Haggle with vendors"): [("1h",   "time"), ("-8 Energy", "need"), ("+6 CHR",  "gain")],
         # ── Riverside Terrace ────────────────────────────────────────────
-        ("location_terrace", "Sit and watch the water"): [("1h", "time"), ("+18 Energy", "gain")],
-        ("location_terrace", "Socialize"):        [("1h", "time"), ("+Charisma", "gain")],
-        ("location_terrace", "Have a coffee"):    [("0.5h", "time"), ("-$4", "cost"), ("+12 Energy", "gain")],
-        ("location_terrace", "Read"):             [("1h", "time"), ("+Intellect", "gain")],
+        ("location_terrace", "Sit and watch the water"): [("1h",   "time"), ("-6 Hunger", "need"), ("+5 Energy",  "gain")],
+        ("location_terrace", "Socialize"):                [("1h",   "time"), ("+6 CHR",    "gain")],
+        ("location_terrace", "Have a coffee"):            [("0.5h", "time"), ("-$4",       "cost"), ("+12 Energy", "gain")],
+        ("location_terrace", "Read"):                     [("1h",   "time"), ("-10 Energy","need"), ("+4 INT",     "gain")],
+        # ── Anchor bar ───────────────────────────────────────────────────
+        ("location_anchor", "Have a drink"): [("0.5h", "time"), ("-$6",  "cost"), ("+5 CHR",  "gain")],
+        ("location_anchor", "Stay a while"): [("1h",   "time"), ("-7 Energy", "need"), ("+8 CHR",  "gain")],
+        ("location_anchor", "Buy a round"):  [("0.5h", "time"), ("-$18", "cost"), ("+18 CHR", "gain")],
+        # ── Diner ────────────────────────────────────────────────────────
+        ("location_diner", "Order coffee"):    [("0.5h", "time"), ("-$3", "cost"), ("+8 Energy",  "gain")],
+        ("location_diner", "Order a meal"):    [("1h",   "time"), ("-$8", "cost"), ("+40 Hunger", "gain")],
+        ("location_diner", "Sit for a while"): [("1h",   "time"), ("+5 Energy", "gain")],
+        # ── Casino ───────────────────────────────────────────────────────
+        ("location_casino", "Casino Bar — have a drink"): [("0.5h",       "time"), ("-$8",              "cost")],
+        ("location_casino", "Look Around"):                [("0.5h",       "time"), ("Atmosphere",       "info")],
+        ("location_casino", "Blackjack Table"):            [("0.25h/hand", "time"), ("Variable winnings","info")],
+        ("location_casino", "Roulette Table"):             [("0.25h/spin", "time"), ("Variable winnings","info")],
         # ── Home ─────────────────────────────────────────────────────────
-        ("location_home", "Shower"):              [("0.5h", "time"), ("+40 Hygiene", "gain")],
-        ("location_home", "Nap"):                 [("3h", "time"), ("+45 Energy", "gain")],
-        ("location_home", "Put a record on"):     [("0.5h", "time"), ("Inspired", "gain")],
-        ("location_home", "Change guitar strings"):[("-$12", "cost"), ("+4% busking for 7 days", "gain")],
-        ("location_home", "Look around your place"):[("Free", "info"), ("Room-by-room overview", "info")],
-        ("location_home", "Sleep"):               [("To next morning", "time"), ("Energy fully restored", "gain")],
-        ("location_home", "Cook something"):       [("Meals restore Hunger", "info"), ("+Cooking with recipes", "gain")],
-        ("location_home", "Toast"):               [("0.25h", "time"), ("-$2", "cost"), ("+15 Hunger", "gain")],
-        ("location_home", "Instant noodles"):     [("0.25h", "time"), ("-$3", "cost"), ("+22 Hunger", "gain")],
-        ("location_home", "Scrambled eggs"):      [("0.5h", "time"), ("-$5", "cost"), ("+32 Hunger", "gain")],
-        ("location_home", "Pasta bolognese"):     [("0.5h", "time"), ("-$8", "cost"), ("+55 Hunger", "gain"), ("+Cook exp", "gain")],
-        ("location_home", "Chicken stir-fry"):    [("0.75h", "time"), ("-$10", "cost"), ("+65 Hunger", "gain"), ("+8 Energy", "gain")],
-        ("location_home", "Sunday roast"):        [("1h", "time"), ("-$18", "cost"), ("+80 Hunger", "gain"), ("+15 Energy", "gain")],
+        ("location_home", "Shower"):              [("0.5h",  "time"), ("+40 Hygiene", "gain")],
+        ("location_home", "Nap"):                 [("3h",    "time"), ("+45 Energy",  "gain")],
+        ("location_home", "Practice guitar"):     [("2h",    "time"), ("-~15 Energy", "need"), ("+Music +XP",  "gain")],
+        ("location_home", "Home workout"):        [("1h",    "time"), ("-25 Energy",  "need"), ("+12 STR",     "gain")],
+        ("location_home", "Make coffee"):         [("0.5h",  "time"), ("+7-12 Energy","gain")],
+        ("location_home", "Put a record on"):     [("0.5h",  "time"), ("Inspired state","gain")],
+        ("location_home", "Change guitar strings"):[("-$12", "cost"), ("+4% busking 7d","gain")],
+        ("location_home", "Look around your place"):[("Free","info"), ("Room overview",  "info")],
+        ("location_home", "Sleep"):               [("→ next morning","time"), ("Energy fully restored","gain")],
+        ("location_home", "Until morning"):       [("8h",   "time"), ("New day, full rest","gain")],
+        ("location_home", "6 hours"):             [("6h",   "time"), ("+~60 Energy",  "gain")],
+        ("location_home", "4 hours"):             [("4h",   "time"), ("+~40 Energy",  "gain")],
+        ("location_home", "2 hours"):             [("2h",   "time"), ("+~20 Energy",  "gain")],
+        ("location_home", "Cook something"):      [("Meals restore Hunger","info"), ("+Cook XP with recipes","gain")],
+        ("location_home", "Toast"):               [("0.25h","time"), ("-$2",  "cost"), ("+15 Hunger","gain")],
+        ("location_home", "Instant noodles"):     [("0.25h","time"), ("-$3",  "cost"), ("+22 Hunger","gain")],
+        ("location_home", "Scrambled eggs"):      [("0.5h", "time"), ("-$5",  "cost"), ("+32 Hunger","gain")],
+        ("location_home", "Pasta bolognese"):     [("0.5h", "time"), ("-$8",  "cost"), ("+55 Hunger","gain"), ("+Cook XP","gain")],
+        ("location_home", "Chicken stir-fry"):   [("0.75h","time"), ("-$10", "cost"), ("+65 Hunger","gain"), ("+8 Energy","gain")],
+        ("location_home", "Sunday roast"):        [("1h",   "time"), ("-$18", "cost"), ("+80 Hunger","gain"), ("+15 Energy","gain")],
         # ── Library ──────────────────────────────────────────────────────
-        ("location_library", "Study — general"):  [("2h", "time"), ("+Intellect", "gain")],
-        # ── College (courses) ────────────────────────────────────────────
-        ("location_college", "Programming"):       [("3h", "time"), ("-22 Energy", "need"), ("+1 course fee", "cost"), ("+Prog exp", "gain")],
-        ("location_college", "Medicine"):          [("3h", "time"), ("-22 Energy", "need"), ("+course fee", "cost"), ("+Med exp", "gain")],
-        ("location_college", "Business"):          [("3h", "time"), ("-22 Energy", "need"), ("+course fee", "cost"), ("+Biz exp", "gain")],
-        ("location_college", "Art"):               [("3h", "time"), ("-22 Energy", "need"), ("+course fee", "cost"), ("+Art exp", "gain")],
+        ("location_library", "Study — general"):    [("2h", "time"), ("-15 Energy","need"), ("+20 INT","gain")],
+        ("location_library", "Self-study a subject"):[("2h","time"), ("-18 Energy","need"), ("+skill +XP","gain")],
+        # ── College ──────────────────────────────────────────────────────
+        # ponytail: cost shown as "-$varies" because course_cost() is dynamic (tier + sale event)
+        ("location_college", "Programming"): [("3h", "time"), ("-22 Energy","need"), ("+Prog +XP","gain"), ("-$varies","cost")],
+        ("location_college", "Medicine"):    [("3h", "time"), ("-22 Energy","need"), ("+Med +XP", "gain"), ("-$varies","cost")],
+        ("location_college", "Business"):    [("3h", "time"), ("-22 Energy","need"), ("+Biz +XP", "gain"), ("-$varies","cost")],
+        ("location_college", "Art"):         [("3h", "time"), ("-22 Energy","need"), ("+Art +XP", "gain"), ("-$varies","cost")],
+        # ── Warehouse ────────────────────────────────────────────────────
+        ("location_warehouse", "Work a shift"): [("8h","time"), ("+$115-170","earn"), ("-40 Energy","need"), ("+STR +XP","gain")],
+        # ── Hospital ─────────────────────────────────────────────────────
+        ("location_hospital", "Cosmetic treatment"): [("2h","time"), ("-$350","cost"), ("+2 APP","gain"), ("+10 temp APP 7d","gain")],
     }
 
     def activity_fx(caption):
@@ -208,7 +251,8 @@ screen people_here_dock(return_location):
     zorder 11
     if (current_loc in ("location_cafe", "location_park", "location_bar", "location_sandbeach",
                         "location_library", "location_hospital", "location_gym", "location_nightclub",
-                        "location_office", "location_warehouse", "location_diner", "location_college")
+                        "location_office", "location_warehouse", "location_diner", "location_college",
+                        "location_casino")
             and not renpy.get_screen("profile")
             and not renpy.get_screen("phone_home")
             and not renpy.get_screen("npc_relbar")

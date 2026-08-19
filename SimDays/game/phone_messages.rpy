@@ -26,9 +26,21 @@ init python:
 
     # ── Message helpers ────────────────────────────────────────────────────
 
-    def queue_phone_message(npc_id, text, send_on_day, tag, responses=None):
+    def queue_phone_message(npc_id, text, send_on_day, tag, responses=None, attachment=None):
+        """Queue a phone message.
+
+        attachment (optional) — dict with keys:
+            id   : str  — stable unique photo ID (once-ever key)
+            path : str  — loadable image path (caller should pre-check loadability)
+            kind : str  — "photo" (extensible)
+            alt  : str  — alt text shown when asset is absent
+
+        Old callers that omit `attachment` are unaffected.
+        Old save dicts without "attachment" read as None via .get().
+        """
         if any(m["tag"] == tag for m in store.npc_messages):
             return
+        _att = dict(attachment) if attachment else None
         store.npc_messages.append({
             "npc_id":       npc_id,
             "npc_name":     _NPC_DISPLAY.get(npc_id, npc_id.capitalize()),
@@ -41,7 +53,13 @@ init python:
             "replied_with": None,
             "responses":    list(responses) if responses else [],
             "tag":          tag,
+            "attachment":   _att,
         })
+        # Once-ever: mark photo ID used AT QUEUE TIME, before delivery.
+        # Prevents duplicate queuing if eligibility is checked multiple times
+        # before the message is delivered.
+        if _att and _att.get("id"):
+            store.npc_photo_messages_sent = store.npc_photo_messages_sent | {_att["id"]}
 
     def deliver_due_messages():
         for m in store.npc_messages:

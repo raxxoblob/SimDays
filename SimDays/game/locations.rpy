@@ -51,6 +51,15 @@ label location_home_actions:
     if commitment_available("nora_cheap_home_cooking_1"):
         call scene_nora_cheap_home_cooking
         jump location_home_actions
+    # M3 — Zoe home evening. Fires when Zoe's commitment is active.
+    if commitment_available("zoe_home_no_reason_1"):
+        call zoe_home_no_reason_scene
+        jump location_home_actions
+    # M6 — Love spoken. Direct eligibility check; no commitment needed.
+    if (not zoe_love_spoken and not zoe_m6_pending
+            and _zoe_m6_eligible() and 10 <= hour <= 17):
+        call zoe_love_spoken_scene
+        jump location_home_actions
     # Phase 49: NPC invitation visits dispatched as personal WED events.
     $ _wed_per = wed_poll_personal("location_home")
     if _wed_per:
@@ -190,13 +199,6 @@ label location_home_actions:
             call screen home_rooms_scr
             jump location_home_actions
 
-        # Phase 64: world_challenges_scr existed since Phase 60D but was reachable
-        # only from the debug menu. Home is the entry point because it is the one
-        # location every player can always reach (the gym needs a paid pass).
-        # The screen is Return-based, so it must be `call screen`, not Show().
-        "Your challenges":
-            call screen world_challenges_scr
-            jump location_home_actions
 
 
 label location_home_invite_menu:
@@ -242,6 +244,9 @@ label use_computer:
 # ── CAFE ──────────────────────────────────────────────────────────────
 label location_cafe:
     $ current_loc = "location_cafe"
+    # M2 — first date trigger. Fires when Zoe's commitment for the date is active.
+    if commitment_available("zoe_first_date_1"):
+        jump zoe_first_date_scene
     $ fs_mark("grounds_visited")
     $ fs_record_district("centrum")
     # nora_last_seen_day is set in nora_greet (on actual interaction), not on location entry
@@ -282,6 +287,11 @@ label location_cafe:
     # Priority 5: Kai café quiet (defers when nora_kai_pending has priority)
     if kai_cafe_quiet_pending and npc_here("kai") and not nora_kai_pending:
         call scene_kai_cafe_quiet
+    # Priority 5b: Zoe fallback introduction (zoe_onboarding.rpy). Day 4+ only,
+    # and only if the beach meeting never happened — a one-shot authored intro
+    # outranks every contextual beat below it.
+    if check_zoe_alt_intro("location_cafe"):
+        jump zoe_alt_intro
     # Priority 6: Tier A contextual location beats (location_beats.rpy).
     # Lowest story priority — never pre-empts an authored pending scene.
     if check_nora_cover_scene():
@@ -295,6 +305,10 @@ label location_cafe:
         jump nora_exhausted_scene
     elif check_nora_walk_out():
         jump nora_walk_out_scene
+    # Priority 7b: Zoe depth-pass beats (zoe_arc.rpy). Same global daily budget.
+    $ _zbeat = zoe_arc_beat_for("location_cafe")
+    if _zbeat:
+        jump expression _zbeat
     scene expression cafe_bg()
     show screen hud
     if not nora_met:
@@ -618,7 +632,7 @@ label gym_floor:
         "Lead a group class (1.5h)" if gym_class_available():
             call gym_class_flow
             jump gym_floor
-        "Train - weights (1.5h, -15 energy)":
+        "Train - weights (1.5h, -28 energy)":
             if too_tired():
                 "You're too exhausted to lift. Get some rest first."
                 jump gym_floor
@@ -859,6 +873,10 @@ label location_bar:
     # Priority 6: contextual Tier A beats (location_beats_tier_a.rpy).
     if check_marcus_one_game():
         jump marcus_one_game_scene
+    # One-shot authored group scene (story_direct_pass.rpy) takes the slot
+    # before the repeatable ambient version of it.
+    elif check_marcus_zoe_static_group():
+        jump marcus_zoe_static_small_group
     elif check_marcus_zoe_bar():
         jump marcus_zoe_bar_scene
     # World Event Director
@@ -1089,7 +1107,6 @@ label location_shop_clothing:
             else:
                 $ gain_money(-80)
                 $ wardrobe_tier = 1
-                $ gain_stat("app", 3)
                 "A clean, well-fitted outfit. You carry yourself a little differently."
             jump location_shop_clothing
         "Upgrade your wardrobe (+status)" if 1 <= wardrobe_tier < 3:
@@ -1447,14 +1464,13 @@ label location_flea_market:
             else:
                 "A lap around the stalls. Easy crowd, easy conversation."
             jump location_flea_market
-        "Buy a vintage piece ($25, +APP)":
+        "Buy a vintage piece ($25)":
             if money < 25:
                 "Not enough cash."
                 jump location_flea_market
             $ spend_time(0.5)
             $ gain_money(-25)
-            $ gain_stat("app", 3)
-            "A score — your eye for style is sharpening."
+            "A score. There's something satisfying about finding the right thing."
             jump location_flea_market
         "Buy a book ($12, +INT)":
             if money < 12:
@@ -1504,6 +1520,11 @@ label location_park:
         jump marcus_park_favor_scene
     elif check_zoe_walk():
         jump zoe_walk_scene
+    # Priority 6b: Zoe depth-pass beats (zoe_arc.rpy). Shares the same global
+    # one-beat-per-day budget, so this never stacks on the Tier A chain above.
+    $ _zbeat = zoe_arc_beat_for("location_park")
+    if _zbeat:
+        jump expression _zbeat
     # World Event Director
     $ _wed_amb = wed_poll_ambient("location_park")
     if _wed_amb:
@@ -1635,7 +1656,11 @@ label location_sandbeach:
     $ activity_exit_jump = "location_beach"
     $ activity_exit_name = "Beach"
     hide screen people_here_dock
-    if zoe_affection >= 40 and hour >= 20 and not zoe_beach_night_done:
+    # M2 — Beach dating breakpoint (interested -> dating).
+    if commitment_available("zoe_beach_dating_1"):
+        jump zoe_beach_dating_scene
+    # M3 — Beach After Dark (post-first-kiss dating breakpoint).
+    if can_trigger_zoe_beach_after_dark():
         jump zoe_beach_night_scene
     scene expression ("sandbeach_night" if hour >= 19 else "sandbeach_day")
     show screen hud
@@ -1717,6 +1742,11 @@ label location_sandbeach:
 
 # ── Zoe first meet - beach (daytime only, fires once) ─────────────────
 label beach_meet_zoe:
+    # Third route (story_direct_pass.rpy): the authored meeting for a player
+    # Marcus already pointed at her. The two routes below are the cold-discovery
+    # version and are unchanged. Exactly one of the three ever fires.
+    if marcus_mentioned_zoe:
+        jump zoe_beach_marcus_intro
     scene zoe_beach_1 with dissolve
     show screen hud
     "The beach out here is better than you expected. Not a resort strip - just sand and water and that particular quiet you only get when the city is far enough away to be decorative."
@@ -1752,18 +1782,25 @@ label zoe_beach_approach:
             z "Most people who interrupt me out here want to know if I'm a 'real artist.' Like there's a counterfeit version."
             menu:
                 "\"Are you?\"":
-                    z "Define it and I'll tell you. I make things. Whether that qualifies depends on who's reviewing the grant."
+                    # No grant reference here: the funding application is
+                    # arc_zoe_art_3's to raise, weeks after this meeting.
+                    mc "Are you?"
+                    z "Define it and I'll tell you."
+                    z "I make things. People decide what word they want to use after."
                     "She gives you another look. Slower this time."
                     z "You're new. You've got the look."
                     $ zoe_affection += 2
+                    $ zoe_first_impression = "observant"
                 "\"What does the fake kind look like?\"":
                     z "Ha."
                     "Short. Real. She wasn't expecting that one."
                     z "Sells prints on a website. Talks a lot about their 'process' at dinner parties. But I try not to be mean about it."
                     z "You're new here. I can always tell."
                     $ zoe_affection += 4
+                    $ zoe_first_impression = "banter"
             jump zoe_beach_shared
         "\"Hey - I'm [mc_name]. Just moved in.\"":
+            $ zoe_first_impression = "honest"
             z "Zoe."
             "She says it the way you sign a receipt. Efficient. Then she actually looks at you."
             z "New to the city or just new to this part of it?"
@@ -1838,14 +1875,17 @@ label zoe_beach_watch:
             z "Yeah. That's it exactly."
             z "Nobody looks at that. They look at the waves or the horizon. The interesting part's always in the middle somewhere."
             $ zoe_affection += 3
+            $ zoe_first_impression = "observant"
         "\"Just water. I'm not going to pretend otherwise.\"":
             z "Honest."
             z "The water's fine. It's what it does to everything around it that matters. But that comes with practice."
             $ zoe_affection += 2
+            $ zoe_first_impression = "honest"
         "\"The city. But softer.\"":
             "She looks at you sideways."
             z "Okay. You pass."
             $ zoe_affection += 4
+            $ zoe_first_impression = "observant"
     jump zoe_beach_shared
 
 label zoe_beach_shared:
@@ -1855,6 +1895,10 @@ label zoe_beach_shared:
     z "It's the right one. The other two are for people who want to be seen at the beach. This one's for people who actually want the beach."
     "She starts brushing sand from her jeans. There's charcoal on two fingers. She doesn't bother with it."
     z "I'm here most weeks when it's not raining. Trying to get the reflections right before the season changes and the light goes flat."
+    # Onboarding tail (zoe_onboarding.rpy): Marcus recognition, the open thread
+    # that feeds zoe_not_ready_scene, the first-impression record and the
+    # contact exchange. It also sets zoe_met via _zoe_mark_introduced().
+    call zoe_beach_intro_tail
     "She tucks the sketchbook under her arm and stands."
     z "You're not the worst person to run into."
     "She says it the way someone gives a verdict. Which, you think, she basically did."
@@ -1864,9 +1908,9 @@ label zoe_beach_shared:
     "She walks off down the shore."
     scene zoe_beach_7 with dissolve
     show screen hud
-    "You watch for a second."
-    "You think: {i}that one's going to be interesting.{/i}"
-    $ zoe_met = True
+    # The narrator does not tell the player how to feel about her.
+    "She's halfway down the shoreline before you realize you're still looking at the sketchbook under her arm."
+    # zoe_met / contact / bootstrap flags are set by zoe_beach_intro_tail above.
     $ spend_time(1)
     jump location_beach
 
@@ -2143,9 +2187,16 @@ label location_hub:
             call scene_eli_deploy_hug
     scene expression ("hub_night" if (hour >= 20 or hour < 6) else "hub_day")
     show screen hud
+    # Zoe fallback introduction (zoe_onboarding.rpy). Day 4+, beach missed.
+    if check_zoe_alt_intro("location_hub"):
+        jump zoe_alt_intro
     # Contextual Tier A beat (location_beats_tier_a.rpy).
     if check_eli_after_shift():
         jump eli_after_shift_scene
+    # Zoe depth-pass beats (zoe_arc.rpy). Same global daily budget.
+    $ _zbeat = zoe_arc_beat_for("location_hub")
+    if _zbeat:
+        jump expression _zbeat
     $ _wed_amb = wed_poll_ambient("location_hub")
     if _wed_amb:
         call expression _wed_amb
@@ -2446,8 +2497,9 @@ label action_sleep_menu:
                         pass
                     "Go back":
                         jump action_sleep_menu
+            $ _pre_e = need_energy
             $ spend_time(6)
-            $ need_energy = min(100, need_energy + int(round(60 * (1.0 + sleep_recovery_modifier()))))
+            $ need_energy = min(100, _pre_e + int(round(60 * (1.0 + sleep_recovery_modifier()))))
             "Six hours. You wake in the dark, properly rested."
             jump location_home_actions
         "4 hours (+[_sleep_b4] energy)":
@@ -2459,8 +2511,9 @@ label action_sleep_menu:
                         pass
                     "Go back":
                         jump action_sleep_menu
+            $ _pre_e = need_energy
             $ spend_time(4)
-            $ need_energy = min(100, need_energy + int(round(40 * (1.0 + sleep_recovery_modifier()))))
+            $ need_energy = min(100, _pre_e + int(round(40 * (1.0 + sleep_recovery_modifier()))))
             "Four hours. Functional, if not fresh."
             jump location_home_actions
         "2 hours (+[_sleep_b2] energy)":
@@ -2472,8 +2525,9 @@ label action_sleep_menu:
                         pass
                     "Go back":
                         jump action_sleep_menu
+            $ _pre_e = need_energy
             $ spend_time(2)
-            $ need_energy = min(100, need_energy + int(round(20 * (1.0 + sleep_recovery_modifier()))))
+            $ need_energy = min(100, _pre_e + int(round(20 * (1.0 + sleep_recovery_modifier()))))
             "Two hours. Takes the edge off, nothing more."
             jump location_home_actions
         "Stay up":
@@ -3091,13 +3145,22 @@ label sam_gym_scene:
     jump location_gym
 
 
-# ── ZOE — BEACH NIGHT ─────────────────────────────────────────────────
+# ── ZOE — BEACH AFTER DARK (M3) ───────────────────────────────────────
+# Post-first-kiss dating breakpoint. Zoe brings MC to her private beach.
+# Requires: dating state, first kiss, zoe_first_date_done, 2+ days since dating.
+# Gate: can_trigger_zoe_beach_after_dark() — defined in zoe_romance_milestones.rpy.
 label zoe_beach_night_scene:
     $ zoe_beach_night_done = True
+    $ story_scene_active = True
+    $ clear_npc_sprites()
+    hide screen npc_relbar
+    hide screen npc_actions
+    hide screen hud
     scene beachnight with dissolve
     show screen hud
     scene zoe_beach_night_1 with dissolve
     show screen hud
+    # A few days after the first kiss. She texted. He came.
     "The beach at this hour is mostly dark. Zoe's at the water's edge, shoes off."
     z "I didn't think you'd actually come."
     "You say you weren't sure either."
@@ -3125,14 +3188,42 @@ label zoe_beach_night_scene:
     "Later. The city hum, the cold air, neither of you quite ready to leave."
     menu:
         "\"Same time next week?\"":
-            z "Don't make it a schedule. Just — show up."
             $ _apply_aff("zoe", 3)
             $ _apply_trust("zoe", 2)
+            z "Don't make it a schedule."
+            pause 0.5
+            z "Just — show up."
+            pause 0.3
+            # =====================================================================
+            # DIRECTOR HANDOFF
+            #
+            # CREATE FILE:
+            # game/director_romance/zoe_beach_after_dark_romance.rpy
+            #
+            # REQUIRED LABEL:
+            # zoe_beach_after_dark_payoff
+            #
+            # ENTRY MOMENT:
+            # after Zoe says: "Just — show up."
+            #
+            # ENTRY STATE:
+            # get_romance_state("zoe") == "dating"
+            # relationship_memory_exists("zoe", "first_kiss_zoe") == True
+            #
+            # PURPOSE:
+            # CG-driven quiet physical intimacy / kiss / close-comfort ending.
+            # Do NOT change romance state — remains dating.
+            # =====================================================================
+            if renpy.has_label("zoe_beach_after_dark_payoff"):
+                call zoe_beach_after_dark_payoff
         "Walk her home.":
             z "You don't have to."
             "You go anyway."
             $ _apply_aff("zoe", 4)
-    $ add_relationship_memory("zoe", "zoe_beach_night", "Night at the beach")
+    $ add_relationship_memory("zoe", "zoe_beach_night", "Just show up")
+    $ apply_relationship_change("zoe", "zoe_beach_after_dark", "authored",
+          familiarity=3, trust=2)
+    $ story_scene_active = False
     jump location_sandbeach
 
 
@@ -3248,6 +3339,9 @@ label location_terrace:
         jump location_nadbrzeze
     scene expression ("restaurantnight" if hour >= 19 else "restaurantday")
     show screen hud
+    # M6 — Commitment (terrace, late evening).
+    if commitment_available("zoe_commitment_beach_1") and hour >= 19:
+        jump zoe_commitment_beach_scene
     menu (screen="activity"):
         "Sit and watch the water (1h)":
             $ _terrace_relax_uses = activity_use_count_today("terrace_relax")
@@ -3343,7 +3437,11 @@ label location_diner:
             "The noise of the night softens here. You don't need to be anywhere."
             jump location_diner
         "Talk to Rena" if npc_here("rena"):
+            $ clear_npc_sprites()
             call rena_diner_talk
+            hide focus_rena
+            $ _vis = location_sprites()
+            call show_public_sprites
             jump location_diner
         "Leave":
             hide focus_rena

@@ -74,10 +74,12 @@ init -1 python:
 
     def _item(iid, label, cat, slot, new, vis, desc,
               mods=None, unlocks=None, used=None, shop=True, used_ok=True,
-              caps=None):
+              caps=None, appearance=0):
         """Compact catalog builder. price_used defaults to ~55% of retail.
         `caps` (Phase 65): capability ids this item enables at home when active.
-        Read only through has_home_capability() — never by item id."""
+        Read only through has_home_capability() — never by item id.
+        `appearance`: raw APP bonus when this wearable is equipped (wardrobe items only);
+        subject to 100/70/40/20 DR via equipped_appearance_bonus()."""
         ITEM_CATALOG[iid] = {
             "label": label, "category": cat, "slot": slot,
             "price_new": new,
@@ -88,6 +90,7 @@ init -1 python:
             "visual_tier": vis,
             "available_used": bool(used_ok and new >= 40),
             "shop_available": shop,
+            "appearance": appearance,
             "capabilities": caps or [],
         }
 
@@ -334,35 +337,38 @@ init -1 python:
 
     # ---- WARDROBE -----------------------------------------------------------
     # Wardrobe items use `slot` as the clothing CATEGORY.
+    # `appearance` = raw APP bonus when equipped; DR applied by equipped_appearance_bonus().
+    # Status (wardrobe_tier/jewelry_tier) is separate and unchanged — see status_score().
     _item("basic_casual", "Basic T-shirt + Jeans", "wardrobe", "casual", 0, 1,
-          "Clean, comfortable, invisible. Works nearly everywhere.", shop=False)
+          "Clean, comfortable, invisible. Works nearly everywhere.", shop=False,
+          appearance=0)
     _item("nice_casual", "Quality Casual Outfit", "wardrobe", "casual", 90, 2,
           "Things that fit properly. People notice without knowing why.",
-          {"confidence": 2})
+          {"confidence": 2}, appearance=3)
     _item("smart_casual", "Smart Casual", "wardrobe", "smart_casual", 160, 3,
           "The outfit that covers eighty percent of situations.",
-          {"confidence": 3})
+          {"confidence": 3}, appearance=5)
     _item("nice_jacket_smart", "Quality Jacket", "wardrobe", "smart_casual", 160, 3,
           "Good shoulders, honest fabric. Lifts anything underneath it.",
-          {"confidence": 3})
+          {"confidence": 3}, appearance=5)
     _item("formal_outfit", "Business Formal Outfit", "wardrobe", "formal", 240, 3,
           "For the rooms where being underdressed is the whole story.",
-          {"confidence": 4})
+          {"confidence": 4}, appearance=7)
     _item("tailored_suit", "Tailored Suit", "wardrobe", "formal", 1200, 4,
           "Measured, adjusted, made for you. It changes how you stand.",
-          {"confidence": 6}, used_ok=False)
+          {"confidence": 6}, used_ok=False, appearance=14)
     _item("performance_jacket", "Stage Jacket", "wardrobe", "music_performance", 180, 3,
           "Reads well under bad lighting. Made to be looked at.",
-          {"confidence": 3, "busk_perf": 2})
+          {"confidence": 3, "busk_perf": 2}, appearance=5)
     _item("sport_kit", "Sport Kit", "wardrobe", "sport", 65, 2,
           "Proper shoes and something that breathes.",
-          {"confidence": 2})
+          {"confidence": 2}, appearance=2)
     _item("work_uniform", "Work-appropriate Set", "wardrobe", "work_uniform_compatible", 110, 2,
           "Neutral, durable, meets every dress code you have met.",
-          {"confidence": 2})
+          {"confidence": 2}, appearance=2)
     _item("premium_watch", "Nice Watch", "wardrobe", "accessory", 340, 3,
           "Quiet, mechanical, and it does not need charging.",
-          {"confidence": 3})
+          {"confidence": 3}, appearance=10)
 
     WARDROBE_CATEGORIES = [
         ("casual",                   "Casual"),
@@ -394,6 +400,7 @@ init -1 python:
         "work_session_minutes":  "Focus before fatigue",
         "recipe_difficulty_max": "Max recipe difficulty",
         "confidence":            "Confidence",
+        "appearance":            "Appearance",
         "art_quality_modifier":  "Art quality",
     }
     # Fractional keys render as percentages; everything else as points.
@@ -820,16 +827,22 @@ init python:
 
     def item_modifier_lines(item_id):
         """[(label, value_str)] for an item at its stored condition (Good if it
-        is not owned yet — the same number a shop-new 'Excellent' would beat)."""
+        is not owned yet — the same number a shop-new 'Excellent' would beat).
+        Appearance bonus shown first if the item has one."""
         d = ITEM_CATALOG.get(item_id)
         if not d:
             return []
-        return [format_modifier(k, _raw_home_effect(item_id, k)) for k in sorted(d["modifiers"])]
+        lines = [format_modifier(k, _raw_home_effect(item_id, k)) for k in sorted(d["modifiers"])]
+        app_bonus = d.get("appearance", 0)
+        if app_bonus:
+            lines.insert(0, ("Appearance", "+%d" % app_bonus))
+        return lines
 
     def equip_delta(item_id):
         """[(label, delta_str)] comparing item_id against the slot's current
         occupant. Uses _raw_home_effect — exactly the numbers the live modifiers
-        use — so the preview and the post-equip value cannot disagree."""
+        use — so the preview and the post-equip value cannot disagree.
+        Appearance delta shown first when it differs."""
         room, slot = item_room_slot(item_id)
         if room is None:
             return []
@@ -840,6 +853,11 @@ init python:
         if cur:
             keys |= set(ITEM_CATALOG[cur]["modifiers"])
         out = []
+        # appearance delta (top-level field, not a modifier)
+        new_app = ITEM_CATALOG[item_id].get("appearance", 0)
+        old_app = ITEM_CATALOG[cur].get("appearance", 0) if cur else 0
+        if new_app != old_app:
+            out.append(("Appearance", "%+d" % (new_app - old_app)))
         for k in sorted(keys):
             new_v = _raw_home_effect(item_id, k)
             old_v = _raw_home_effect(cur, k) if cur else 0

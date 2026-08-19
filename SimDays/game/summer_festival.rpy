@@ -789,6 +789,49 @@ label summer_festival_post_blackout:
             z "I'll remember it wrong in about a week and paint that instead. That's usually better anyway."
             $ apply_relationship_change("zoe", "festival_shelter_moment",
                                         "meaningful_talk", affection=2, familiarity=1, meaningful=True)
+            # ── Zoe romance hook ──────────────────────────────────────────────
+            # Full shelter buildup is authored above. The handoff fires at the
+            # intimate close of that moment, when a romantic payoff is possible.
+            # renpy.has_label() gates the menu to zero cost until the director
+            # creates the label; the festival runs normally until then.
+            if (get_romance_state("zoe") in ("interested", "dating", "committed")
+                    and renpy.has_label("summer_festival_zoe_romance")):
+                menu:
+                    "Stay near her for a moment.":
+                        # =================================================
+                        # DIRECTOR HANDOFF
+                        #
+                        # CREATE FILE:
+                        # game/director_romance/summer_festival_romance.rpy
+                        #
+                        # REQUIRED LABEL:
+                        # summer_festival_zoe_romance
+                        #
+                        # ENTRY MOMENT:
+                        # Zoe: "I'll remember it wrong in about a week and
+                        # paint that instead." MC and Zoe alone under the
+                        # hardware-shop awning as group drifts. Background:
+                        # sf_shelter.
+                        #
+                        # ENTRY STATE:
+                        # get_romance_state("zoe") in
+                        #     ("interested", "dating", "committed")
+                        # summer_festival_state["shelter_focus"] == "zoe"
+                        # apply_relationship_change already called (affection+2,
+                        # familiarity+1)
+                        #
+                        # DIRECTOR-OWNED CONTENT:
+                        # CG-driven payoff. INTERESTED → possible first-kiss
+                        # route (must call _commit_first_kiss if used).
+                        # DATING/COMMITTED → established couple moment.
+                        # Director owns all state/memory changes. `return`.
+                        # =================================================
+                        call summer_festival_zoe_romance
+                        # Safe reconvergence: restore shelter scene after CG sequence.
+                        scene sf_shelter with dissolve
+                        show screen hud
+                    "Rejoin the others.":
+                        pass
         "Nora is laughing at something and it makes the whole awning lighter.":
             $ summer_festival_state["shelter_focus"] = "nora"
             "Someone has given her half a very bad pastry and she is reviewing it out loud to a stranger, at length, without mercy."

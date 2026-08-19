@@ -34,6 +34,7 @@ default _rel_saturation     = {}   # {npc_id: {source_category: [day, count]}}
 default _rel_source_totals  = {}   # {npc_id: {source_category: {axis: total_contributed}}}
 default _rel_trace          = []   # developer-only ring buffer of recent changes
 default _rel_trace_enabled  = False
+default _chemistry_floor_migrated = False   # old-save Chemistry floor (66.10)
 
 
 init 1 python:
@@ -699,3 +700,31 @@ init 1 python:
             sat = dict(store._rel_saturation)
             sat.pop(npc_id, None)
             store._rel_saturation = sat
+
+    # ── 66.10 Old-save Chemistry floor ──────────────────────────────────────
+    # Phase 66 seeded attraction=0 (no historic signal). Now Chemistry is
+    # player-visible; a save already at dating/committed must not show 0.
+    # Runs once post-load per save. Never lowers existing attraction.
+    def _migrate_chemistry_floors():
+        if store._chemistry_floor_migrated:
+            return
+        store._chemistry_floor_migrated = True
+        _CHEM_FLOORS = {"interested": 25, "dating": 45, "committed": 60}
+        try:
+            _profiles = ROMANCE_PROFILES
+        except NameError:
+            return
+        for _nid in list(_profiles.keys()):
+            try:
+                _state = get_romance_state(_nid)
+            except NameError:
+                return
+            _floor = _CHEM_FLOORS.get(_state)
+            if _floor is None:
+                continue
+            _cur = npc_rel(_nid, "attraction")
+            if _cur < _floor:
+                set_npc_rel(_nid, "attraction", _floor)
+
+    if _migrate_chemistry_floors not in config.after_load_callbacks:
+        config.after_load_callbacks.append(_migrate_chemistry_floors)

@@ -318,7 +318,7 @@ init python:
                 if v not in store.degrees:
                     return False
             else:
-                val = eff_app() if k == "stat_app" else getattr(store, k, 0)
+                val = store.stat_app if k == "stat_app" else getattr(store, k, 0)
                 if val < v:
                     return False
         return True
