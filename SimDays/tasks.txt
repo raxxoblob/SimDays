@@ -1,1 +1,2 @@
   File "game/debug_scene_tester.rpy", line 2434, in <module>"reset": _dst_zoe_coffee_reset,^^^^^^^^^^^^^^^^^^^^^ NameError: name '_dst_zoe_coffee_reset' is not defined
+- [x] debug_scene_tester.rpy — blok story/directing pass: `init python:` → `init 6 python:` (registry odwołuje się do `_dst_zoe_coffee_reset` z init 1 i `_dst_mf_reset` z init 3, które muszą być już zdefiniowane w momencie load)
