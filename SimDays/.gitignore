@@ -24,3 +24,8 @@
 /dialogue.tab
 /dialogue.txt
 /strings.json
+
+# NSFW assets - kept locally, excluded from git
+/game/images/nsfw/
+/game/audio/nsfw/
+/game/sprites/nsfw/
