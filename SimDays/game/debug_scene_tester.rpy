@@ -619,39 +619,6 @@ init python:
         },
     }
 
-    # ── Phone / Photos test entries ───────────────────────────────────────────
-    # Auto-generated from all director-registered photo entries in
-    # _NPC_PHOTO_MESSAGES (populated by register_npc_photo_message() calls in
-    # game/director_phone/ content files). Empty when no content is registered.
-    # _dst_force_photo_message() bypasses once-ever + cooldown for dev preview.
-    # These are Function() calls — they do not jump to a label.
-    for _npc_id, _npc_photos in _NPC_PHOTO_MESSAGES.items():
-        for _pid, _pdata in _npc_photos.items():
-            _entry_key = "%s/%s" % (_npc_id, _pid)
-            SCENE_TEST_REGISTRY[_entry_key] = {
-                "title":    _entry_key,
-                "category": "Phone / Photos",
-                "desc":     _pdata["text"],
-                "label":    None,   # no label; preset queues directly
-                "presets":  {"force send": lambda _n=_npc_id, _p=_pid: _dst_force_photo_message(_n, _p)},
-                "checkpoints": None,
-                "reset":    None,
-                "notes":    ("NPC: %s  Category: %s  Asset: %s%s" % (
-                                 _npc_id, _pdata.get("category", "—"), _pdata["asset"],
-                                 " ✓" if renpy.loadable(_pdata["asset"]) else " MISSING",
-                             )),
-            }
-    SCENE_TEST_REGISTRY["_phone_text_only_test"] = {
-        "title":    "text-only backward-compat",
-        "category": "Phone / Photos",
-        "desc":     "Verify text-only message path unchanged after attachment schema extension.",
-        "label":    None,
-        "presets":  {"send": _dst_force_text_only_message},
-        "checkpoints": None,
-        "reset":    None,
-        "notes":    "Queues a dev text message to Nora. Must render without attachment card.",
-    }
-
     SCENE_TEST_CATEGORIES = [
         "Location Beats",
         "Group Hangouts",
@@ -2785,3 +2752,42 @@ init python:
             "notes": "M6 — love spoken. Direct eligibility check; no commitment needed.",
         },
     })
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PHONE / PHOTOS TEST ENTRIES (init 5 — runs after all content files)
+# ═══════════════════════════════════════════════════════════════════════════
+# Auto-generated from all director-registered photo entries in
+# _NPC_PHOTO_MESSAGES (populated by register_npc_photo_message() calls in
+# game/director_phone/ content files). Empty when no content is registered.
+# _dst_force_photo_message() bypasses once-ever + cooldown for dev preview.
+# These are Function() calls — they do not jump to a label.
+
+init 5 python:
+
+    for _npc_id, _npc_photos in _NPC_PHOTO_MESSAGES.items():
+        for _pid, _pdata in _npc_photos.items():
+            _entry_key = "%s/%s" % (_npc_id, _pid)
+            SCENE_TEST_REGISTRY[_entry_key] = {
+                "title":    _entry_key,
+                "category": "Phone / Photos",
+                "desc":     _pdata["text"],
+                "label":    None,   # no label; preset queues directly
+                "presets":  {"force send": lambda _n=_npc_id, _p=_pid: _dst_force_photo_message(_n, _p)},
+                "checkpoints": None,
+                "reset":    None,
+                "notes":    ("NPC: %s  Category: %s  Asset: %s%s" % (
+                                 _npc_id, _pdata.get("category", "—"), _pdata["asset"],
+                                 " ✓" if renpy.loadable(_pdata["asset"]) else " MISSING",
+                             )),
+            }
+    SCENE_TEST_REGISTRY["_phone_text_only_test"] = {
+        "title":    "text-only backward-compat",
+        "category": "Phone / Photos",
+        "desc":     "Verify text-only message path unchanged after attachment schema extension.",
+        "label":    None,
+        "presets":  {"send": _dst_force_text_only_message},
+        "checkpoints": None,
+        "reset":    None,
+        "notes":    "Queues a dev text message to Nora. Must render without attachment card.",
+    }
