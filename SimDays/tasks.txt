@@ -1,3 +1,1 @@
-W pliku game/script.rpy dodaj system pogody (sunny/rainy/cloudy) generowany losowo na start dnia; w deszczu blokada beatów outdoorowych i unikalne linie dialogowe dla każdego głównego bohatera.
-Utwórz plik game/gifts.rpy z mechaniką dawania prezentów: kupno w kawiarni Nori, przypisanie preferencji per postać w game/characters.rpy, bonus do relacji zależny od trafności wyboru.
-W pliku game/phases.rpy dodaj Phase 70 "Autumn Festival" (dni 25-28): unikalne beaty festiwalowe, specjalne opcje dialogowe dla wszystkich postaci oraz ekskluzywny rare outcome za ukończenie wszystkich aktywności festiwalu.
+  File "game/debug_scene_tester.rpy", line 2434, in <module>"reset": _dst_zoe_coffee_reset,^^^^^^^^^^^^^^^^^^^^^ NameError: name '_dst_zoe_coffee_reset' is not defined
