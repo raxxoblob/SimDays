@@ -1,3 +1,14 @@
+# Fallback no-op definitions (overridden by real implementations in other .rpy files)
+python:
+    def stocks_init(*a, **kw): pass
+    def refresh_market_listings(*a, **kw): pass
+    def refresh_mech_jobs(*a, **kw): pass
+    def kinky_sms_daily_check(*a, **kw): pass
+    def wed_poll_personal(*a, **kw): return None
+    def _fs_set_track_baseline(*a, **kw): pass
+    def marcus_is_home(*a, **kw): return False
+    def npc_interact(*a, **kw): pass
+
 # Entry point
 
 label start:
