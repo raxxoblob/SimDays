@@ -2212,7 +2212,7 @@ init 4 python:
 # Presets set state, then the existing launchers give the dialogue-only labels
 # a call frame: marcus_friendship_test for Marcus, rc_continuity_test for Zoe.
 # No new tester architecture.
-init python:
+init 6 python:
 
     def _dst_sd_noop():
         renpy.notify("Nothing to reset — the self-check restores its own state")
