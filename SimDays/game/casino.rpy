@@ -508,7 +508,7 @@ screen casino_blackjack():
             if bj_game.phase == "betting":
                 hbox:
                     xalign 0.5 ypos 424
-                    spacing 14 yalign 0.5
+                    spacing 14
                     text ("$%d" % bj_game.bet):
                         font PROFILE_FONT size 28 color "#d4af37" yalign 0.5
                     if _bchips:
@@ -802,7 +802,7 @@ screen casino_roulette():
 
                 # Total bet + clear
                 hbox:
-                    xpos 0 ypos 440 spacing 16 yalign 0.5
+                    xpos 0 ypos 440 spacing 16
                     text ("Total  $%d" % rou_game.total_bet()):
                         font PROFILE_FONT size 20 color "#d4af37" yalign 0.5
                     if rou_game.bets and not _rou_locked:

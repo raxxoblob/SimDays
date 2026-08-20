@@ -85,58 +85,57 @@ init python:
     # Probability of sending a message per character per day check.
     KINKY_SMS_DAILY_CHANCE = 0.35
 
+python:
 
-def kinky_sms_tier(affection):
-    """Return the tier string for a given affection value."""
-    if affection >= 75:
-        return "kinky"
-    elif affection >= 50:
-        return "flirty"
-    elif affection >= 30:
-        return "sweet"
-    else:
-        return None
+    def kinky_sms_tier(affection):
+        """Return the tier string for a given affection value."""
+        if affection >= 75:
+            return "kinky"
+        elif affection >= 50:
+            return "flirty"
+        elif affection >= 30:
+            return "sweet"
+        else:
+            return None
 
+    def kinky_sms_pick_message(char_id, tier):
+        """Pick a random message from the pool for a character and tier."""
+        import random
+        pools = KINKY_SMS_POOLS.get(char_id)
+        if not pools or tier not in pools:
+            return None
+        msgs = pools[tier]
+        if not msgs:
+            return None
+        return random.choice(msgs)
 
-def kinky_sms_pick_message(char_id, tier):
-    """Pick a random message from the pool for a character and tier."""
-    import random
-    pools = KINKY_SMS_POOLS.get(char_id)
-    if not pools or tier not in pools:
-        return None
-    msgs = pools[tier]
-    if not msgs:
-        return None
-    return random.choice(msgs)
-
-
-def kinky_sms_daily_check():
-    """
-    Called once per day. For each eligible character, roll the daily chance.
-    If it passes and affection is >= 30, send a tier-appropriate SMS to the phone inbox.
-    Returns list of (char_id, message_text) tuples that were sent.
-    """
-    import random
-    sent = []
-    for char_id in KINKY_SMS_CHARACTERS:
-        # Get affection from store (fallback to 0 if not set).
-        aff_key = char_id + "_affection"
-        affection = getattr(store, aff_key, 0)
-        tier = kinky_sms_tier(affection)
-        if tier is None:
-            continue
-        if random.random() > KINKY_SMS_DAILY_CHANCE:
-            continue
-        msg = kinky_sms_pick_message(char_id, tier)
-        if msg is None:
-            continue
-        # Add to phone inbox. The phone system stores messages as a list of dicts.
-        if not hasattr(store, "phone_inbox"):
-            store.phone_inbox = []
-        store.phone_inbox.append({
-            "sender": char_id,
-            "text": msg,
-            "tier": tier,
-        })
-        sent.append((char_id, msg))
-    return sent
+    def kinky_sms_daily_check():
+        """
+        Called once per day. For each eligible character, roll the daily chance.
+        If it passes and affection is >= 30, send a tier-appropriate SMS to the phone inbox.
+        Returns list of (char_id, message_text) tuples that were sent.
+        """
+        import random
+        sent = []
+        for char_id in KINKY_SMS_CHARACTERS:
+            # Get affection from store (fallback to 0 if not set).
+            aff_key = char_id + "_affection"
+            affection = getattr(store, aff_key, 0)
+            tier = kinky_sms_tier(affection)
+            if tier is None:
+                continue
+            if random.random() > KINKY_SMS_DAILY_CHANCE:
+                continue
+            msg = kinky_sms_pick_message(char_id, tier)
+            if msg is None:
+                continue
+            # Add to phone inbox. The phone system stores messages as a list of dicts.
+            if not hasattr(store, "phone_inbox"):
+                store.phone_inbox = []
+            store.phone_inbox.append({
+                "sender": char_id,
+                "text": msg,
+                "tier": tier,
+            })
+            sent.append((char_id, msg))
+        return sent
