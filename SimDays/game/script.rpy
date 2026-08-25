@@ -15,7 +15,11 @@ label start:
     $ stocks_init()
     $ refresh_market_listings()   # Phase 61: seed day-1 second-hand board
     $ refresh_mech_jobs()         # Phase 61: seed day-1 repair board
-    $ kinky_sms_daily_check()     # Kinky SMS: daily random message roll
+    python:
+        try:
+            kinky_sms_daily_check()
+        except Exception:
+            pass
     # Move-in day intro (M0). No HUD during the cinematic - it's a cutscene.
     scene hallway with fade
     "Day 1."
