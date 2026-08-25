@@ -3,7 +3,7 @@ python:
     def stocks_init(*a, **kw): pass
     def refresh_market_listings(*a, **kw): pass
     def refresh_mech_jobs(*a, **kw): pass
-    def kinky_sms_daily_check(*a, **kw): pass
+    def sms_daily_check(*a, **kw): pass
     def wed_poll_personal(*a, **kw): return None
     def _fs_set_track_baseline(*a, **kw): pass
     def marcus_is_home(*a, **kw): return False
@@ -17,7 +17,7 @@ label start:
     $ refresh_mech_jobs()         # Phase 61: seed day-1 repair board
     python:
         try:
-            kinky_sms_daily_check()
+            sms_daily_check()
         except Exception:
             pass
     # Move-in day intro (M0). No HUD during the cinematic - it's a cutscene.
@@ -128,7 +128,7 @@ label location_hallway:
     show screen hud
     python:
         try:
-            kinky_sms_daily_check()
+            sms_daily_check()
         except Exception:
             pass
     if not marcus_met:
