@@ -1,5 +1,11 @@
 # Fallback no-op definitions (overridden by real implementations in other .rpy files)
 python:
+    # Adult content toggle — set to False for a clean build while testing.
+    adult_mode = True
+
+    def is_adult(*a, **kw):
+        return adult_mode
+
     def stocks_init(*a, **kw): pass
     def refresh_market_listings(*a, **kw): pass
     def refresh_mech_jobs(*a, **kw): pass
