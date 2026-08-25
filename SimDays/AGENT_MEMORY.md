@@ -1,0 +1,2 @@
+# Historia zmian Agenta
+
