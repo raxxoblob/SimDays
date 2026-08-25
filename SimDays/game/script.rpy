@@ -126,7 +126,11 @@ label zone_locked_suburbs:
 label location_hallway:
     scene hallway
     show screen hud
-    $ kinky_sms_daily_check()
+    python:
+        try:
+            kinky_sms_daily_check()
+        except Exception:
+            pass
     if not marcus_met:
         jump marcus_intro_hallway
     $ _wed_per = wed_poll_personal("location_hallway")
