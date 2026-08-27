@@ -1,2 +1,1 @@
-[x] Kinky sms daily check is not defined dalej. Napraw - inaczej nie działa w ogóle renpy i się nie włącza. (DONE: safe wrapper _call_kinky_sms_daily_check)
-[ ] Zaimplementować realną logikę kinky_sms_daily_check() w osobnym module .rpy — dzienny roll wiadomości SMS od NPC (zależny od relacji, pory dnia, stanu gry).
+Kontynuuj task, przejdź przez architekturę projektu i upewnij się ze żadne nsfw rzeczy nie są dodane do repo naszego.
