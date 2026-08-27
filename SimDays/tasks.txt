@@ -1,1 +1,6 @@
-Kontynuuj task, przejdź przez architekturę projektu i upewnij się ze żadne nsfw rzeczy nie są dodane do repo naszego.
+[done] Ustawiono adult_mode = False w game/script.rpy — repo domyślnie czyste.
+[done] Zaktualizowano AGENT_MEMORY.md o zmianę domyślnej wartości flagi.
+
+- Przejść przez wszystkie .rpy (locations, npcs, screens) i zweryfikować czy żadne sceny NSFW nie są hardkodowane poza is_adult().
+- Dodać guard `if not is_adult():` przy każdej scenie adultowej która jeszcze go nie ma.
+- Sprawdzić assets/ — czy w repo nie ma tekstur/sprite'ów z wariantami "adult" (np. _nsfw, _bikini, _lingerie).
