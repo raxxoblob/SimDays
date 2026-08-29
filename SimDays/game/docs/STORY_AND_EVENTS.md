@@ -35,7 +35,7 @@ MC moves to a new city. First days establish home, neighbour (Marcus), and the n
 | M4 — Home Evening (no reason) | IMPLEMENTED | `zoe_home_no_reason_done` |
 | M5 — Group Public Recognition | IMPLEMENTED | (requires M3 + M4) |
 | M6 — Commitment (terrace) | IMPLEMENTED | `zoe_commitment_done` |
-| M7 — Love Spoken | IMPLEMENTED | `zoe_love_spoken_done` |
+| M7 — Love Spoken | IMPLEMENTED | `zoe_love_spoken` (no `_done` suffix) |
 | Romance reopen | IMPLEMENTED | `zoe_reopen_done` |
 
 ### Current Next Work: Beach Dating Breakpoint
@@ -157,7 +157,8 @@ IMPLEMENTED. Multi-scene shared sequence. Zoe romance branch exists.
 
 Structure: shared sequence → optional short character/romance branch → reconvergence → shared event continues.
 
-Director CG needed: `game/director_romance/summer_festival_romance.rpy`, label `summer_festival_zoe_romance`.
+Director slot called from `summer_festival.rpy:798` via `renpy.has_label("summer_festival_zoe_romance")` — label guarded, not yet authored.
+Director file needed: `game/director_romance/summer_festival_romance.rpy`, label `summer_festival_zoe_romance` (PLANNED — engine slot exists, label missing).
 
 ### Art and Culture Night
 
