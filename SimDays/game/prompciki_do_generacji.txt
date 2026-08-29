@@ -1,0 +1,219 @@
+Chcę stworzyć nową postać do istniejącej gry visual novel/anime. Gra ma już ustalony styl graficzny, więc przygotuj prompty tak, żeby nowa postać pasowała do obecnych assetów.
+
+Styl gry:
+
+* anime visual novel,
+* clean character design,
+* sharp lineart,
+* soft cel shading,
+* czyste kolory,
+* czytelna sylwetka,
+* nie semi-realistic,
+* nie painterly,
+* nie glossy fashion illustration,
+* nie photorealistic,
+* spójne z istniejącymi postaciami takimi jak Zoe i Marcus,
+* sprite’y dialogowe mają mieć podobny kadr, skalę i poziom detalu jak istniejące sprite’y.
+
+Na podstawie poniższego opisu przygotuj kompletny zestaw promptów.
+
+Najpierw przygotuj prompt na **character reference sheet**:
+
+* pełna sylwetka front view i back view,
+* ta sama postać przód i tył,
+* neutralna poza,
+* plain light gray background,
+* studio lighting,
+* clear silhouette,
+* detailed outfit from front and back,
+* styl zgodny z istniejącymi reference sheetami Zoe/Marcus.
+
+Potem przygotuj prompty na **sprite’y dialogowe**:
+
+* vertical portrait sprite,
+* transparent background / alpha channel,
+* isolated game sprite,
+* clean cutout edges,
+* postać widoczna od czubka głowy do okolic połowy uda / upper-thigh,
+* waist/belt area visible,
+* nie bust-only,
+* nie full body,
+* podobna skala i kadr jak istniejące sprite’y Zoe,
+* bez tła,
+* bez scenery,
+* bez tekstu.
+
+Dla każdej mimiki przygotuj osobny prompt. Mimikami mają być:
+[tu wpisz mimiki, np. neutral, talking, laugh, concerned, tired]
+
+Jeśli postać ma kilka outfitów, przygotuj prompty osobno dla każdego outfitu:
+Outfit A: [opis]
+Outfit B: [opis]
+Outfit C: [opis]
+
+W każdym promptcie pilnuj:
+
+* ta sama twarz,
+* ten sam kolor skóry,
+* ta sama fryzura,
+* te same proporcje,
+* ten sam styl anime gry,
+* spójność z istniejącymi assetami,
+* różni się tylko outfit albo mimika,
+* żadnego tła przy sprite’ach.
+
+Dodaj też jeden mocny **negative prompt** do całego zestawu, szczególnie przeciwko:
+
+* different art style,
+* semi-realistic,
+* painterly rendering,
+* glossy rendering,
+* fashion illustration,
+* photorealistic,
+* wrong crop,
+* bust-only,
+* full body,
+* background,
+* changed face,
+* changed hairstyle,
+* changed outfit.
+
+Opis postaci:
+[wklejam opis postaci]
+
+
+
+
+
+
+
+
+
+
+
+
+Chcę wygenerować nową lokację do istniejącej gry visual novel/anime. Gra ma już ustalony styl graficzny, więc przygotuj prompt tak, żeby lokacja pasowała do obecnych backgroundów i postaci.
+
+Styl gry:
+
+* anime visual novel background,
+* clean lineart,
+* soft cel shading,
+* warm natural lighting albo lighting zgodny z opisem sceny,
+* szczegółowe, ale nie przeładowane,
+* czytelna perspektywa,
+* nie photorealistic,
+* nie 3D render,
+* nie painterly fantasy illustration,
+* spójne z istniejącymi lokacjami gry,
+* postacie/sprite’y powinny dobrze wyglądać na tym tle.
+
+Przygotuj:
+
+1. prompt główny do generacji lokacji,
+2. negative prompt,
+3. krótką listę wariantów lokacji, które warto wygenerować później.
+
+Wymagania dla lokacji:
+
+* format 16:9 horizontal,
+* bez postaci,
+* bez ludzi,
+* bez tekstu,
+* bez UI,
+* bez speech bubbles,
+* bez watermarków,
+* zostaw trochę wolnej przestrzeni na sprite’y postaci,
+* kompozycja powinna działać jako VN background,
+* ważne elementy sceny powinny być czytelne, ale nie powinny blokować miejsca na postacie.
+
+Jeśli opis dotyczy lokacji fabularnej, dopilnuj, żeby prompt zawierał:
+
+* nastrój sceny,
+* porę dnia,
+* poziom zamożności / status miejsca,
+* detale charakterystyczne dla tej lokacji,
+* elementy przydatne w narracji.
+
+Opis lokacji:
+[wklejam opis lokacji]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chcę przygotować scenkę do istniejącej gry visual novel/anime jako serię spójnych event CG.
+
+To NIE mają być sprite’y na tle. To mają być cinematic event CG, gdzie postać jest częścią sceny i naturalnie w niej działa.
+
+Gra ma już ustalony styl:
+
+* anime visual novel,
+* clean lineart,
+* soft cel shading,
+* spójne kolory,
+* grounded slice-of-life / cinematic VN mood,
+* nie semi-realistic,
+* nie painterly,
+* nie glossy,
+* nie 3D,
+* nie photorealistic,
+* zgodne z istniejącymi postaciami i lokacjami gry.
+
+Na podstawie poniższego scenariusza:
+
+1. zaproponuj minimalną sensowną liczbę grafik do sceny,
+2. opcjonalnie zaproponuj dodatkowe ujęcia,
+3. przygotuj gotowy prompt do każdej grafiki,
+4. dodaj wspólny negative prompt.
+
+Ważne zasady:
+
+* format 16:9 horizontal,
+* postacie są zintegrowane z tłem,
+* nie używaj stylu sprite’a,
+* nie pisz “transparent background”,
+* nie pisz “centered character sprite”,
+* nie pisz “waist-up sprite”,
+* używaj cinematic camera language: establishing shot, over-the-shoulder, side angle, mid-step, reaction shot, close-up, hallway depth, natural motion,
+* postacie nie mają stać sztywno frontem jak sprite,
+* ruchy mają wyglądać naturalnie,
+* kadry mają opowiadać scenę,
+* zachowaj ciągłość lokacji, oświetlenia, ubrań i wyglądu postaci,
+* bez tekstu, UI, speech bubbles i watermarków.
+
+Jeśli podam istniejącą lokację lub postać jako referencję, w promptach uwzględnij:
+
+* “using the provided location image as the exact background/location reference”
+* “using the provided character reference sheet as the exact character identity reference”
+* “match the established art style of the existing game assets”
+
+Dla każdej grafiki przygotuj:
+
+* nazwę ujęcia,
+* po co jest w scenie,
+* prompt główny,
+* krótkie uwagi, co pilnować przy generacji.
+
+Scenariusz:
+[wklejam scenariusz]
+
+

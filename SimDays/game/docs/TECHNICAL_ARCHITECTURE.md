@@ -36,7 +36,8 @@ All paths below are relative to that root.
 ## Key Helper Contracts
 
 ### FIRST KISS
-`_commit_first_kiss(npc_id)` in `interact.rpy`
+`_commit_first_kiss(npc_id)` — primary definition in `interact.rpy` (line ~1580).
+A local Zoe-specific override also exists at `zoe_romance_milestones.rpy:205` — do not bypass either.
 → Records `first_kiss_{npc_id}` relationship memory, grants `attraction=6` via `apply_relationship_change`.
 → **Always use this. Do not recreate first-kiss state changes independently.**
 
@@ -86,6 +87,8 @@ label location_X:
 ```
 eligibility helper (_zoe_m2_beach_eligible)
     → initiative message wired in _INITIATIVE_VARIANTS
+      (NPC files patch phone_actionable.rpy dicts at init 5 python:
+       e.g. zoe_romance_milestones.rpy owns zoe_msg_beach_dating wiring)
     → player response label (npc_ini_zoe_bdating_ok/nine/cant)
     → add_commitment(...)
     ↓
@@ -138,7 +141,7 @@ Directory `game/director_romance/` — DOES NOT YET EXIST.
 | `zoe_beach_after_dark_romance.rpy` | `zoe_beach_after_dark_payoff` | dating, post-first-kiss | M3 beach night payoff |
 | `zoe_commitment_romance.rpy` | `zoe_commitment_payoff` | dating | M6 terrace commitment |
 | `zoe_love_spoken_romance.rpy` | `zoe_love_spoken_payoff` | committed | M7 love spoken |
-| `summer_festival_romance.rpy` | `summer_festival_zoe_romance` | any romance state | Festival branch |
+| `summer_festival_romance.rpy` | `summer_festival_zoe_romance` | any romance state | Festival branch (engine slot exists in summer_festival.rpy:798; label missing) |
 
 ---
 

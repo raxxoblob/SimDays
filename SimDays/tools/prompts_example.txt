@@ -1,0 +1,18 @@
+## SCENE: zoe_beach_night
+anime visual novel CG, young woman with short dark hair standing at beach at night, barefoot in sand, dark ocean behind her, moonlight, soft blue tones, looking over shoulder, cel shading, clean lineart
+--
+anime visual novel CG, same woman sitting on beach rocks at night, knees pulled up, looking at horizon, moody lighting, soft shadows, consistent character design
+--
+anime visual novel CG, close-up, woman's face in moonlight, slight smile, ocean wind in hair, warm eyes, detailed expression, night atmosphere
+
+## SCENE: marcus_court
+anime visual novel CG, young Black man in casual clothes on basketball court, holding ball, confident pose, afternoon light, urban background, clean cel shading
+--
+anime visual novel CG, same man mid-jump, releasing basketball, dynamic pose, court lights, consistent face and outfit, motion blur on ball
+--
+anime visual novel CG, two men talking on basketball court bench after game, one is Black man in casual wear, both sweating slightly, relaxed atmosphere, warm late afternoon light
+
+## SCENE: zoe_exhibition
+anime visual novel CG, woman in simple black dress standing in front of large abstract painting in gallery, soft warm gallery lighting, elegant minimal interior, proud but nervous expression
+--
+anime visual novel CG, gallery opening night, same woman talking to a visitor, champagne glass in hand, artwork visible on walls behind, social setting, warm interior lighting
